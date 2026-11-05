@@ -48,7 +48,7 @@ jobs:
       - name: Build
         env:
           SITE_BASE: ${{ steps.endereco.outputs.base }}
-          SITE_URL: ${{ steps.endereco.outputs.url }}
+          SITE_URL: https://dg-senac.github.io/casal-na-estrada
         run: npm run build
 
       # Se o repositório tiver um domínio próprio configurado (arquivo CNAME
