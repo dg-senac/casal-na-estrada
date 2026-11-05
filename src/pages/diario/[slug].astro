@@ -31,6 +31,7 @@ const dataLonga = new Intl.DateTimeFormat('pt-BR', {
 
 const palavras = (post.body ?? '').split(/\s+/).filter(Boolean).length;
 const leitura = Math.max(1, Math.round(palavras / 200));
+import { url } from '../../lib/url';
 ---
 
 <Base title={data.titulo} description={data.resumo} image={data.capa}>
@@ -38,7 +39,7 @@ const leitura = Math.max(1, Math.round(palavras / 200));
     <header class="hero-post">
       <div class="wrap hero-post__in">
         <div class="hero-post__meta">
-          <a class="back" href="/diario">← Diário</a>
+          <a class="back" href={url("/diario")}>← Diário</a>
           <span class="hero-post__tipo">{data.tipo}</span>
         </div>
         <h1 class="hero-post__title">{data.titulo}</h1>
@@ -70,7 +71,7 @@ const leitura = Math.max(1, Math.round(palavras / 200));
 
     <figure class="hero-post__figure wrap">
       <div class="photo photo--duotone hero-post__photo">
-        <img src={data.capa} alt={data.capaAlt} width="1600" height="1000" />
+        <img src={url(data.capa)} alt={data.capaAlt} width="1600" height="1000" />
       </div>
       <figcaption>{data.capaAlt}</figcaption>
     </figure>
@@ -88,7 +89,7 @@ const leitura = Math.max(1, Math.round(palavras / 200));
             Casal de Recife na estrada desde {site.desde}. Rodamos o Brasil atrás de encontros
             de moto e boas conversas.
           </p>
-          <a class="link-arrow" href="/sobre">Conhecer o casal →</a>
+          <a class="link-arrow" href={url("/sobre")}>Conhecer o casal →</a>
         </div>
 
         {

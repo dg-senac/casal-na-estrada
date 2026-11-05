@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
 ---
 
 <Base title="Estrada não encontrada" noindex>
@@ -11,8 +12,8 @@ import Base from '../layouts/Base.astro';
       Volta pro começo e escolhe outro caminho.
     </p>
     <div class="nao-achou__acoes">
-      <a class="btn btn--solid" href="/">Voltar ao início</a>
-      <a class="btn" href="/diario">Ver o diário</a>
+      <a class="btn btn--solid" href={url("/")}>Voltar ao início</a>
+      <a class="btn" href={url("/diario")}>Ver o diário</a>
     </div>
   </section>
 </Base>

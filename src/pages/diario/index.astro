@@ -16,6 +16,7 @@ for (const p of posts) {
   if (!porAno.has(ano)) porAno.set(ano, []);
   porAno.get(ano)!.push(p);
 }
+import { url } from '../../lib/url';
 ---
 
 <Base
@@ -64,7 +65,7 @@ for (const p of posts) {
                 <ul>
                   {lista.map((p) => (
                     <li>
-                      <a href={`/diario/${p.id}`}>{p.data.titulo}</a>
+                      <a href={url(`/diario/${p.id}`)}>{p.data.titulo}</a>
                     </li>
                   ))}
                 </ul>

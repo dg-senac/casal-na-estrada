@@ -16,11 +16,12 @@ const dataLonga = new Intl.DateTimeFormat('pt-BR', {
   month: 'long',
   year: 'numeric',
 }).format(data.data);
+import { url } from '../lib/url';
 ---
 
 <article class:list={['post', `post--${variante}`]} data-reveal style={`--reveal-delay:${delay}ms`}>
-  <a class="post__media photo" href={`/diario/${post.id}`} tabindex="-1" aria-hidden="true">
-    <img src={data.capa} alt={data.capaAlt} loading="lazy" />
+  <a class="post__media photo" href={url(`/diario/${post.id}`)} tabindex="-1" aria-hidden="true">
+    <img src={url(data.capa)} alt={data.capaAlt} loading="lazy" />
   </a>
 
   <div class="post__body">
@@ -29,7 +30,7 @@ const dataLonga = new Intl.DateTimeFormat('pt-BR', {
       <span>{dataLonga}</span>
     </div>
 
-    <h3 class="post__title"><a href={`/diario/${post.id}`}>{data.titulo}</a></h3>
+    <h3 class="post__title"><a href={url(`/diario/${post.id}`)}>{data.titulo}</a></h3>
 
     <p class="post__resumo">{data.resumo}</p>
 

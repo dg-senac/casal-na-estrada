@@ -1,0 +1,69 @@
+name: Publicar no GitHub Pages
+
+# Publica o site no GitHub Pages a cada push na branch principal.
+# Antes de rodar, em Settings → Pages, escolha "GitHub Actions" como fonte.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Descobrir o endereço do site
+        id: endereco
+        run: |
+          repo="${GITHUB_REPOSITORY#*/}"
+          owner="${GITHUB_REPOSITORY%%/*}"
+          if [ "$repo" = "$owner.github.io" ]; then
+            # repositório de usuário: o site fica na raiz
+            echo "base=/" >> "$GITHUB_OUTPUT"
+            echo "url=https://$owner.github.io" >> "$GITHUB_OUTPUT"
+          else
+            # repositório de projeto: o site fica em /nome-do-repositorio/
+            echo "base=/$repo/" >> "$GITHUB_OUTPUT"
+            echo "url=https://$owner.github.io/$repo" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build
+        env:
+          SITE_BASE: ${{ steps.endereco.outputs.base }}
+          SITE_URL: ${{ steps.endereco.outputs.url }}
+        run: npm run build
+
+      # Se o repositório tiver um domínio próprio configurado (arquivo CNAME
+      # em public/), o build de domínio próprio já cobre esse caso; aqui
+      # sobrescrevemos o CNAME apenas se você criar public/CNAME manualmente.
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

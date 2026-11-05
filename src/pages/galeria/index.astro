@@ -11,6 +11,7 @@ const totalVideos = albuns.reduce((n, a) => n + a.data.videos.length, 0);
 
 const dataCurta = (d: Date) =>
   new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(d).replace('.', '');
+import { url } from '../../lib/url';
 ---
 
 <Base
@@ -43,9 +44,9 @@ const dataCurta = (d: Date) =>
               data-reveal
               style={`--reveal-delay:${(i % 3) * 80}ms`}
             >
-              <a class="album__link" href={`/galeria/${album.id}`}>
+              <a class="album__link" href={url(`/galeria/${album.id}`)}>
                 <div class="photo album__photo">
-                  <img src={album.data.capa} alt={album.data.capaAlt} loading="lazy" />
+                  <img src={url(album.data.capa)} alt={album.data.capaAlt} loading="lazy" />
                   <span class="album__count">
                     {album.data.fotos.length + album.data.videos.length} registros
                   </span>

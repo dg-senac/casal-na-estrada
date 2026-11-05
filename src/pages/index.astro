@@ -23,6 +23,7 @@ const dataCurta = (d: Date) =>
 
 const medalha: Record<string, string> = { ouro: '1º', prata: '2º', bronze: '3º', laco: 'Part.' };
 const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 'prata').slice(0, 5);
+import { url } from '../lib/url';
 ---
 
 <section class="hero">
@@ -38,14 +39,14 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
         Este site é a nossa caderneta — aberta pra quem quiser folhear.
       </p>
       <div class="hero__actions">
-        <a class="btn btn--solid" href="/diario">Ler o diário</a>
-        <a class="btn" href="/galeria">Ver as fotos</a>
+        <a class="btn btn--solid" href={url("/diario")}>Ler o diário</a>
+        <a class="btn" href={url("/galeria")}>Ver as fotos</a>
       </div>
     </div>
 
     <figure class="hero__media">
       <div class="photo photo--duotone hero__photo">
-        <img src="/media/placeholder-estrada-02.jpg" alt="Casal de capacete seguindo por uma estrada de terra no sertão, vistos por trás" width="1400" height="900" />
+        <img src={url("/media/placeholder-estrada-02.jpg")} alt="Casal de capacete seguindo por uma estrada de terra no sertão, vistos por trás" width="1400" height="900" />
       </div>
       <figcaption class="hero__caption">
         <span class="hero__caption-num">Nº 01</span>
@@ -76,14 +77,14 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
         <p class="eyebrow">Última do diário</p>
         <h2>Manchete da estrada</h2>
       </div>
-      <a class="link-arrow" href="/diario">Todas as publicações →</a>
+      <a class="link-arrow" href={url("/diario")}>Todas as publicações →</a>
     </div>
 
     {
       manchete && (
         <article class="headline" data-reveal>
-          <a class="headline__media photo photo--duotone" href={`/diario/${manchete.id}`}>
-            <img src={manchete.data.capa} alt={manchete.data.capaAlt} loading="eager" />
+          <a class="headline__media photo photo--duotone" href={url(`/diario/${manchete.id}`)}>
+            <img src={url(manchete.data.capa)} alt={manchete.data.capaAlt} loading="eager" />
           </a>
           <div class="headline__body">
             <div class="headline__kicker">
@@ -91,11 +92,11 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
               <span>{dataCurta(manchete.data.data)} · {manchete.data.local}</span>
             </div>
             <h3 class="headline__title">
-              <a href={`/diario/${manchete.id}`}>{manchete.data.titulo}</a>
+              <a href={url(`/diario/${manchete.id}`)}>{manchete.data.titulo}</a>
             </h3>
             <p class="headline__resumo">{manchete.data.resumo}</p>
             <div class="headline__foot">
-              <a class="link-arrow" href={`/diario/${manchete.id}`}>Continuar lendo →</a>
+              <a class="link-arrow" href={url(`/diario/${manchete.id}`)}>Continuar lendo →</a>
               {manchete.data.distancia && (
                 <span class="small-caps">{manchete.data.distancia} de asfalto e poeira</span>
               )}
@@ -109,8 +110,8 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
       {
         ultimas.map((post, i) => (
           <article class="ultima" data-reveal style={`--reveal-delay:${i * 90}ms`}>
-            <a class="ultima__media photo" href={`/diario/${post.id}`}>
-              <img src={post.data.capa} alt={post.data.capaAlt} loading="lazy" />
+            <a class="ultima__media photo" href={url(`/diario/${post.id}`)}>
+              <img src={url(post.data.capa)} alt={post.data.capaAlt} loading="lazy" />
             </a>
             <div class="ultima__body">
               <div class="ultima__kicker">
@@ -119,7 +120,7 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
                 <span>{post.data.local}</span>
               </div>
               <h3 class="ultima__title">
-                <a href={`/diario/${post.id}`}>{post.data.titulo}</a>
+                <a href={url(`/diario/${post.id}`)}>{post.data.titulo}</a>
               </h3>
               <p class="ultima__resumo">{post.data.resumo}</p>
             </div>
@@ -138,15 +139,15 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
         <p class="eyebrow eyebrow--light">Álbuns de estrada</p>
         <h2>O que a lente viu</h2>
       </div>
-      <a class="link-arrow" href="/galeria">Abrir a galeria →</a>
+      <a class="link-arrow" href={url("/galeria")}>Abrir a galeria →</a>
     </div>
 
     <div class="mosaico">
       {
         albumCapa && (
-          <a class="mosaico__main" href={`/galeria/${albumCapa.id}`} data-reveal>
+          <a class="mosaico__main" href={url(`/galeria/${albumCapa.id}`)} data-reveal>
             <div class="photo">
-              <img src={albumCapa.data.capa} alt={albumCapa.data.capaAlt} loading="lazy" />
+              <img src={url(albumCapa.data.capa)} alt={albumCapa.data.capaAlt} loading="lazy" />
             </div>
             <div class="mosaico__label">
               <span class="mosaico__count">{albumCapa.data.fotos.length} fotos</span>
@@ -159,9 +160,9 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
       {
         albumMosaico && (
           <div class="mosaico__side" data-reveal style="--reveal-delay:120ms">
-            <a class="mosaico__small" href={`/galeria/${albumMosaico.id}`}>
+            <a class="mosaico__small" href={url(`/galeria/${albumMosaico.id}`)}>
               <div class="photo">
-                <img src={albumMosaico.data.capa} alt={albumMosaico.data.capaAlt} loading="lazy" />
+                <img src={url(albumMosaico.data.capa)} alt={albumMosaico.data.capaAlt} loading="lazy" />
               </div>
               <div class="mosaico__label mosaico__label--sm">
                 <h3>{albumMosaico.data.titulo}</h3>
@@ -191,7 +192,7 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
         <p class="eyebrow">Sala de troféus</p>
         <h2>Prateleira que não cabe mais</h2>
       </div>
-      <a class="link-arrow" href="/trofeus">Ver todos os {trofeus.length} →</a>
+      <a class="link-arrow" href={url("/trofeus")}>Ver todos os {trofeus.length} →</a>
     </div>
 
     <div class="trofeus-home">
@@ -219,7 +220,7 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
           Cada um tem um encontro, um nome e uma história atrás. A ideia é fotografar todos e
           deixar essa prateleira visível pra vocês também, um por um, sem pressa.
         </p>
-        <a class="btn" href="/trofeus">Entrar na sala de troféus</a>
+        <a class="btn" href={url("/trofeus")}>Entrar na sala de troféus</a>
       </div>
     </div>
   </div>
@@ -235,7 +236,7 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
         Se você estiver por perto, chega junto. A gente adora conhecer gente nova do movimento —
         e sempre tem um café na garrafa térmica.
       </p>
-      <a class="btn btn--rust" href="/encontros" style="margin-top:0.8rem">Ver agenda completa</a>
+      <a class="btn btn--rust" href={url("/encontros")} style="margin-top:0.8rem">Ver agenda completa</a>
     </div>
 
     <div class="agenda-home__list">

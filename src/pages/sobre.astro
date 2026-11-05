@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
+import { url } from '../lib/url';
 ---
 
 <Base
@@ -27,7 +28,7 @@ import { site } from '../data/site';
       <figure class="sobre__foto" data-reveal>
         <div class="photo">
           <img
-            src="/media/placeholder-estrada-05.jpg"
+            src={url("/media/placeholder-estrada-05.jpg")}
             alt="Casal de jaqueta ao lado da moto carregada numa parada de beira de estrada"
             width="1400"
             height="1000"

@@ -30,6 +30,7 @@ npm run preview  # confere o resultado do build
 | Menu e rodapé | `src/components/Header.astro`, `src/components/Footer.astro` |
 | Textos da página "O Casal" | `src/pages/sobre.astro` |
 | Textos da home | `src/pages/index.astro` |
+| Links e caminhos de imagem no código | `src/lib/url.ts` (função `url()`) |
 
 ### Publicar uma notícia / crônica no Diário
 
@@ -147,14 +148,38 @@ grande, ex. impressão ou og:image).
 
 ## Deploy
 
-Qualquer host estático funciona. Exemplos:
+### Opção 1 — GitHub Pages (grátis, direto do repositório)
+
+O projeto já vem com o workflow `.github/workflows/deploy.yml`: **cada push na `main`
+publica o site sozinho**.
+
+1. No GitHub, abra **Settings → Pages** e em *Source* escolha **GitHub Actions**.
+2. Faça o merge do pull request na `main` (ou dê push nela).
+3. Acompanhe em **Actions** — o job "Publicar no GitHub Pages" roda o build e publica.
+4. O endereço sai como `https://SEU-USUARIO.github.io/casal-na-estrada/`.
+
+O workflow descobre esse endereço sozinho e passa `SITE_BASE=/casal-na-estrada/` no build,
+para que links, imagens e CSS funcionem dentro da subpasta. Não precisa editar nada.
+
+> O primeiro deploy pode falhar com "Get Pages site failed": é só confirmar
+> **Settings → Pages → Source: GitHub Actions** e rodar o workflow de novo
+> (aba Actions → Publicar no GitHub Pages → Re-run all jobs).
+
+**Domínio próprio** (ex.: `casalnaestrada.com.br`): crie o arquivo `public/CNAME` com uma
+linha contendo o domínio, aponte no seu provedor de DNS um registro `CNAME` para
+`SEU-USUARIO.github.io` e preencha o campo em Settings → Pages → Custom domain
+(marque *Enforce HTTPS*). Com domínio próprio o site passa a ficar na raiz, então defina no
+workflow `SITE_BASE: /` — ou simplesmente troque o passo "Descobrir o endereço do site" por
+`echo "base=/"`.
+
+### Opção 2 — hospedagem estática comum
 
 - **Netlify**: build `npm run build`, pasta `dist`
 - **Vercel**: framework detectado automaticamente
 - **Cloudflare Pages**: build `npm run build`, saída `dist`
-- **GitHub Pages**: rode `npm run build` e publique a pasta `dist`
 
-Depois de apontar o domínio, atualize a chave `site` em `astro.config.mjs` para o endereço
+Nesses casos o site fica na raiz e nenhuma variável é necessária. Depois de apontar o
+domínio, ajuste `SITE_URL` (ou a chave `site` em `astro.config.mjs`) para o endereço
 definitivo, senão o sitemap aponta para o lugar errado.
 
 ## Acessibilidade e detalhes de acabamento

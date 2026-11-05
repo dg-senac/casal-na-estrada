@@ -1,13 +1,14 @@
 ---
 import { site } from '../data/site';
 const ano = new Date().getFullYear();
+import { url } from '../lib/url';
 ---
 
 <footer class="foot">
   <div class="wrap">
     <div class="foot__top">
       <div class="foot__brand">
-        <img src="/media/logo-144.png" alt="Emblema do Casal na Estrada" class="foot__logo" width="92" height="92" />
+        <img src={url("/media/logo-144.png")} alt="Emblema do Casal na Estrada" class="foot__logo" width="92" height="92" />
         <div>
           <p class="foot__name">{site.nome}</p>
           <p class="foot__tag">{site.nomes} · {site.base}</p>
@@ -16,17 +17,17 @@ const ano = new Date().getFullYear();
 
       <div class="foot__col">
         <p class="foot__head">Navegar</p>
-        <a href="/diario">Diário</a>
-        <a href="/galeria">Galeria</a>
-        <a href="/trofeus">Sala de troféus</a>
-        <a href="/encontros">Encontros</a>
+        <a href={url("/diario")}>Diário</a>
+        <a href={url("/galeria")}>Galeria</a>
+        <a href={url("/trofeus")}>Sala de troféus</a>
+        <a href={url("/encontros")}>Encontros</a>
       </div>
 
       <div class="foot__col">
         <p class="foot__head">O casal</p>
-        <a href="/sobre">Quem somos</a>
-        <a href="/sobre#moto">A moto</a>
-        <a href="/sobre#contato">Falar com a gente</a>
+        <a href={url("/sobre")}>Quem somos</a>
+        <a href={url("/sobre#moto")}>A moto</a>
+        <a href={url("/sobre#contato")}>Falar com a gente</a>
       </div>
 
       <div class="foot__col foot__col--contact">

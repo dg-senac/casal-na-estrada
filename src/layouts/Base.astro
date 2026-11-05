@@ -31,6 +31,7 @@ const {
 
 const pageTitle = title ? `${title} — ${site.nome}` : `${site.nome} · ${site.nomes}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://casalnaestrada.com.br');
+import { url } from '../lib/url';
 ---
 
 <!doctype html>
@@ -52,9 +53,9 @@ const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://casalnaestr
     <meta property="og:locale" content="pt_BR" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="/media/logo-144.png" />
-    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" href={url("/favicon.svg")} type="image/svg+xml" />
+    <link rel="apple-touch-icon" href={url("/media/logo-144.png")} />
+    <link rel="sitemap" href={url("/sitemap-index.xml")} />
   </head>
 
   <body>

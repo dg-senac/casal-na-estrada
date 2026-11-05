@@ -31,12 +31,13 @@ const youtubeId = (url?: string) => {
   const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);
   return m ? m[1] : null;
 };
+import { url } from '../../lib/url';
 ---
 
 <Base title={data.titulo} description={data.descricao} image={data.capa}>
   <header class="album-head">
     <div class="wrap">
-      <a class="back" href="/galeria">← Galeria</a>
+      <a class="back" href={url("/galeria")}>← Galeria</a>
       <h1 class="album-head__title">{data.titulo}</h1>
       <div class="album-head__meta">
         <span>{data.local}</span>
@@ -79,7 +80,7 @@ const youtubeId = (url?: string) => {
                     </div>
                   ) : (
                     <div class="video__frame video__frame--local">
-                      <video controls preload="metadata" src={v.arquivo} playsinline />
+                      <video controls preload="metadata" src={v.arquivo ? url(v.arquivo) : undefined} playsinline />
                     </div>
                   )}
                   <figcaption>
@@ -106,12 +107,12 @@ const youtubeId = (url?: string) => {
                 type="button"
                 class="foto__btn"
                 data-lightbox
-                data-src={foto.src}
+                data-src={url(foto.src)}
                 data-legenda={foto.legenda ?? ''}
                 data-indice={i}
                 aria-label={`Ampliar foto ${i + 1}${foto.legenda ? ': ' + foto.legenda : ''}`}
               >
-                <img src={foto.src} alt={foto.legenda ?? data.capaAlt} loading="lazy" />
+                <img src={url(foto.src)} alt={foto.legenda ?? data.capaAlt} loading="lazy" />
               </button>
               {foto.legenda && <figcaption>{foto.legenda}</figcaption>}
             </figure>
@@ -125,10 +126,10 @@ const youtubeId = (url?: string) => {
     <div class="wrap proximo-album__in">
       <div>
         <p class="eyebrow">Próximo álbum</p>
-        <h2><a href={`/galeria/${proximo.id}`}>{proximo.data.titulo}</a></h2>
+        <h2><a href={url(`/galeria/${proximo.id}`)}>{proximo.data.titulo}</a></h2>
         <p class="small-caps" style="margin:0">{proximo.data.local}</p>
       </div>
-      <a class="btn" href={`/galeria/${proximo.id}`}>Abrir →</a>
+      <a class="btn" href={url(`/galeria/${proximo.id}`)}>Abrir →</a>
     </div>
   </section>
 

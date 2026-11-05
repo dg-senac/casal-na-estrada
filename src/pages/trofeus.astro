@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import { url } from '../lib/url';
 
 const trofeus = (await getCollection('trofeus')).sort((a, b) => b.data.ano - a.data.ano);
 
@@ -74,7 +75,7 @@ const conta = (n: string) => trofeus.filter((t) => t.data.nivel === n).length;
 
                   {t.data.foto && (
                     <div class="photo trofeu__foto">
-                      <img src={t.data.foto} alt={`Troféu do ${t.data.evento}`} loading="lazy" />
+                      <img src={url(t.data.foto!)} alt={`Troféu do ${t.data.evento}`} loading="lazy" />
                     </div>
                   )}
                 </article>
