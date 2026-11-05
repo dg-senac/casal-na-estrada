@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import { site } from '../data/site';
+import Base from '../layouts/Base.astro';
 
 const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
@@ -26,6 +27,7 @@ const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 
 import { url } from '../lib/url';
 ---
 
+<Base description={site.descricao}>
 <section class="hero">
   <div class="hero__grid wrap">
     <div class="hero__copy">
@@ -855,3 +857,5 @@ import { url } from '../lib/url';
     }
   }
 </style>
+
+</Base>
