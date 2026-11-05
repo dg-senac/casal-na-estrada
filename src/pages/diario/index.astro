@@ -1,0 +1,138 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+
+const posts = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
+  (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
+);
+
+const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
+
+const anoDe = (d: Date) => d.getFullYear();
+const porAno = new Map<number, typeof posts>();
+for (const p of posts) {
+  const ano = anoDe(p.data.data);
+  if (!porAno.has(ano)) porAno.set(ano, []);
+  porAno.get(ano)!.push(p);
+}
+import { url } from '../../lib/url';
+---
+
+<Base
+  title="Diário"
+  description="Crônicas, notícias e relatos das viagens de Cieri e Milla pelo Brasil de moto."
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Caderno de estrada · {posts.length} publicações</p>
+      <h1 class="display">Diário</h1>
+      <div class="page-head__bottom">
+        <p>
+          O que aconteceu na estrada, contado sem pressa. Crônicas de viagem, notícias dos
+          encontros e os pequenos causos que a gente não quer esquecer.
+        </p>
+        <div class="tags">
+          {tags.map((t) => <span class="tag-chip">{t}</span>)}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      {
+        posts.length === 0 && <p>Em breve, as primeiras publicações.</p>
+      }
+      {
+        posts.map((post, i) => (
+          <PostCard post={post} variante={i === 0 ? 'large' : 'row'} delay={i === 0 ? 0 : 40} />
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="arquivo">
+    <div class="wrap arquivo__in">
+      <p class="eyebrow">Arquivo</p>
+      <div class="arquivo__grid">
+        {
+          [...porAno.entries()]
+            .sort((a, b) => b[0] - a[0])
+            .map(([ano, lista]) => (
+              <div class="arquivo__ano">
+                <span class="arquivo__num">{ano}</span>
+                <ul>
+                  {lista.map((p) => (
+                    <li>
+                      <a href={url(`/diario/${p.id}`)}>{p.data.titulo}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))
+        }
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    max-width: 42ch;
+  }
+
+  .tag-chip {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: 1px solid var(--line-strong);
+    padding: 0.2rem 0.55rem;
+    color: var(--ink-soft);
+  }
+
+  .arquivo {
+    border-top: 1px solid var(--line-strong);
+    background: var(--paper-2);
+    padding-block: clamp(2.4rem, 5vw, 3.6rem);
+  }
+
+  .arquivo__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.8rem 2.5rem;
+  }
+
+  .arquivo__num {
+    font-family: var(--serif);
+    font-size: 2rem;
+    display: block;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--line-strong);
+    margin-bottom: 0.6rem;
+  }
+
+  .arquivo ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.4rem;
+  }
+
+  .arquivo a {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    display: block;
+    line-height: 1.35;
+    transition: color 0.2s ease;
+  }
+
+  .arquivo a:hover {
+    color: var(--rust);
+  }
+</style>

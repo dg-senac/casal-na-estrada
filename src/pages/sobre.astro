@@ -1,0 +1,315 @@
+---
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+import { url } from '../lib/url';
+---
+
+<Base
+  title="O Casal"
+  description="Quem são Cieri e Milla, o casal de Recife que roda o Brasil de moto desde 2013."
+  image="/media/placeholder-estrada-05.jpg"
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Quem escreve este diário</p>
+      <h1 class="display">Cieri <span class="amp">&</span> Milla</h1>
+      <div class="page-head__bottom">
+        <p>
+          Dois pernambucanos, uma moto e uma teimosia: a de que sempre cabe mais um encontro
+          no calendário.
+        </p>
+        <span class="small-caps">Recife — PE · na estrada desde {site.desde}</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="wrap sobre">
+      <figure class="sobre__foto" data-reveal>
+        <div class="photo">
+          <img
+            src={url("/media/placeholder-estrada-05.jpg")}
+            alt="Casal de jaqueta ao lado da moto carregada numa parada de beira de estrada"
+            width="1400"
+            height="1000"
+          />
+        </div>
+        <figcaption>Parada para o café, em algum lugar entre o agreste e o sertão.</figcaption>
+      </figure>
+
+      <div class="sobre__texto" data-reveal style="--reveal-delay:120ms">
+        <p class="sobre__lead">
+          A gente se conheceu numa festa em Boa Viagem, em 2011. Namoramos dois anos antes da
+          primeira viagem de moto — e a primeira viagem de moto decidiu o resto.
+        </p>
+
+        <p>
+          Era uma moto emprestada, um encontro em Carpina e 78 km de ida. Voltamos com dor nas
+          costas, queimadura de sol no pescoço e a certeza de que aquilo ia virar rotina. Virou.
+          Dois anos depois já éramos presença certa nos encontros do Nordeste.
+        </p>
+
+        <p>
+          De lá pra cá foram 18 estados, muitos fins de semana dormindo em cidade que a gente
+          nem sabia que existia, e uma quantidade de amigos que não caberia em uma mesa só.
+          A Milla fotografa tudo. O Cieri conversa com todo mundo — inclusive com quem só
+          parou pra perguntar se a moto é boa.
+        </p>
+
+        <blockquote>
+          A estrada ensina duas coisas: que dá pra ir mais longe do que você imagina, e que
+          vale mais parar pra conversar do que chegar cedo.
+        </blockquote>
+
+        <p>
+          Este site nasceu de uma caixa de sapatos cheia de foto impressa e ingresso de
+          encontro. A gente queria um lugar para guardar isso — e para que quem a gente
+          conhece na estrada pudesse ver também.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--paper2" id="moto">
+    <div class="wrap moto">
+      <div data-reveal>
+        <p class="eyebrow">A companheira de viagem</p>
+        <h2 class="display">A moto</h2>
+        <p class="lead" style="margin-top:1.2rem">
+          Uma touring de 2019, já com 94 mil km no odômetro, alforge de couro e um adesivo do
+          primeiro encontro que a gente foi. Ela não é rápida, mas nunca deixou a gente na mão.
+        </p>
+        <p class="moto__txt">
+          A manutenção é feita em casa, com o manual aberto na mesa da cozinha. O Cieri troca
+          óleo, a Milla organiza o mapa. A divisão de trabalho funciona desde 2013.
+        </p>
+      </div>
+
+      <div class="moto__ficha" data-reveal style="--reveal-delay:100ms">
+        <div class="ficha-linha">
+          <span class="ficha-linha__k">Modelo</span>
+          <span class="ficha-linha__v">Touring 2019</span>
+        </div>
+        <div class="ficha-linha">
+          <span class="ficha-linha__k">Km rodados</span>
+          <span class="ficha-linha__v">94.000</span>
+        </div>
+        <div class="ficha-linha">
+          <span class="ficha-linha__k">Estados visitados</span>
+          <span class="ficha-linha__v">18</span>
+        </div>
+        <div class="ficha-linha">
+          <span class="ficha-linha__k">Item obrigatório</span>
+          <span class="ficha-linha__v">garrafa térmica</span>
+        </div>
+        <div class="ficha-linha">
+          <span class="ficha-linha__k">Música de estrada</span>
+          <span class="ficha-linha__v">forró pé de serra</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="contato">
+    <div class="wrap contato">
+      <div data-reveal>
+        <p class="eyebrow">Contato</p>
+        <h2 class="display">Fala com a gente</h2>
+        <p class="lead" style="margin-top:1.2rem">
+          Se você está organizando um encontro, quer marcar de rodar junto ou só quer trocar
+          uma ideia sobre estrada, é só chamar. A gente responde — às vezes com atraso de quem
+          está sem sinal, mas responde.
+        </p>
+      </div>
+
+      <div class="contato__cards">
+        <a
+          class="contato__card"
+          href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(site.whatsappTexto)}`}
+          target="_blank"
+          rel="noopener"
+        >
+          <span class="contato__k">WhatsApp</span>
+          <span class="contato__v">Resposta mais rápida</span>
+          <span class="contato__arrow">→</span>
+        </a>
+        <a class="contato__card" href={`mailto:${site.email}`}>
+          <span class="contato__k">E-mail</span>
+          <span class="contato__v">{site.email}</span>
+          <span class="contato__arrow">→</span>
+        </a>
+        <a class="contato__card" href={site.instagram} target="_blank" rel="noopener">
+          <span class="contato__k">Instagram</span>
+          <span class="contato__v">Fotos do dia a dia</span>
+          <span class="contato__arrow">→</span>
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .amp {
+    font-style: italic;
+    color: var(--rust);
+    font-size: 0.8em;
+    padding-inline: 0.05em;
+  }
+
+  .sobre {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .sobre__foto {
+    margin: 0;
+    position: sticky;
+    top: 130px;
+  }
+
+  .sobre__foto .photo {
+    aspect-ratio: 4 / 5;
+  }
+
+  .sobre__foto figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-mute);
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line);
+    margin-top: 0.6rem;
+  }
+
+  .sobre__texto {
+    font-size: 1.02rem;
+    color: var(--ink-2);
+  }
+
+  .sobre__lead::first-letter {
+    font-family: var(--serif);
+    font-size: 3.6em;
+    float: left;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--rust);
+  }
+
+  .sobre__lead {
+    font-size: 1.14rem;
+    color: var(--ink);
+  }
+
+  .sobre__texto blockquote {
+    margin: 1.8rem 0;
+    padding-left: 1.3rem;
+    border-left: 3px solid var(--rust);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.3rem;
+    line-height: 1.35;
+    color: var(--ink);
+  }
+
+  .moto {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    align-items: center;
+  }
+
+  .moto__txt {
+    color: var(--ink-soft);
+    font-size: 0.94rem;
+    max-width: 46ch;
+  }
+
+  .moto__ficha {
+    border-top: 2px solid var(--ink);
+  }
+
+  .ficha-linha {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.7rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ficha-linha__k {
+    font-family: var(--sans);
+    font-size: 0.73rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .ficha-linha__v {
+    font-family: var(--serif);
+    font-size: 1rem;
+    text-align: right;
+  }
+
+  .contato {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .contato__cards {
+    display: grid;
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .contato__card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.2rem 1rem;
+    padding: 1.1rem 0.2rem;
+    border-bottom: 1px solid var(--line);
+    transition: padding-left 0.25s ease, color 0.25s ease;
+  }
+
+  .contato__card:hover {
+    padding-left: 0.6rem;
+    color: var(--rust);
+  }
+
+  .contato__k {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+  }
+
+  .contato__v {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    grid-column: 1;
+  }
+
+  .contato__arrow {
+    grid-row: 1 / 3;
+    grid-column: 2;
+    font-size: 1.1rem;
+  }
+
+  @media (max-width: 860px) {
+    .sobre,
+    .moto,
+    .contato {
+      grid-template-columns: 1fr;
+    }
+
+    .sobre__foto {
+      position: static;
+    }
+
+    .sobre__foto .photo {
+      aspect-ratio: 4 / 3;
+    }
+  }
+</style>

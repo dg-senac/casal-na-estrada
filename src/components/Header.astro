@@ -1,0 +1,302 @@
+---
+const nav = [
+  { href: '/', label: 'Início' },
+  { href: '/diario', label: 'Diário' },
+  { href: '/galeria', label: 'Galeria' },
+  { href: '/trofeus', label: 'Sala de Troféus' },
+  { href: '/encontros', label: 'Encontros' },
+  { href: '/sobre', label: 'O Casal' },
+];
+
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
+import { url } from '../lib/url';
+---
+
+<header class="masthead">
+  <div class="masthead__meta">
+    <div class="wrap masthead__meta-in">
+      <span>Recife — Pernambuco</span>
+      <span class="masthead__dot">·</span>
+      <span>Na estrada desde 2013</span>
+      <span class="masthead__spacer"></span>
+      <a href={url("/encontros")} class="masthead__meta-link">Próximo encontro: veja a agenda →</a>
+    </div>
+  </div>
+
+  <div class="masthead__bar">
+    <div class="wrap masthead__bar-in">
+      <a class="brand" href={url("/")} aria-label="Casal na Estrada — página inicial">
+        <svg class="brand__mark" viewBox="0 0 56 56" width="46" height="46" aria-hidden="true">
+          <circle cx="28" cy="28" r="26" fill="none" stroke="currentColor" stroke-width="1.4" />
+          <circle cx="28" cy="28" r="21" fill="none" stroke="currentColor" stroke-width="0.7" />
+          <text
+            x="28"
+            y="35"
+            text-anchor="middle"
+            font-family="Georgia, 'Times New Roman', serif"
+            font-size="19"
+            fill="currentColor"
+            letter-spacing="0.5">MC</text>
+        </svg>
+        <span class="brand__text">
+          <span class="brand__name">Casal na Estrada</span>
+          <span class="brand__sub">Cieri e Milla</span>
+        </span>
+      </a>
+
+      <nav class="nav" aria-label="Navegação principal">
+        {
+          nav.map((item) => (
+            <a
+              href={item.href}
+              class:list={['nav__link', { 'is-active': isActive(item.href) }]}
+              aria-current={isActive(item.href) ? 'page' : undefined}
+            >
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="menu-mobile">
+        <span class="nav-toggle__bars" aria-hidden="true"><i></i><i></i></span>
+        <span class="nav-toggle__label">Menu</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="menu-mobile" id="menu-mobile" hidden>
+    <div class="wrap">
+      <nav aria-label="Navegação principal (celular)">
+        {
+          nav.map((item) => (
+            <a href={item.href} class:list={['menu-mobile__link', { 'is-active': isActive(item.href) }]}>
+              {item.label}
+            </a>
+          ))
+        }
+      </nav>
+      <p class="menu-mobile__foot">Recife — PE · desde 2013</p>
+    </div>
+  </div>
+</header>
+
+<style>
+  .masthead {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .masthead__meta {
+    background: var(--ink);
+    color: rgba(236, 229, 214, 0.72);
+    font-family: var(--sans);
+    font-size: 0.71rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding-block: 0.42rem;
+  }
+
+  .masthead__meta-in {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+  }
+
+  .masthead__dot {
+    opacity: 0.5;
+  }
+
+  .masthead__spacer {
+    flex: 1;
+  }
+
+  .masthead__meta-link {
+    color: rgba(236, 229, 214, 0.85);
+    border-bottom: 1px solid rgba(236, 229, 214, 0.25);
+    padding-bottom: 1px;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .masthead__meta-link:hover {
+    color: #fff;
+    border-color: #fff;
+  }
+
+  .masthead__bar-in {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding-block: 0.65rem;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex: none;
+  }
+
+  .brand__mark {
+    width: 46px;
+    height: 46px;
+    flex: none;
+    color: var(--ink);
+    transition: color 0.25s ease, transform 0.5s ease;
+  }
+
+  .brand:hover .brand__mark {
+    color: var(--rust);
+    transform: rotate(-8deg);
+  }
+
+  .brand__text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1;
+  }
+
+  .brand__name {
+    font-family: var(--serif);
+    font-size: 1.12rem;
+    letter-spacing: 0.02em;
+  }
+
+  .brand__sub {
+    font-family: var(--sans);
+    font-size: 0.64rem;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-top: 0.28rem;
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    gap: clamp(0.8rem, 1.6vw, 1.7rem);
+  }
+
+  .nav__link {
+    font-family: var(--sans);
+    font-size: 0.79rem;
+    font-weight: 500;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding-block: 0.35rem;
+    border-bottom: 1px solid transparent;
+    color: var(--ink-2);
+    transition: color 0.2s ease, border-color 0.2s ease;
+    white-space: nowrap;
+  }
+
+  .nav__link:hover {
+    color: var(--rust);
+  }
+
+  .nav__link.is-active {
+    border-bottom-color: var(--rust);
+  }
+
+  .nav-toggle {
+    display: none;
+    background: none;
+    border: 0;
+    padding: 0.4rem 0;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    align-items: center;
+    gap: 0.55rem;
+    color: var(--ink);
+    cursor: pointer;
+  }
+
+  .nav-toggle__bars {
+    display: grid;
+    gap: 4px;
+    width: 20px;
+  }
+
+  .nav-toggle__bars i {
+    display: block;
+    height: 1.5px;
+    background: currentColor;
+  }
+
+  .menu-mobile {
+    border-top: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+
+  .menu-mobile nav {
+    display: grid;
+    padding-block: 0.5rem;
+  }
+
+  .menu-mobile__link {
+    font-family: var(--serif);
+    font-size: 1.32rem;
+    padding-block: 0.65rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .menu-mobile__link.is-active {
+    color: var(--rust);
+    font-style: italic;
+  }
+
+  .menu-mobile__foot {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding-block: 1rem;
+    margin: 0;
+  }
+
+  @media (max-width: 1000px) {
+    .nav {
+      display: none;
+    }
+    .nav-toggle {
+      display: inline-flex;
+    }
+    .masthead__meta-link {
+      display: none;
+    }
+  }
+
+  @media (max-width: 420px) {
+    .brand__sub {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('.nav-toggle');
+  const menu = document.querySelector<HTMLElement>('#menu-mobile');
+
+  toggle?.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', String(!open));
+    if (menu) menu.hidden = open;
+  });
+
+  // Fecha o menu ao navegar
+  menu?.querySelectorAll('a').forEach((a) =>
+    a.addEventListener('click', () => {
+      if (menu) menu.hidden = true;
+      toggle?.setAttribute('aria-expanded', 'false');
+    })
+  );
+</script>

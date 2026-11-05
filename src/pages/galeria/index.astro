@@ -1,0 +1,186 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
+  (a, b) => a.data.ordem - b.data.ordem
+);
+
+const totalFotos = albuns.reduce((n, a) => n + a.data.fotos.length, 0);
+const totalVideos = albuns.reduce((n, a) => n + a.data.videos.length, 0);
+
+const dataCurta = (d: Date) =>
+  new Intl.DateTimeFormat('pt-BR', { month: 'short', year: 'numeric' }).format(d).replace('.', '');
+import { url } from '../../lib/url';
+---
+
+<Base
+  title="Galeria"
+  description="Álbuns de fotos e vídeos dos encontros e viagens de Cieri e Milla pelo Brasil."
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">
+        {albuns.length} álbuns · {totalFotos} fotos · {totalVideos} vídeos
+      </p>
+      <h1 class="display">Galeria</h1>
+      <div class="page-head__bottom">
+        <p>
+          Tudo aqui foi feito na estrada, com câmera na mão e pressa nenhuma. Clique num álbum
+          para ver as fotos em tamanho grande.
+        </p>
+        <span class="small-caps">Fotos em preto e branco, por escolha</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="albuns">
+        {
+          albuns.map((album, i) => (
+            <article
+              class:list={['album', { 'album--wide': i % 3 === 0 }]}
+              data-reveal
+              style={`--reveal-delay:${(i % 3) * 80}ms`}
+            >
+              <a class="album__link" href={url(`/galeria/${album.id}`)}>
+                <div class="photo album__photo">
+                  <img src={url(album.data.capa)} alt={album.data.capaAlt} loading="lazy" />
+                  <span class="album__count">
+                    {album.data.fotos.length + album.data.videos.length} registros
+                  </span>
+                </div>
+                <div class="album__body">
+                  <div class="album__meta">
+                    <span>{album.data.local}</span>
+                    <span class="album__dot">·</span>
+                    <span>{dataCurta(album.data.data)}</span>
+                  </div>
+                  <h2 class="album__title">{album.data.titulo}</h2>
+                  <p class="album__desc">{album.data.descricao}</p>
+                  <span class="link-arrow">Abrir álbum →</span>
+                </div>
+              </a>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--ink section--tight">
+    <div class="wrap aviso">
+      <div>
+        <p class="eyebrow eyebrow--light">Apareceu em alguma foto?</p>
+        <h2 class="aviso__title">A gente manda a versão em alta, sem custo nenhum.</h2>
+      </div>
+      <p>
+        Muita foto daqui foi feita por amigos do grupo. Se você se reconhecer em alguma,
+        chama a gente no WhatsApp com o nome do álbum — mandamos o arquivo original.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .albuns {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: clamp(1.6rem, 3vw, 2.8rem);
+  }
+
+  .album__link {
+    display: block;
+  }
+
+  .album__photo {
+    position: relative;
+    aspect-ratio: 4 / 3;
+  }
+
+  .album--wide {
+    grid-column: span 2;
+  }
+
+  .album--wide .album__photo {
+    aspect-ratio: 16 / 9;
+  }
+
+  .album__count {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.6rem;
+    z-index: 1;
+  }
+
+  .album__body {
+    padding-top: 0.9rem;
+  }
+
+  .album__meta {
+    display: flex;
+    gap: 0.4rem;
+    font-family: var(--sans);
+    font-size: 0.71rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.4rem;
+  }
+
+  .album__dot {
+    color: var(--rust);
+  }
+
+  .album__title {
+    font-size: clamp(1.3rem, 2vw, 1.7rem);
+    margin-bottom: 0.5rem;
+  }
+
+  .album__title:hover {
+    color: var(--rust);
+  }
+
+  .album__desc {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    max-width: 52ch;
+    margin-bottom: 0.8rem;
+  }
+
+  .aviso {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+  }
+
+  .aviso__title {
+    font-size: clamp(1.5rem, 3vw, 2.3rem);
+    max-width: 26ch;
+  }
+
+  .aviso p {
+    font-size: 0.94rem;
+  }
+
+  @media (max-width: 780px) {
+    .album--wide {
+      grid-column: span 1;
+    }
+    .album--wide .album__photo {
+      aspect-ratio: 4 / 3;
+    }
+    .aviso {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

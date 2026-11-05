@@ -1,0 +1,141 @@
+---
+import type { CollectionEntry } from 'astro:content';
+
+interface Props {
+  post: CollectionEntry<'diario'>;
+  /** 'large' para o primeiro item da lista, 'row' para os demais */
+  variante?: 'large' | 'row';
+  delay?: number;
+}
+
+const { post, variante = 'row', delay = 0 } = Astro.props;
+const { data } = post;
+
+const dataLonga = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+}).format(data.data);
+import { url } from '../lib/url';
+---
+
+<article class:list={['post', `post--${variante}`]} data-reveal style={`--reveal-delay:${delay}ms`}>
+  <a class="post__media photo" href={url(`/diario/${post.id}`)} tabindex="-1" aria-hidden="true">
+    <img src={url(data.capa)} alt={data.capaAlt} loading="lazy" />
+  </a>
+
+  <div class="post__body">
+    <div class="post__kicker">
+      <span class="post__tipo">{data.tipo}</span>
+      <span>{dataLonga}</span>
+    </div>
+
+    <h3 class="post__title"><a href={url(`/diario/${post.id}`)}>{data.titulo}</a></h3>
+
+    <p class="post__resumo">{data.resumo}</p>
+
+    <div class="post__foot">
+      <span class="post__local">{data.local}{data.uf ? ` — ${data.uf}` : ''}</span>
+      {data.distancia && <span class="post__dist">{data.distancia}</span>}
+    </div>
+  </div>
+</article>
+
+<style>
+  .post {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: clamp(1.1rem, 2.5vw, 2.2rem);
+    padding-block: clamp(1.4rem, 2.6vw, 2rem);
+    border-bottom: 1px solid var(--line);
+    align-items: start;
+  }
+
+  .post__media {
+    aspect-ratio: 4 / 3;
+    display: block;
+  }
+
+  .post__kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.7rem;
+    font-family: var(--sans);
+    font-size: 0.71rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.5rem;
+  }
+
+  .post__tipo {
+    color: var(--rust);
+    border-bottom: 1px solid currentColor;
+    padding-bottom: 1px;
+  }
+
+  .post__title {
+    font-size: clamp(1.3rem, 2.1vw, 1.85rem);
+    margin-bottom: 0.6rem;
+  }
+
+  .post__title a {
+    transition: color 0.2s ease;
+  }
+
+  .post__title a:hover {
+    color: var(--rust);
+  }
+
+  .post__resumo {
+    color: var(--ink-soft);
+    font-size: 0.93rem;
+    max-width: 56ch;
+    margin-bottom: 0.9rem;
+  }
+
+  .post__foot {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.4rem;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--line);
+    padding-top: 0.65rem;
+  }
+
+  .post__dist {
+    color: var(--rust);
+  }
+
+  .post--large {
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    padding-block: clamp(1.6rem, 3vw, 2.4rem);
+    border-bottom: 3px double var(--line-strong);
+  }
+
+  .post--large .post__media {
+    aspect-ratio: 16 / 11;
+  }
+
+  .post--large .post__title {
+    font-size: clamp(1.7rem, 3.2vw, 2.6rem);
+  }
+
+  @media (max-width: 780px) {
+    .post,
+    .post--large {
+      grid-template-columns: 1fr;
+      gap: 0.9rem;
+    }
+
+    .post__media,
+    .post--large .post__media {
+      aspect-ratio: 16 / 9;
+    }
+  }
+</style>

@@ -1,0 +1,156 @@
+---
+import { site } from '../data/site';
+const ano = new Date().getFullYear();
+import { url } from '../lib/url';
+---
+
+<footer class="foot">
+  <div class="wrap">
+    <div class="foot__top">
+      <div class="foot__brand">
+        <img src={url("/media/logo-144.png")} alt="Emblema do Casal na Estrada" class="foot__logo" width="92" height="92" />
+        <div>
+          <p class="foot__name">{site.nome}</p>
+          <p class="foot__tag">{site.nomes} · {site.base}</p>
+        </div>
+      </div>
+
+      <div class="foot__col">
+        <p class="foot__head">Navegar</p>
+        <a href={url("/diario")}>Diário</a>
+        <a href={url("/galeria")}>Galeria</a>
+        <a href={url("/trofeus")}>Sala de troféus</a>
+        <a href={url("/encontros")}>Encontros</a>
+      </div>
+
+      <div class="foot__col">
+        <p class="foot__head">O casal</p>
+        <a href={url("/sobre")}>Quem somos</a>
+        <a href={url("/sobre#moto")}>A moto</a>
+        <a href={url("/sobre#contato")}>Falar com a gente</a>
+      </div>
+
+      <div class="foot__col foot__col--contact">
+        <p class="foot__head">Onde nos achar</p>
+        <p class="foot__addr">Recife — Pernambuco<br />Brasil</p>
+        <div class="foot__links">
+          <a href={site.instagram} target="_blank" rel="noopener">Instagram ↗</a>
+          <a href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener">WhatsApp ↗</a>
+          <a href={`mailto:${site.email}`}>E-mail ↗</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot__bottom">
+      <span>© {ano} {site.nome}. Feito com paciência de quem roda longe.</span>
+      <span class="foot__credit">“Cada viagem começa com uma desculpa. A nossa é o próximo encontro.”</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .foot {
+    background: var(--ink);
+    color: rgba(236, 229, 214, 0.72);
+    padding-block: clamp(2.6rem, 5vw, 4rem) 1.4rem;
+    border-top: 1px solid rgba(236, 229, 214, 0.14);
+  }
+
+  .foot a {
+    display: block;
+    font-size: 0.9rem;
+    padding-block: 0.18rem;
+    transition: color 0.2s ease;
+    width: fit-content;
+  }
+
+  .foot a:hover {
+    color: #fff;
+  }
+
+  .foot__top {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr));
+    gap: clamp(1.6rem, 3vw, 3rem);
+    padding-bottom: 2.4rem;
+    border-bottom: 1px solid rgba(236, 229, 214, 0.16);
+  }
+
+  .foot__brand {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+  }
+
+  .foot__logo {
+    width: 92px;
+    height: 92px;
+    object-fit: cover;
+    border-radius: 50%;
+    filter: grayscale(1) contrast(1.1) brightness(1.25);
+    mix-blend-mode: screen;
+    opacity: 0.9;
+  }
+
+  .foot__name {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    line-height: 1.05;
+    color: var(--paper);
+    margin: 0 0 0.35rem;
+  }
+
+  .foot__tag {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(236, 229, 214, 0.45);
+    margin: 0;
+  }
+
+  .foot__head {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--paper);
+    margin: 0 0 0.75rem;
+  }
+
+  .foot__addr {
+    font-size: 0.9rem;
+    margin: 0 0 0.8rem;
+  }
+
+  .foot__bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.6rem 1.5rem;
+    padding-top: 1.2rem;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(236, 229, 214, 0.42);
+  }
+
+  .foot__credit {
+    font-family: var(--serif);
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.86rem;
+    color: rgba(236, 229, 214, 0.5);
+  }
+
+  @media (max-width: 860px) {
+    .foot__top {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .foot__brand {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
