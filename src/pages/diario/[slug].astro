@@ -1,0 +1,379 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import PostCard from '../../components/PostCard.astro';
+import { site } from '../../data/site';
+
+interface Props {
+  post: CollectionEntry<'diario'>;
+}
+
+export async function getStaticPaths() {
+  const posts = await getCollection('diario', ({ data }) => !data.rascunho);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+
+const { post } = Astro.props as Props;
+const { Content } = await render(post);
+const { data } = post;
+
+const todos = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
+  (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
+);
+const indice = todos.findIndex((p) => p.id === post.id);
+const proximo = todos[indice + 1] ?? null;
+
+const dataLonga = new Intl.DateTimeFormat('pt-BR', {
+  day: '2-digit',
+  month: 'long',
+  year: 'numeric',
+}).format(data.data);
+
+const palavras = (post.body ?? '').split(/\s+/).filter(Boolean).length;
+const leitura = Math.max(1, Math.round(palavras / 200));
+---
+
+<Base title={data.titulo} description={data.resumo} image={data.capa}>
+  <article>
+    <header class="hero-post">
+      <div class="wrap hero-post__in">
+        <div class="hero-post__meta">
+          <a class="back" href="/diario">← Diário</a>
+          <span class="hero-post__tipo">{data.tipo}</span>
+        </div>
+        <h1 class="hero-post__title">{data.titulo}</h1>
+        <p class="hero-post__resumo">{data.resumo}</p>
+        <dl class="hero-post__facts">
+          <div>
+            <dt>Data</dt>
+            <dd>{dataLonga}</dd>
+          </div>
+          <div>
+            <dt>Onde</dt>
+            <dd>{data.local}{data.uf ? ` — ${data.uf}` : ''}</dd>
+          </div>
+          {
+            data.distancia && (
+              <div>
+                <dt>Distância</dt>
+                <dd>{data.distancia}</dd>
+              </div>
+            )
+          }
+          <div>
+            <dt>Leitura</dt>
+            <dd>{leitura} min</dd>
+          </div>
+        </dl>
+      </div>
+    </header>
+
+    <figure class="hero-post__figure wrap">
+      <div class="photo photo--duotone hero-post__photo">
+        <img src={data.capa} alt={data.capaAlt} width="1600" height="1000" />
+      </div>
+      <figcaption>{data.capaAlt}</figcaption>
+    </figure>
+
+    <div class="wrap artigo">
+      <div class="artigo__body prose">
+        <Content />
+      </div>
+
+      <aside class="artigo__aside">
+        <div class="aside-card">
+          <p class="eyebrow">Assinado por</p>
+          <p class="aside-card__nome">{site.nomes}</p>
+          <p class="aside-card__bio">
+            Casal de Recife na estrada desde {site.desde}. Rodamos o Brasil atrás de encontros
+            de moto e boas conversas.
+          </p>
+          <a class="link-arrow" href="/sobre">Conhecer o casal →</a>
+        </div>
+
+        {
+          data.tags.length > 0 && (
+            <div class="aside-card">
+              <p class="eyebrow">Marcadores</p>
+              <div class="aside-tags">
+                {data.tags.map((t) => (
+                  <span class="tag-chip">{t}</span>
+                ))}
+              </div>
+            </div>
+          )
+        }
+
+        <div class="aside-card aside-card--ink">
+          <p class="eyebrow eyebrow--light">Vai passar por lá?</p>
+          <p class="aside-card__dark">
+            Se você for fazer essa estrada, chama a gente. A gente tem dica de parada, onde
+            comer e que horas sair.
+          </p>
+          <a class="btn btn--light" href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener">
+            Falar no WhatsApp
+          </a>
+        </div>
+      </aside>
+    </div>
+
+    {
+      proximo && (
+        <section class="proximo">
+          <div class="wrap">
+            <p class="eyebrow">Publicação anterior</p>
+            <PostCard post={proximo} variante="large" />
+          </div>
+        </section>
+      )
+    }
+  </article>
+</Base>
+
+<style>
+  .hero-post {
+    padding-top: clamp(1.6rem, 4vw, 2.8rem);
+  }
+
+  .hero-post__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    padding-bottom: 1.2rem;
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 1.6rem;
+  }
+
+  .back {
+    color: var(--ink);
+    transition: color 0.2s ease;
+  }
+
+  .back:hover {
+    color: var(--rust);
+  }
+
+  .hero-post__tipo {
+    color: var(--rust);
+    border: 1px solid var(--rust);
+    padding: 0.15rem 0.5rem;
+  }
+
+  .hero-post__title {
+    font-size: clamp(2rem, 5.4vw, 4.1rem);
+    max-width: 26ch;
+    margin-bottom: 1.1rem;
+  }
+
+  .hero-post__resumo {
+    font-size: clamp(1.02rem, 0.5vw + 0.95rem, 1.22rem);
+    color: var(--ink-soft);
+    max-width: 62ch;
+    line-height: 1.55;
+  }
+
+  .hero-post__facts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem 2.4rem;
+    margin: 1.6rem 0 0;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .hero-post__facts dt {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.1rem;
+  }
+
+  .hero-post__facts dd {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 1.02rem;
+  }
+
+  .hero-post__figure {
+    margin-block: clamp(1.6rem, 3.5vw, 2.6rem) clamp(1.8rem, 4vw, 3rem);
+  }
+
+  .hero-post__photo {
+    aspect-ratio: 16 / 9;
+  }
+
+  .hero-post__figure figcaption {
+    font-size: 0.78rem;
+    color: var(--ink-mute);
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line);
+    margin-top: 0.6rem;
+  }
+
+  .artigo {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: clamp(2rem, 5vw, 4.5rem);
+    align-items: start;
+  }
+
+  .artigo__aside {
+    display: grid;
+    gap: 1.1rem;
+    position: sticky;
+    top: 120px;
+  }
+
+  .aside-card {
+    border: 1px solid var(--line-strong);
+    padding: 1.2rem;
+  }
+
+  .aside-card .eyebrow {
+    margin-bottom: 0.7rem;
+  }
+
+  .aside-card__nome {
+    font-family: var(--serif);
+    font-size: 1.4rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .aside-card__bio {
+    font-size: 0.85rem;
+    color: var(--ink-soft);
+    margin-bottom: 1rem;
+  }
+
+  .aside-card--ink {
+    background: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .aside-card__dark {
+    color: rgba(236, 229, 214, 0.76);
+    font-size: 0.87rem;
+    margin-bottom: 1rem;
+  }
+
+  .aside-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .tag-chip {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: 1px solid var(--line-strong);
+    padding: 0.2rem 0.5rem;
+    color: var(--ink-soft);
+  }
+
+  .proximo {
+    border-top: 1px solid var(--line-strong);
+    margin-top: clamp(2rem, 5vw, 3.5rem);
+    padding-block: clamp(1.6rem, 3vw, 2.4rem);
+    background: var(--paper-2);
+  }
+
+  @media (max-width: 900px) {
+    .artigo {
+      grid-template-columns: 1fr;
+    }
+    .artigo__aside {
+      position: static;
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<style is:global>
+  /* Tipografia do texto do artigo */
+  .prose {
+    max-width: 68ch;
+    font-size: 1.06rem;
+    line-height: 1.72;
+    color: var(--ink-2);
+  }
+
+  .prose > p:first-of-type::first-letter {
+    font-family: var(--serif);
+    font-size: 3.6em;
+    float: left;
+    line-height: 0.82;
+    padding: 0.06em 0.12em 0 0;
+    color: var(--rust);
+  }
+
+  .prose h2 {
+    font-size: clamp(1.45rem, 2.4vw, 1.9rem);
+    margin: 2.2rem 0 0.9rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .prose h3 {
+    font-size: 1.22rem;
+    margin: 1.8rem 0 0.6rem;
+  }
+
+  .prose p {
+    margin-bottom: 1.15em;
+  }
+
+  .prose blockquote {
+    margin: 1.8rem 0;
+    padding: 0.4rem 0 0.4rem 1.4rem;
+    border-left: 3px solid var(--rust);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.24rem;
+    line-height: 1.4;
+    color: var(--ink);
+  }
+
+  .prose blockquote p:last-child {
+    margin-bottom: 0;
+  }
+
+  .prose ul,
+  .prose ol {
+    padding-left: 1.2rem;
+    margin-bottom: 1.2em;
+  }
+
+  .prose li {
+    margin-bottom: 0.4em;
+  }
+
+  .prose a {
+    border-bottom: 1px solid var(--rust);
+    color: var(--ink);
+  }
+
+  .prose a:hover {
+    color: var(--rust);
+  }
+
+  .prose strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .prose img {
+    width: 100%;
+    margin-block: 1.6rem;
+    filter: grayscale(1) contrast(1.05);
+  }
+</style>

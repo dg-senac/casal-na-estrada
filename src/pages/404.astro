@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Estrada não encontrada" noindex>
+  <section class="nao-achou wrap">
+    <p class="eyebrow">Erro 404</p>
+    <h1 class="display-xl">Essa estrada<br /><em>não existe.</em></h1>
+    <p class="lead">
+      Ou existia e a gente confundiu o nome no mapa — coisa que acontece com frequência.
+      Volta pro começo e escolhe outro caminho.
+    </p>
+    <div class="nao-achou__acoes">
+      <a class="btn btn--solid" href="/">Voltar ao início</a>
+      <a class="btn" href="/diario">Ver o diário</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nao-achou {
+    padding-block: clamp(4rem, 12vw, 9rem);
+    max-width: 800px;
+  }
+
+  .nao-achou__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.8rem;
+  }
+</style>

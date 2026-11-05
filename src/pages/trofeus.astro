@@ -1,0 +1,307 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const trofeus = (await getCollection('trofeus')).sort((a, b) => b.data.ano - a.data.ano);
+
+const niveis = {
+  ouro: { label: '1º lugar', curto: '1º' },
+  prata: { label: '2º lugar', curto: '2º' },
+  bronze: { label: '3º lugar', curto: '3º' },
+  laco: { label: 'Participação', curto: 'Part.' },
+} as const;
+
+const porAno = new Map<number, typeof trofeus>();
+for (const t of trofeus) {
+  if (!porAno.has(t.data.ano)) porAno.set(t.data.ano, []);
+  porAno.get(t.data.ano)!.push(t);
+}
+
+const conta = (n: string) => trofeus.filter((t) => t.data.nivel === n).length;
+---
+
+<Base
+  title="Sala de Troféus"
+  description="A sala de troféus do Casal na Estrada: todos os prêmios e homenagens conquistados em encontros de moto pelo Brasil."
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Prateleira da sala · {trofeus.length} peças catalogadas</p>
+      <h1 class="display">Sala de Troféus</h1>
+      <div class="page-head__bottom">
+        <p>
+          Nenhum desses troféus valeu dinheiro. Todos valeram um fim de semana, um encontro e
+          uma história que a gente conta até hoje. Estamos fotografando a prateleira aos poucos.
+        </p>
+        <div class="contagem">
+          <span><strong>{conta('ouro')}</strong> primeiros lugares</span>
+          <span><strong>{conta('prata') + conta('bronze')}</strong> pódios</span>
+          <span><strong>{conta('laco')}</strong> homenagens</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      {
+        [...porAno.entries()].map(([ano, lista]) => (
+          <div class="ano-bloco">
+            <div class="ano-bloco__marca">
+              <span class="ano-bloco__ano">{ano}</span>
+              <span class="ano-bloco__qtd">
+                {lista.length} {lista.length === 1 ? 'peça' : 'peças'}
+              </span>
+            </div>
+
+            <div class="ano-bloco__lista">
+              {lista.map((t, i) => (
+                <article class="trofeu" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+                  <div class:list={['trofeu__selo', `trofeu__selo--${t.data.nivel}`]}>
+                    <span>{niveis[t.data.nivel].curto}</span>
+                  </div>
+
+                  <div class="trofeu__corpo">
+                    <div class="trofeu__topo">
+                      <h2 class="trofeu__evento">{t.data.evento}</h2>
+                      <span class="trofeu__cat">{t.data.categoria}</span>
+                    </div>
+                    <p class="trofeu__meta">
+                      {t.data.cidade} · {niveis[t.data.nivel].label}
+                    </p>
+                    {t.data.nota && <p class="trofeu__nota">“{t.data.nota}”</p>}
+                  </div>
+
+                  {t.data.foto && (
+                    <div class="photo trofeu__foto">
+                      <img src={t.data.foto} alt={`Troféu do ${t.data.evento}`} loading="lazy" />
+                    </div>
+                  )}
+                </article>
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+
+  <section class="section section--ink section--tight">
+    <div class="wrap pendente">
+      <div>
+        <p class="eyebrow eyebrow--light">Esta página cresce com o tempo</p>
+        <h2 class="pendente__title">
+          Ainda faltam <em>dezenas</em> de troféus para fotografar.
+        </h2>
+      </div>
+      <div>
+        <p>
+          A prateleira de casa tem muito mais peças do que aparece aqui — algumas de encontros
+          que nem lembramos o nome. Vamos fotografando um por um e subindo com a história de
+          cada um.
+        </p>
+        <p class="small-caps" style="margin:0">
+          Tem um troféu nosso aí na sua casa? A gente quer de volta. 😄
+        </p>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .contagem {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.4rem;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .contagem strong {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 400;
+    color: var(--ink);
+    margin-right: 0.15rem;
+  }
+
+  .ano-bloco {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    gap: clamp(1.2rem, 3vw, 2.6rem);
+    padding-block: clamp(1.4rem, 3vw, 2.2rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .ano-bloco__marca {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    position: sticky;
+    top: 130px;
+    align-self: start;
+  }
+
+  .ano-bloco__ano {
+    font-family: var(--serif);
+    font-size: clamp(2.2rem, 3.4vw, 3rem);
+    line-height: 1;
+  }
+
+  .ano-bloco__qtd {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .ano-bloco__lista {
+    display: grid;
+    gap: 0;
+  }
+
+  .trofeu {
+    display: grid;
+    grid-template-columns: 52px minmax(0, 1fr) 130px;
+    gap: clamp(0.9rem, 2vw, 1.6rem);
+    align-items: center;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .trofeu:first-child {
+    padding-top: 0;
+  }
+
+  .trofeu__selo {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    border: 1px solid var(--line-strong);
+    position: relative;
+  }
+
+  .trofeu__selo--ouro {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: #fff;
+  }
+
+  .trofeu__selo--prata {
+    border-color: var(--ink);
+    border-width: 2px;
+    color: var(--ink);
+  }
+
+  .trofeu__selo--bronze {
+    border-color: var(--ink-mute);
+    color: var(--ink-soft);
+  }
+
+  .trofeu__selo--laco {
+    border-style: dashed;
+    color: var(--ink-mute);
+  }
+
+  .trofeu__topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 0.9rem;
+  }
+
+  .trofeu__evento {
+    font-size: clamp(1.1rem, 1.7vw, 1.4rem);
+    line-height: 1.2;
+  }
+
+  .trofeu__cat {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rust);
+    border: 1px solid rgba(165, 51, 29, 0.35);
+    padding: 0.12rem 0.45rem;
+    white-space: nowrap;
+  }
+
+  .trofeu__meta {
+    font-family: var(--sans);
+    font-size: 0.73rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0.3rem 0 0;
+  }
+
+  .trofeu__nota {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.94rem;
+    color: var(--ink-soft);
+    margin: 0.45rem 0 0;
+    max-width: 60ch;
+  }
+
+  .trofeu__foto {
+    aspect-ratio: 4 / 3;
+  }
+
+  .pendente {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+  }
+
+  .pendente__title {
+    font-size: clamp(1.6rem, 3.2vw, 2.5rem);
+    max-width: 22ch;
+  }
+
+  .pendente__title em {
+    color: rgba(236, 229, 214, 0.55);
+  }
+
+  @media (max-width: 860px) {
+    .ano-bloco {
+      grid-template-columns: 1fr;
+      gap: 0.8rem;
+    }
+
+    .ano-bloco__marca {
+      position: static;
+      flex-direction: row;
+      align-items: baseline;
+      gap: 0.7rem;
+    }
+
+    .trofeu {
+      grid-template-columns: 44px minmax(0, 1fr);
+    }
+
+    .trofeu__foto {
+      display: none;
+    }
+
+    .trofeu__selo {
+      width: 44px;
+      height: 44px;
+      font-size: 0.7rem;
+    }
+
+    .pendente {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

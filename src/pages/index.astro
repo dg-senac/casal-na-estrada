@@ -1,0 +1,856 @@
+---
+import { getCollection } from 'astro:content';
+import { site } from '../data/site';
+
+const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
+  (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
+);
+const posts = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
+  (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
+);
+const trofeus = await getCollection('trofeus');
+const agenda = (await getCollection('encontros')).sort(
+  (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
+);
+
+const manchete = posts[0];
+const ultimas = posts.slice(1, 4);
+const albumCapa = albuns[0];
+const albumMosaico = albuns[1];
+
+const dataCurta = (d: Date) =>
+  new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(d).replace('.', '');
+
+const medalha: Record<string, string> = { ouro: '1º', prata: '2º', bronze: '3º', laco: 'Part.' };
+const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 'prata').slice(0, 5);
+---
+
+<section class="hero">
+  <div class="hero__grid wrap">
+    <div class="hero__copy">
+      <p class="eyebrow">Diário de estrada · Recife, PE</p>
+      <h1 class="display-xl hero__title">
+        Duas pessoas,<br />uma moto,<br /><em>o Brasil inteiro.</em>
+      </h1>
+      <p class="hero__lead">
+        Somos {site.nomes}. Desde {site.desde} a gente roda o país atrás de encontros de moto,
+        abraça amigos que a estrada trouxe e volta pra casa com o bagageiro cheio de história.
+        Este site é a nossa caderneta — aberta pra quem quiser folhear.
+      </p>
+      <div class="hero__actions">
+        <a class="btn btn--solid" href="/diario">Ler o diário</a>
+        <a class="btn" href="/galeria">Ver as fotos</a>
+      </div>
+    </div>
+
+    <figure class="hero__media">
+      <div class="photo photo--duotone hero__photo">
+        <img src="/media/placeholder-estrada-02.jpg" alt="Casal de capacete seguindo por uma estrada de terra no sertão, vistos por trás" width="1400" height="900" />
+      </div>
+      <figcaption class="hero__caption">
+        <span class="hero__caption-num">Nº 01</span>
+        <span>Estrada de terra entre o agreste e o sertão. Sem pressa, como deve ser.</span>
+      </figcaption>
+    </figure>
+  </div>
+
+  <div class="hero__strip">
+    <div class="wrap hero__strip-in">
+      {
+        site.numeros.map((n) => (
+          <div class="stat">
+            <span class="stat__value">{n.valor}</span>
+            <span class="stat__label">{n.rotulo}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= MANCHETE ================= -->
+<section class="section section--tight">
+  <div class="wrap">
+    <div class="section-head" data-reveal>
+      <div>
+        <p class="eyebrow">Última do diário</p>
+        <h2>Manchete da estrada</h2>
+      </div>
+      <a class="link-arrow" href="/diario">Todas as publicações →</a>
+    </div>
+
+    {
+      manchete && (
+        <article class="headline" data-reveal>
+          <a class="headline__media photo photo--duotone" href={`/diario/${manchete.id}`}>
+            <img src={manchete.data.capa} alt={manchete.data.capaAlt} loading="eager" />
+          </a>
+          <div class="headline__body">
+            <div class="headline__kicker">
+              <span class="tag tag--rust">{manchete.data.tipo}</span>
+              <span>{dataCurta(manchete.data.data)} · {manchete.data.local}</span>
+            </div>
+            <h3 class="headline__title">
+              <a href={`/diario/${manchete.id}`}>{manchete.data.titulo}</a>
+            </h3>
+            <p class="headline__resumo">{manchete.data.resumo}</p>
+            <div class="headline__foot">
+              <a class="link-arrow" href={`/diario/${manchete.id}`}>Continuar lendo →</a>
+              {manchete.data.distancia && (
+                <span class="small-caps">{manchete.data.distancia} de asfalto e poeira</span>
+              )}
+            </div>
+          </div>
+        </article>
+      )
+    }
+
+    <div class="ultimas">
+      {
+        ultimas.map((post, i) => (
+          <article class="ultima" data-reveal style={`--reveal-delay:${i * 90}ms`}>
+            <a class="ultima__media photo" href={`/diario/${post.id}`}>
+              <img src={post.data.capa} alt={post.data.capaAlt} loading="lazy" />
+            </a>
+            <div class="ultima__body">
+              <div class="ultima__kicker">
+                <span>{dataCurta(post.data.data)}</span>
+                <span class="ultima__sep">/</span>
+                <span>{post.data.local}</span>
+              </div>
+              <h3 class="ultima__title">
+                <a href={`/diario/${post.id}`}>{post.data.titulo}</a>
+              </h3>
+              <p class="ultima__resumo">{post.data.resumo}</p>
+            </div>
+          </article>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= GALERIA ================= -->
+<section class="section section--ink">
+  <div class="wrap">
+    <div class="section-head" data-reveal>
+      <div>
+        <p class="eyebrow eyebrow--light">Álbuns de estrada</p>
+        <h2>O que a lente viu</h2>
+      </div>
+      <a class="link-arrow" href="/galeria">Abrir a galeria →</a>
+    </div>
+
+    <div class="mosaico">
+      {
+        albumCapa && (
+          <a class="mosaico__main" href={`/galeria/${albumCapa.id}`} data-reveal>
+            <div class="photo">
+              <img src={albumCapa.data.capa} alt={albumCapa.data.capaAlt} loading="lazy" />
+            </div>
+            <div class="mosaico__label">
+              <span class="mosaico__count">{albumCapa.data.fotos.length} fotos</span>
+              <h3>{albumCapa.data.titulo}</h3>
+              <span class="mosaico__local">{albumCapa.data.local}</span>
+            </div>
+          </a>
+        )
+      }
+      {
+        albumMosaico && (
+          <div class="mosaico__side" data-reveal style="--reveal-delay:120ms">
+            <a class="mosaico__small" href={`/galeria/${albumMosaico.id}`}>
+              <div class="photo">
+                <img src={albumMosaico.data.capa} alt={albumMosaico.data.capaAlt} loading="lazy" />
+              </div>
+              <div class="mosaico__label mosaico__label--sm">
+                <h3>{albumMosaico.data.titulo}</h3>
+                <span class="mosaico__local">{albumMosaico.data.local}</span>
+              </div>
+            </a>
+            <div class="mosaico__quote">
+              <span class="mosaico__quote-mark" aria-hidden="true">“</span>
+              <p>
+                A gente não viaja pra chegar. Viaja pra contar depois — e o melhor de tudo é
+                contar com vocês em volta da mesa.
+              </p>
+              <span class="mosaico__quote-by">{site.nomes}</span>
+            </div>
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ================= TROFÉUS ================= -->
+<section class="section section--paper2">
+  <div class="wrap">
+    <div class="section-head" data-reveal>
+      <div>
+        <p class="eyebrow">Sala de troféus</p>
+        <h2>Prateleira que não cabe mais</h2>
+      </div>
+      <a class="link-arrow" href="/trofeus">Ver todos os {trofeus.length} →</a>
+    </div>
+
+    <div class="trofeus-home">
+      <div class="trofeus-home__list">
+        {
+          podio.map((t, i) => (
+            <div class="trofeu-linha" data-reveal style={`--reveal-delay:${i * 70}ms`}>
+              <span class="trofeu-linha__medalha">{medalha[t.data.nivel]}</span>
+              <div>
+                <span class="trofeu-linha__evento">{t.data.evento}</span>
+                <span class="trofeu-linha__meta">
+                  {t.data.categoria} · {t.data.cidade} · {t.data.ano}
+                </span>
+              </div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="trofeus-home__text" data-reveal>
+        <p class="trofeus-home__big">
+          São <em>{trofeus.length}</em> troféus guardados em casa — e a lista completa está
+          chegando aos poucos por aqui.
+        </p>
+        <p>
+          Cada um tem um encontro, um nome e uma história atrás. A ideia é fotografar todos e
+          deixar essa prateleira visível pra vocês também, um por um, sem pressa.
+        </p>
+        <a class="btn" href="/trofeus">Entrar na sala de troféus</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= AGENDA ================= -->
+<section class="section">
+  <div class="wrap agenda-home">
+    <div data-reveal>
+      <p class="eyebrow">Agenda</p>
+      <h2 class="display">Onde a gente vai estar</h2>
+      <p class="lead" style="margin-top:1.2rem">
+        Se você estiver por perto, chega junto. A gente adora conhecer gente nova do movimento —
+        e sempre tem um café na garrafa térmica.
+      </p>
+      <a class="btn btn--rust" href="/encontros" style="margin-top:0.8rem">Ver agenda completa</a>
+    </div>
+
+    <div class="agenda-home__list">
+      {
+        agenda.slice(0, 4).map((e, i) => (
+          <div class="agenda-item" data-reveal style={`--reveal-delay:${i * 70}ms`}>
+            <div class="agenda-item__date">
+              <span class="agenda-item__day">
+                {new Intl.DateTimeFormat('pt-BR', { day: '2-digit' }).format(e.data.inicio)}
+              </span>
+              <span class="agenda-item__month">
+                {new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(e.data.inicio).replace('.', '')}
+              </span>
+            </div>
+            <div class="agenda-item__info">
+              <h3>{e.data.nome}</h3>
+              <p class="small-caps" style="margin:0">
+                {e.data.cidade} — {e.data.uf}
+                {!e.data.confirmado && ' · a confirmar'}
+              </p>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+</section>
+
+{
+  /* Faixa final: convite pra quem encontrou o site num evento */
+}
+<section class="faixa">
+  <div class="wrap faixa__in">
+    <div>
+      <p class="eyebrow eyebrow--light">Foi num encontro que você chegou aqui?</p>
+      <h2 class="faixa__title">
+        Então puxa uma cadeira.<br /><em>Essa estrada é de todo mundo.</em>
+      </h2>
+    </div>
+    <div class="faixa__side">
+      <p>
+        Manda uma mensagem contando de onde você é. A gente marca de se encontrar no próximo
+        encontro e troca figurinha sobre a melhor estrada até lá.
+      </p>
+      <div class="faixa__actions">
+        <a class="btn btn--light" href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent(site.whatsappTexto)}`} target="_blank" rel="noopener">Chamar no WhatsApp</a>
+        <a class="btn btn--light" href={site.instagram} target="_blank" rel="noopener">Instagram</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- HERO ---------- */
+  .hero {
+    padding-top: clamp(1.8rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--line-strong);
+    position: relative;
+  }
+
+  .hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: clamp(1.6rem, 4vw, 3.5rem);
+    align-items: end;
+    padding-bottom: clamp(2rem, 4vw, 2.8rem);
+  }
+
+  .hero__title {
+    margin-bottom: 1.4rem;
+  }
+
+  .hero__lead {
+    max-width: 46ch;
+    color: var(--ink-soft);
+    font-size: clamp(0.98rem, 0.3vw + 0.94rem, 1.08rem);
+  }
+
+  .hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.6rem;
+  }
+
+  .hero__media {
+    margin: 0;
+  }
+
+  .hero__photo {
+    aspect-ratio: 4 / 3.25;
+  }
+
+  .hero__caption {
+    display: flex;
+    gap: 0.75rem;
+    align-items: baseline;
+    padding-top: 0.7rem;
+    font-size: 0.78rem;
+    color: var(--ink-mute);
+    border-top: 1px solid var(--line);
+    margin-top: 0.7rem;
+    max-width: 52ch;
+  }
+
+  .hero__caption-num {
+    font-family: var(--sans);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-size: 0.68rem;
+    color: var(--rust);
+    flex: none;
+  }
+
+  .hero__strip {
+    border-top: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+
+  .hero__strip-in {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 1rem clamp(0.6rem, 2vw, 1.5rem);
+    border-left: 1px solid var(--line);
+  }
+
+  .stat:first-child {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .stat__value {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 2.6vw, 2.2rem);
+    line-height: 1;
+  }
+
+  .stat__label {
+    font-family: var(--sans);
+    font-size: 0.71rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  /* ---------- MANCHETE ---------- */
+  .headline {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(1.4rem, 3vw, 2.8rem);
+    padding-bottom: clamp(2rem, 4vw, 3rem);
+    border-bottom: 3px double var(--line-strong);
+  }
+
+  .headline__media {
+    aspect-ratio: 16 / 10;
+    display: block;
+  }
+
+  .headline__body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .headline__kicker {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-family: var(--sans);
+    font-size: 0.73rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.9rem;
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.16rem 0.5rem;
+    border: 1px solid var(--line-strong);
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+  }
+
+  .tag--rust {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: #fff;
+  }
+
+  .headline__title {
+    font-size: clamp(1.75rem, 3.6vw, 3rem);
+    margin-bottom: 0.9rem;
+  }
+
+  .headline__title a:hover {
+    color: var(--rust);
+    transition: color 0.2s ease;
+  }
+
+  .headline__resumo {
+    color: var(--ink-soft);
+    max-width: 44ch;
+    margin-bottom: 1.3rem;
+  }
+
+  .headline__foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem 1.5rem;
+  }
+
+  /* ---------- ÚLTIMAS ---------- */
+  .ultimas {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(1.2rem, 2.5vw, 2.2rem);
+    padding-top: clamp(1.8rem, 3.5vw, 2.6rem);
+  }
+
+  .ultima {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ultima__media {
+    aspect-ratio: 5 / 3.4;
+    margin-bottom: 0.85rem;
+  }
+
+  .ultima__kicker {
+    display: flex;
+    gap: 0.5rem;
+    font-family: var(--sans);
+    font-size: 0.71rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.45rem;
+  }
+
+  .ultima__sep {
+    color: var(--rust);
+  }
+
+  .ultima__title {
+    font-size: clamp(1.16rem, 1.6vw, 1.42rem);
+    margin-bottom: 0.5rem;
+  }
+
+  .ultima__title a:hover {
+    color: var(--rust);
+  }
+
+  .ultima__resumo {
+    color: var(--ink-soft);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+
+  /* ---------- MOSAICO ---------- */
+  .mosaico {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: clamp(1rem, 2vw, 1.6rem);
+  }
+
+  .mosaico__main {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+
+  .mosaico__main .photo {
+    aspect-ratio: 4 / 3;
+  }
+
+  .mosaico__main::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(22, 19, 14, 0) 45%, rgba(22, 19, 14, 0.85) 100%);
+  }
+
+  .mosaico__label {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1.3rem;
+    z-index: 1;
+    color: var(--paper);
+  }
+
+  .mosaico__label h3 {
+    font-size: clamp(1.4rem, 2.6vw, 2.1rem);
+    margin-block: 0.25rem;
+  }
+
+  .mosaico__count {
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust-soft);
+  }
+
+  .mosaico__local {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(236, 229, 214, 0.65);
+  }
+
+  .mosaico__side {
+    display: grid;
+    grid-template-rows: 1fr auto;
+    gap: clamp(1rem, 2vw, 1.6rem);
+  }
+
+  .mosaico__small {
+    position: relative;
+    display: block;
+    overflow: hidden;
+  }
+
+  .mosaico__small .photo {
+    height: 100%;
+    min-height: 220px;
+  }
+
+  .mosaico__small::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(22, 19, 14, 0) 50%, rgba(22, 19, 14, 0.8) 100%);
+  }
+
+  .mosaico__label--sm {
+    padding: 1rem;
+  }
+
+  .mosaico__label--sm h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .mosaico__quote {
+    border: 1px solid var(--paper-line);
+    padding: 1.3rem 1.4rem 1.2rem;
+    position: relative;
+  }
+
+  .mosaico__quote-mark {
+    font-family: var(--serif);
+    font-size: 2.6rem;
+    line-height: 0.7;
+    color: var(--rust-soft);
+    display: block;
+    margin-bottom: 0.4rem;
+  }
+
+  .mosaico__quote p {
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 1.06rem;
+    line-height: 1.45;
+    color: rgba(236, 229, 214, 0.88);
+    margin-bottom: 0.8rem;
+  }
+
+  .mosaico__quote-by {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(236, 229, 214, 0.5);
+  }
+
+  /* ---------- TROFÉUS ---------- */
+  .trofeus-home {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .trofeus-home__list {
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .trofeu-linha {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding-block: 0.85rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .trofeu-linha__medalha {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.1em;
+    color: var(--rust);
+    border: 1px solid var(--rust);
+    border-radius: 50%;
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    flex: none;
+  }
+
+  .trofeu-linha__evento {
+    display: block;
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    line-height: 1.2;
+  }
+
+  .trofeu-linha__meta {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-top: 0.2rem;
+  }
+
+  .trofeus-home__big {
+    font-family: var(--serif);
+    font-size: clamp(1.35rem, 2.4vw, 1.85rem);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-bottom: 1rem;
+  }
+
+  .trofeus-home__big em {
+    color: var(--rust);
+  }
+
+  .trofeus-home__text p:not(.trofeus-home__big) {
+    color: var(--ink-soft);
+    font-size: 0.94rem;
+    margin-bottom: 1.4rem;
+  }
+
+  /* ---------- AGENDA HOME ---------- */
+  .agenda-home {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    align-items: start;
+  }
+
+  .agenda-home__list {
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .agenda-item {
+    display: flex;
+    gap: 1.1rem;
+    padding-block: 0.95rem;
+    border-bottom: 1px solid var(--line);
+    align-items: center;
+  }
+
+  .agenda-item__date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    flex: none;
+    background: var(--paper-2);
+    padding-block: 0.35rem;
+    border: 1px solid var(--line);
+  }
+
+  .agenda-item__day {
+    font-family: var(--serif);
+    font-size: 1.35rem;
+    line-height: 1;
+  }
+
+  .agenda-item__month {
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+
+  .agenda-item__info h3 {
+    font-size: 1.12rem;
+    margin-bottom: 0.15rem;
+  }
+
+  /* ---------- FAIXA ---------- */
+  .faixa {
+    background: var(--ink);
+    color: var(--paper);
+    padding-block: clamp(3rem, 7vw, 5.5rem);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .faixa::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: repeating-linear-gradient(
+      135deg,
+      rgba(236, 229, 214, 0.045) 0 1px,
+      transparent 1px 9px
+    );
+    pointer-events: none;
+  }
+
+  .faixa__in {
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: clamp(1.8rem, 4vw, 3.5rem);
+    align-items: end;
+    position: relative;
+  }
+
+  .faixa__title {
+    font-size: clamp(1.9rem, 4.4vw, 3.4rem);
+  }
+
+  .faixa__title em {
+    color: rgba(236, 229, 214, 0.62);
+  }
+
+  .faixa__side p {
+    color: rgba(236, 229, 214, 0.75);
+    font-size: 0.95rem;
+  }
+
+  .faixa__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.7rem;
+    margin-top: 1.2rem;
+  }
+
+  /* ---------- RESPONSIVO ---------- */
+  @media (max-width: 900px) {
+    .hero__grid,
+    .headline,
+    .mosaico,
+    .trofeus-home,
+    .agenda-home,
+    .faixa__in {
+      grid-template-columns: 1fr;
+    }
+
+    .hero__grid {
+      align-items: start;
+    }
+
+    .ultimas {
+      grid-template-columns: 1fr;
+      gap: 1.6rem;
+    }
+
+    .ultima {
+      display: grid;
+      grid-template-columns: 40% 1fr;
+      gap: 1rem;
+      align-items: start;
+    }
+
+    .ultima__media {
+      margin: 0;
+      aspect-ratio: 4 / 3;
+    }
+
+    .mosaico__side {
+      grid-template-rows: auto auto;
+    }
+
+    .mosaico__small .photo {
+      aspect-ratio: 16 / 9;
+      min-height: 0;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .hero__strip-in {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stat:nth-child(3) {
+      border-left: 0;
+      padding-left: 0;
+    }
+
+    .stat:nth-child(-n + 2) {
+      border-bottom: 1px solid var(--line);
+    }
+
+    .ultima {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

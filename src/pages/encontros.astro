@@ -1,0 +1,318 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { site } from '../data/site';
+
+const todos = (await getCollection('encontros')).sort(
+  (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
+);
+
+const hoje = new Date();
+const futuros = todos.filter((e) => (e.data.fim ?? e.data.inicio) >= hoje);
+const passados = todos.filter((e) => (e.data.fim ?? e.data.inicio) < hoje).reverse();
+
+const dia = (d: Date) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit' }).format(d);
+const mes = (d: Date) =>
+  new Intl.DateTimeFormat('pt-BR', { month: 'short' }).format(d).replace('.', '');
+const ano = (d: Date) => d.getFullYear();
+const completo = (d: Date) =>
+  new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'long' }).format(d);
+---
+
+<Base
+  title="Encontros"
+  description="Agenda dos encontros de moto e moto casais onde Cieri e Milla vão estar."
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Agenda · {futuros.length} compromissos pela frente</p>
+      <h1 class="display">Encontros</h1>
+      <div class="page-head__bottom">
+        <p>
+          Os encontros são a desculpa. O motivo é rever os amigos e conhecer gente nova. Se
+          você também vai em algum desses, avisa — a gente combina de chegar junto.
+        </p>
+        <a
+          class="btn btn--solid"
+          href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent('Vou em um encontro também! Vamos combinar?')}`}
+          target="_blank"
+          rel="noopener">Combinar comboio</a
+        >
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <h2 class="sr-title">Próximos</h2>
+      <div class="lista">
+        {
+          futuros.map((e, i) => (
+            <article class="evento" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+              <div class="evento__data">
+                <span class="evento__dia">{dia(e.data.inicio)}</span>
+                <span class="evento__mes">{mes(e.data.inicio)}</span>
+                <span class="evento__ano">{ano(e.data.inicio)}</span>
+              </div>
+
+              <div class="evento__corpo">
+                <div class="evento__topo">
+                  <h3 class="evento__nome">{e.data.nome}</h3>
+                  {!e.data.confirmado && <span class="evento__aviso">a confirmar</span>}
+                </div>
+                <p class="evento__local">
+                  {e.data.cidade} — {e.data.uf}
+                  {e.data.local && <span class="evento__extra"> · {e.data.local}</span>}
+                </p>
+                {e.data.fim && (
+                  <p class="evento__fim">
+                    De {completo(e.data.inicio)} a {completo(e.data.fim)}
+                  </p>
+                )}
+                {e.data.observacao && <p class="evento__obs">{e.data.observacao}</p>}
+              </div>
+
+              <div class="evento__acao">
+                <a class="link-arrow" href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener">
+                  Vou também →
+                </a>
+              </div>
+            </article>
+          ))
+        }
+        {
+          futuros.length === 0 && (
+            <p class="vazio">
+              Nenhum encontro confirmado no momento. A gente está sempre de olho — volta aqui
+              em breve ou pergunta direto no WhatsApp.
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </section>
+
+  {
+    passados.length > 0 && (
+      <section class="section section--tight arquivo">
+        <div class="wrap">
+          <p class="eyebrow">Já passou</p>
+          <div class="arquivo__lista">
+            {passados.map((e) => (
+              <div class="passado">
+                <span class="passado__data">
+                  {dia(e.data.inicio)}/{mes(e.data.inicio)}/{ano(e.data.inicio)}
+                </span>
+                <span class="passado__nome">{e.data.nome}</span>
+                <span class="passado__local">
+                  {e.data.cidade} — {e.data.uf}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--paper2 section--tight">
+    <div class="wrap info">
+      <div>
+        <p class="eyebrow">A gente também vai</p>
+        <h2 class="info__title">Encontro que não está na lista?</h2>
+      </div>
+      <div>
+        <p>
+          Manda o nome, a cidade e a data. A gente avalia a distância, o calendário — e quase
+          sempre acaba indo. Estrada boa é estrada com destino.
+        </p>
+        <a class="btn" href={`mailto:${site.email}?subject=Indica%C3%A7%C3%A3o%20de%20encontro`}>
+          Indicar um encontro
+        </a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .sr-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .lista {
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .evento {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr) auto;
+    gap: clamp(1rem, 2.5vw, 2rem);
+    padding-block: clamp(1.2rem, 2.4vw, 1.8rem);
+    border-bottom: 1px solid var(--line);
+    align-items: start;
+  }
+
+  .evento__data {
+    display: grid;
+    justify-items: center;
+    border: 1px solid var(--line-strong);
+    padding: 0.6rem 0.4rem 0.5rem;
+    background: var(--paper-2);
+  }
+
+  .evento__dia {
+    font-family: var(--serif);
+    font-size: 2.1rem;
+    line-height: 1;
+  }
+
+  .evento__mes {
+    font-family: var(--sans);
+    font-size: 0.76rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust);
+  }
+
+  .evento__ano {
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    color: var(--ink-mute);
+  }
+
+  .evento__topo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.6rem;
+    margin-bottom: 0.35rem;
+  }
+
+  .evento__nome {
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+  }
+
+  .evento__aviso {
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    border: 1px dashed var(--line-strong);
+    padding: 0.1rem 0.4rem;
+  }
+
+  .evento__local {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-2);
+    margin: 0 0 0.4rem;
+  }
+
+  .evento__extra {
+    color: var(--ink-mute);
+  }
+
+  .evento__fim {
+    font-size: 0.86rem;
+    color: var(--ink-mute);
+    margin: 0 0 0.4rem;
+  }
+
+  .evento__obs {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin: 0;
+    max-width: 62ch;
+  }
+
+  .evento__acao {
+    padding-top: 0.4rem;
+  }
+
+  .vazio {
+    padding-block: 2rem;
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+
+  .arquivo {
+    background: var(--paper-2);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .arquivo__lista {
+    display: grid;
+  }
+
+  .passado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.3rem 1.2rem;
+    padding-block: 0.7rem;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.92rem;
+  }
+
+  .passado__data {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    color: var(--ink-mute);
+    min-width: 105px;
+  }
+
+  .passado__nome {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+  }
+
+  .passado__local {
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-left: auto;
+  }
+
+  .info {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 3rem);
+    align-items: center;
+  }
+
+  .info__title {
+    font-size: clamp(1.5rem, 3vw, 2.3rem);
+    max-width: 22ch;
+  }
+
+  @media (max-width: 860px) {
+    .evento {
+      grid-template-columns: 90px minmax(0, 1fr);
+    }
+
+    .evento__acao {
+      grid-column: 2;
+      padding-top: 0.2rem;
+    }
+
+    .info {
+      grid-template-columns: 1fr;
+    }
+
+    .passado__local {
+      margin-left: 0;
+      width: 100%;
+    }
+  }
+</style>

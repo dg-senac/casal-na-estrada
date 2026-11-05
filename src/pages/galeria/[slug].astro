@@ -1,0 +1,508 @@
+---
+import { getCollection, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+interface Props {
+  album: CollectionEntry<'albuns'>;
+}
+
+export async function getStaticPaths() {
+  const albuns = await getCollection('albuns', ({ data }) => !data.rascunho);
+  return albuns.map((album) => ({ params: { slug: album.id }, props: { album } }));
+}
+
+const { album } = Astro.props as Props;
+const { data } = album;
+
+const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
+  (a, b) => a.data.ordem - b.data.ordem
+);
+const indice = albuns.findIndex((a) => a.id === album.id);
+const proximo = albuns[(indice + 1) % albuns.length];
+
+const dataLonga = new Intl.DateTimeFormat('pt-BR', {
+  month: 'long',
+  year: 'numeric',
+}).format(data.data);
+
+/** Extrai o ID de um link do YouTube em qualquer formato comum. */
+const youtubeId = (url?: string) => {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);
+  return m ? m[1] : null;
+};
+---
+
+<Base title={data.titulo} description={data.descricao} image={data.capa}>
+  <header class="album-head">
+    <div class="wrap">
+      <a class="back" href="/galeria">← Galeria</a>
+      <h1 class="album-head__title">{data.titulo}</h1>
+      <div class="album-head__meta">
+        <span>{data.local}</span>
+        <span class="dot">·</span>
+        <span>{dataLonga}</span>
+        <span class="dot">·</span>
+        <span>{data.fotos.length} fotos</span>
+        {
+          data.videos.length > 0 && (
+            <>
+              <span class="dot">·</span>
+              <span>{data.videos.length} vídeos</span>
+            </>
+          )
+        }
+      </div>
+      <p class="album-head__desc">{data.descricao}</p>
+    </div>
+  </header>
+
+  {
+    data.videos.length > 0 && (
+      <section class="section section--tight videos">
+        <div class="wrap">
+          <p class="eyebrow">Vídeos</p>
+          <div class="videos__grid">
+            {data.videos.map((v) => {
+              const id = youtubeId(v.youtube);
+              return (
+                <figure class="video">
+                  {id ? (
+                    <div class="video__frame">
+                      <iframe
+                        src={`https://www.youtube-nocookie.com/embed/${id}`}
+                        title={v.titulo}
+                        loading="lazy"
+                        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowfullscreen
+                      />
+                    </div>
+                  ) : (
+                    <div class="video__frame video__frame--local">
+                      <video controls preload="metadata" src={v.arquivo} playsinline />
+                    </div>
+                  )}
+                  <figcaption>
+                    <span class="video__titulo">{v.titulo}</span>
+                    {v.credito && <span class="video__credito">{v.credito}</span>}
+                  </figcaption>
+                </figure>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <p class="eyebrow">Fotos · clique para ampliar</p>
+      <div class="grade" id="grade">
+        {
+          data.fotos.map((foto, i) => (
+            <figure class:list={['foto', { 'foto--vertical': foto.vertical }]} data-reveal>
+              <button
+                type="button"
+                class="foto__btn"
+                data-lightbox
+                data-src={foto.src}
+                data-legenda={foto.legenda ?? ''}
+                data-indice={i}
+                aria-label={`Ampliar foto ${i + 1}${foto.legenda ? ': ' + foto.legenda : ''}`}
+              >
+                <img src={foto.src} alt={foto.legenda ?? data.capaAlt} loading="lazy" />
+              </button>
+              {foto.legenda && <figcaption>{foto.legenda}</figcaption>}
+            </figure>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="proximo-album">
+    <div class="wrap proximo-album__in">
+      <div>
+        <p class="eyebrow">Próximo álbum</p>
+        <h2><a href={`/galeria/${proximo.id}`}>{proximo.data.titulo}</a></h2>
+        <p class="small-caps" style="margin:0">{proximo.data.local}</p>
+      </div>
+      <a class="btn" href={`/galeria/${proximo.id}`}>Abrir →</a>
+    </div>
+  </section>
+
+  <div class="lightbox" id="lightbox" hidden>
+    <button class="lightbox__close" type="button" aria-label="Fechar">Fechar ✕</button>
+    <button class="lightbox__nav lightbox__nav--prev" type="button" aria-label="Foto anterior">←</button>
+    <figure class="lightbox__figure">
+      <img src="" alt="" id="lightbox-img" />
+      <figcaption id="lightbox-cap"></figcaption>
+    </figure>
+    <button class="lightbox__nav lightbox__nav--next" type="button" aria-label="Próxima foto">→</button>
+  </div>
+</Base>
+
+<style>
+  .album-head {
+    padding-top: clamp(1.4rem, 3vw, 2.2rem);
+    padding-bottom: clamp(1.4rem, 3vw, 2rem);
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .back {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    display: inline-block;
+    margin-bottom: 1.2rem;
+  }
+
+  .back:hover {
+    color: var(--rust);
+  }
+
+  .album-head__title {
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    max-width: 24ch;
+    margin-bottom: 0.9rem;
+  }
+
+  .album-head__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 1rem;
+  }
+
+  .dot {
+    color: var(--rust);
+  }
+
+  .album-head__desc {
+    max-width: 62ch;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .videos {
+    background: var(--paper-2);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .videos__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 1.6rem;
+  }
+
+  .video {
+    margin: 0;
+  }
+
+  .video__frame {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: #0d0b08;
+  }
+
+  .video__frame iframe,
+  .video__frame video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .video figcaption {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding-top: 0.55rem;
+    margin-top: 0.55rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.84rem;
+  }
+
+  .video__titulo {
+    font-family: var(--serif);
+    font-size: 1rem;
+  }
+
+  .video__credito {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  /* ---------- Grade de fotos (ritmo irregular, tipo caderno) ---------- */
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: clamp(0.7rem, 1.6vw, 1.3rem);
+  }
+
+  .foto {
+    grid-column: span 4;
+    margin: 0;
+  }
+
+  .foto:nth-child(5n + 1) {
+    grid-column: span 8;
+  }
+
+  .foto:nth-child(5n + 2) {
+    grid-column: span 4;
+  }
+
+  .foto:nth-child(5n + 3) {
+    grid-column: span 4;
+  }
+
+  .foto:nth-child(5n + 4) {
+    grid-column: span 5;
+  }
+
+  .foto:nth-child(5n + 5) {
+    grid-column: span 7;
+  }
+
+  .foto__btn {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    cursor: zoom-in;
+    overflow: hidden;
+  }
+
+  .foto__btn img {
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    filter: grayscale(1) contrast(1.06);
+    transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.4s ease;
+  }
+
+  .foto:nth-child(5n + 1) .foto__btn img {
+    aspect-ratio: 16 / 9;
+  }
+
+  .foto__btn:hover img,
+  .foto__btn:focus-visible img {
+    transform: scale(1.03);
+    filter: grayscale(1) contrast(1.1) brightness(1.05);
+  }
+
+  .foto figcaption {
+    font-size: 0.79rem;
+    color: var(--ink-mute);
+    padding-top: 0.45rem;
+    line-height: 1.4;
+  }
+
+  /* ---------- Próximo álbum ---------- */
+  .proximo-album {
+    border-top: 1px solid var(--line-strong);
+    background: var(--paper-2);
+    padding-block: clamp(1.8rem, 4vw, 2.8rem);
+  }
+
+  .proximo-album__in {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.2rem;
+  }
+
+  .proximo-album h2 {
+    font-size: clamp(1.3rem, 2.6vw, 2rem);
+  }
+
+  .proximo-album h2 a:hover {
+    color: var(--rust);
+  }
+
+  /* ---------- Lightbox ---------- */
+  .lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 500;
+    background: rgba(12, 10, 7, 0.96);
+    display: grid;
+    place-items: center;
+    padding: clamp(1rem, 4vw, 3rem);
+  }
+
+  .lightbox[hidden] {
+    display: none;
+  }
+
+  .lightbox__figure {
+    margin: 0;
+    max-width: min(1200px, 92vw);
+    max-height: 84vh;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+  }
+
+  .lightbox__figure img {
+    max-height: 76vh;
+    width: auto;
+    max-width: 100%;
+    object-fit: contain;
+    margin-inline: auto;
+  }
+
+  .lightbox__figure figcaption {
+    color: rgba(236, 229, 214, 0.75);
+    font-size: 0.86rem;
+    text-align: center;
+  }
+
+  .lightbox__close,
+  .lightbox__nav {
+    position: absolute;
+    background: none;
+    border: 1px solid rgba(236, 229, 214, 0.3);
+    color: var(--paper);
+    font-family: var(--sans);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-size: 0.72rem;
+    padding: 0.55rem 0.9rem;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+
+  .lightbox__close:hover,
+  .lightbox__nav:hover {
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .lightbox__close {
+    top: 1.2rem;
+    right: 1.2rem;
+  }
+
+  .lightbox__nav {
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.1rem;
+    padding: 0.7rem 0.85rem;
+    letter-spacing: 0;
+  }
+
+  .lightbox__nav--prev {
+    left: 1rem;
+  }
+
+  .lightbox__nav--next {
+    right: 1rem;
+  }
+
+  @media (max-width: 760px) {
+    .grade {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .foto,
+    .foto:nth-child(5n + 1),
+    .foto:nth-child(5n + 2),
+    .foto:nth-child(5n + 3),
+    .foto:nth-child(5n + 4),
+    .foto:nth-child(5n + 5) {
+      grid-column: span 1;
+    }
+
+    .foto:nth-child(5n + 1) .foto__btn img {
+      aspect-ratio: 4 / 3;
+    }
+
+    .lightbox__nav {
+      top: auto;
+      bottom: 1rem;
+      transform: none;
+    }
+
+    .lightbox__nav--prev {
+      left: calc(50% - 5.2rem);
+    }
+
+    .lightbox__nav--next {
+      right: calc(50% - 5.2rem);
+    }
+  }
+</style>
+
+<script>
+  const grade = document.getElementById('grade');
+  const box = document.getElementById('lightbox') as HTMLElement | null;
+  const img = document.getElementById('lightbox-img') as HTMLImageElement | null;
+  const cap = document.getElementById('lightbox-cap');
+  const btnClose = box?.querySelector<HTMLButtonElement>('.lightbox__close');
+  const btnPrev = box?.querySelector<HTMLButtonElement>('.lightbox__nav--prev');
+  const btnNext = box?.querySelector<HTMLButtonElement>('.lightbox__nav--next');
+
+  const botoes = Array.from(grade?.querySelectorAll<HTMLButtonElement>('[data-lightbox]') ?? []);
+  let atual = 0;
+  let ultimoFoco: HTMLElement | null = null;
+
+  const mostra = (i: number) => {
+    if (!botoes.length) return;
+    atual = (i + botoes.length) % botoes.length;
+    const btn = botoes[atual];
+    if (img) {
+      img.src = btn.dataset.src ?? '';
+      img.alt = btn.dataset.legenda || `Foto ${atual + 1}`;
+    }
+    if (cap) cap.textContent = btn.dataset.legenda ?? '';
+  };
+
+  const abre = (i: number) => {
+    if (!box) return;
+    ultimoFoco = document.activeElement as HTMLElement;
+    mostra(i);
+    box.hidden = false;
+    document.body.style.overflow = 'hidden';
+    btnClose?.focus();
+  };
+
+  const fecha = () => {
+    if (!box) return;
+    box.hidden = true;
+    document.body.style.overflow = '';
+    ultimoFoco?.focus();
+  };
+
+  botoes.forEach((btn, i) => btn.addEventListener('click', () => abre(i)));
+  btnClose?.addEventListener('click', fecha);
+  btnPrev?.addEventListener('click', () => mostra(atual - 1));
+  btnNext?.addEventListener('click', () => mostra(atual + 1));
+  box?.addEventListener('click', (e) => {
+    if (e.target === box) fecha();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (!box || box.hidden) return;
+    if (e.key === 'Escape') fecha();
+    if (e.key === 'ArrowLeft') mostra(atual - 1);
+    if (e.key === 'ArrowRight') mostra(atual + 1);
+  });
+</script>
