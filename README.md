@@ -90,22 +90,52 @@ Texto opcional de apresentação do álbum.
 As fotos ficam em `public/media/`. Para o site ficar leve, exporte as imagens com
 **1600 px no lado maior** e qualidade ~80 — não precisa mais que isso.
 
-### Adicionar um troféu
+### Adicionar uma peça na Sala de Troféus
 
-`src/content/trofeus/07-nome.md`:
+Cada peça da prateleira é **um arquivo** em `src/content/trofeus/`. O nome do arquivo
+vira o endereço da página dela (ex.: `2026-11-estradeiros-do-rei.md` →
+`/trofeus/2026-11-estradeiros-do-rei`), então use nomes curtos, sem acento e sem espaço.
 
 ```md
 ---
 evento: 'Encontro de Motos de Caruaru'
-ano: 2025
+ano: 2025                    # opcional: sem ano, a peça vai para o grupo "Sem data"
+data: 2025-11-15             # opcional: data exata do encontro (ordena a prateleira)
+edicao: '12ª edição'         # opcional
 categoria: 'Casal mais distante'
-cidade: 'Caruaru — PE'
+cidade: 'Caruaru — PE'       # opcional
 colocacao: '1º lugar'
-nivel: 'ouro'            # ouro | prata | bronze | laco (participação)
-nota: 'Uma história curta sobre esse troféu.'
-foto: '/media/trofeu.jpg'   # opcional
+nivel: 'ouro'                # ouro | prata | bronze | laco (participação)
+tipo: 'trofeu'               # trofeu | placa | lembranca | construcao
+historia: 'Duas a quatro frases contando como a peça foi conquistada na viagem.'
+nota: 'Uma frase de efeito, que aparece em destaque na página da peça.'   # opcional
+foto: '/media/trofeus/caruaru-2025.jpg'
+fotoAlt: 'Descrição da foto para quem usa leitor de tela'
+fotos:                       # opcional: outras fotos da mesma peça
+  - src: '/media/trofeus/caruaru-2025-detalhe.jpg'
+    legenda: 'Detalhe da gravação na base.'
+destaque: false              # true = aparece na home, na seção da sala de troféus
+rascunho: false              # true = não aparece no site
 ---
 ```
+
+Se quiser contar a história inteira, é só escrever em Markdown abaixo do `---` — o texto
+aparece como "A história completa" na página da peça. É opcional: a `historia:` do
+cabeçalho já basta para o cartão da galeria.
+
+**O que a página faz sozinha:**
+
+- agrupa as peças **por ano**, da mais recente para a mais antiga ("Sem data" no fim);
+- monta o índice de anos no topo e a contagem de troféus, placas e lembranças;
+- troca a etiqueta de cada peça conforme o `nivel` e o `tipo`;
+- atualiza o número de "peças na galeria" no painel da home.
+
+**Fotos:** ficam em `public/media/trofeus/`. Exporte com **1600 px no lado maior** e
+qualidade ~80 (as que estão lá hoje foram reduzidas na importação). Fotos na vertical
+funcionam melhor — a galeria recorta em 4:5.
+
+Em `src/content/trofeus/_modelos/` ficaram seis fichas de exemplo (marcadas com
+`rascunho: true`, ou seja, fora do site) para servir de referência de formato.
 
 ### Agenda de encontros
 
@@ -143,6 +173,10 @@ grande, ex. impressão ou og:image).
 
 - [ ] WhatsApp, e-mail e Instagram em `src/data/site.ts` (hoje estão com valores de exemplo)
 - [ ] Os números da home (anos de estrada, encontros, troféus, estados)
+- [ ] Revisar as histórias dos troféus: as primeiras foram escritas a partir da data e do
+      nome gravado em cada peça — ajustem com o que lembram da viagem
+- [ ] Cidade de algumas peças que só têm o estado (Coletamento dos Estradeiros do Rei,
+      Moto Culto, aniversários das Estradeiras)
 - [ ] Nomes reais das cidades/eventos nas publicações de exemplo
 - [ ] Domínio final em `astro.config.mjs` (`site:`) — usado no sitemap e nos links absolutos
 

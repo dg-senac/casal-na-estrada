@@ -2,82 +2,98 @@
 import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
 import { url } from '../lib/url';
+import { capa, capaAlt, metaData, porAno, quando, rotuloAno, selo } from '../lib/trofeus';
 
-const trofeus = (await getCollection('trofeus')).sort((a, b) => b.data.ano - a.data.ano);
+const trofeus = await getCollection('trofeus', ({ data }) => !data.rascunho);
+const grupos = porAno(trofeus);
 
-const niveis = {
-  ouro: { label: '1º lugar', curto: '1º' },
-  prata: { label: '2º lugar', curto: '2º' },
-  bronze: { label: '3º lugar', curto: '3º' },
-  laco: { label: 'Participação', curto: 'Part.' },
-} as const;
+// Contagem por tipo de peça, exibida no cabeçalho.
+const contaTipo = (tipo: string) => trofeus.filter((t) => t.data.tipo === tipo).length;
+const lembrancas = contaTipo('lembranca') + contaTipo('construcao');
 
-const porAno = new Map<number, typeof trofeus>();
-for (const t of trofeus) {
-  if (!porAno.has(t.data.ano)) porAno.set(t.data.ano, []);
-  porAno.get(t.data.ano)!.push(t);
-}
-
-const conta = (n: string) => trofeus.filter((t) => t.data.nivel === n).length;
+const ultima = grupos[0]?.pecas[0];
 ---
 
 <Base
   title="Sala de Troféus"
-  description="A sala de troféus do Casal na Estrada: todos os prêmios e homenagens conquistados em encontros de moto pelo Brasil."
+  description="A sala de troféus do Casal na Estrada: troféus, placas e lembranças de cada encontro de moto, com a história de como cada peça chegou na prateleira."
 >
   <header class="page-head">
     <div class="wrap">
-      <p class="eyebrow">Prateleira da sala · {trofeus.length} peças catalogadas</p>
+      <p class="eyebrow">Prateleira da sala · {trofeus.length} peças fotografadas</p>
       <h1 class="display">Sala de Troféus</h1>
       <div class="page-head__bottom">
         <p>
-          Nenhum desses troféus valeu dinheiro. Todos valeram um fim de semana, um encontro e
-          uma história que a gente conta até hoje. Estamos fotografando a prateleira aos poucos.
+          Nem tudo aqui é prêmio de pódio: a maior parte são placas de participação, lembranças
+          de viagem e uma coisa ou outra feita em casa. Cada peça tem o encontro, a cidade e a
+          história anotados atrás — e é isso que a gente quer guardar aqui.
         </p>
         <div class="contagem">
-          <span><strong>{conta('ouro')}</strong> primeiros lugares</span>
-          <span><strong>{conta('prata') + conta('bronze')}</strong> pódios</span>
-          <span><strong>{conta('laco')}</strong> homenagens</span>
+          <span><strong>{contaTipo('trofeu')}</strong> troféus</span>
+          <span><strong>{contaTipo('placa')}</strong> placas</span>
+          <span><strong>{lembrancas}</strong> lembranças e feitos em casa</span>
         </div>
       </div>
     </div>
   </header>
 
+  {
+    grupos.length > 0 && (
+      <nav class="indice" aria-label="Pular para um ano">
+        <div class="wrap indice__in">
+          <span class="indice__rotulo">Prateleira por ano</span>
+          <ul class="indice__lista">
+            {grupos.map((g) => (
+              <li>
+                <a href={`#ano-${g.ano ?? 'sem-data'}`}>
+                  {rotuloAno(g.ano)} <span class="indice__qtd">{g.pecas.length}</span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </nav>
+    )
+  }
+
   <section class="section section--tight">
     <div class="wrap">
       {
-        [...porAno.entries()].map(([ano, lista]) => (
-          <div class="ano-bloco">
-            <div class="ano-bloco__marca">
-              <span class="ano-bloco__ano">{ano}</span>
-              <span class="ano-bloco__qtd">
-                {lista.length} {lista.length === 1 ? 'peça' : 'peças'}
+        grupos.map((grupo) => (
+          <div class="ano" id={`ano-${grupo.ano ?? 'sem-data'}`}>
+            <header class="ano__head">
+              <h2 class="ano__num">{rotuloAno(grupo.ano)}</h2>
+              <span class="ano__qtd">
+                {grupo.pecas.length} {grupo.pecas.length === 1 ? 'peça' : 'peças'}
               </span>
-            </div>
+              <span class="ano__linha" aria-hidden="true" />
+            </header>
 
-            <div class="ano-bloco__lista">
-              {lista.map((t, i) => (
-                <article class="trofeu" data-reveal style={`--reveal-delay:${i * 60}ms`}>
-                  <div class:list={['trofeu__selo', `trofeu__selo--${t.data.nivel}`]}>
-                    <span>{niveis[t.data.nivel].curto}</span>
-                  </div>
-
-                  <div class="trofeu__corpo">
-                    <div class="trofeu__topo">
-                      <h2 class="trofeu__evento">{t.data.evento}</h2>
-                      <span class="trofeu__cat">{t.data.categoria}</span>
+            <div class="grade">
+              {grupo.pecas.map((t, i) => (
+                <article class="peca" data-reveal style={`--reveal-delay:${(i % 3) * 70}ms`}>
+                  <a class="peca__link" href={url(`/trofeus/${t.id}`)}>
+                    <div class="peca__foto">
+                      {capa(t) ? (
+                        <img src={url(capa(t)!)} alt={capaAlt(t)} loading="lazy" />
+                      ) : (
+                        <span class="peca__sem-foto">Sem foto ainda</span>
+                      )}
+                      <span class="peca__selo">{selo(t)}</span>
                     </div>
-                    <p class="trofeu__meta">
-                      {t.data.cidade} · {niveis[t.data.nivel].label}
-                    </p>
-                    {t.data.nota && <p class="trofeu__nota">“{t.data.nota}”</p>}
-                  </div>
 
-                  {t.data.foto && (
-                    <div class="photo trofeu__foto">
-                      <img src={url(t.data.foto!)} alt={`Troféu do ${t.data.evento}`} loading="lazy" />
+                    <div class="peca__info">
+                      <p class="peca__meta">
+                        {t.data.cidade && <span>{t.data.cidade}</span>}
+                        {t.data.cidade && metaData(t) && <span class="peca__ponto">·</span>}
+                        {metaData(t) && <span>{metaData(t)}</span>}
+                        {!t.data.cidade && !metaData(t) && <span>Prateleira de casa</span>}
+                      </p>
+                      <h3 class="peca__titulo">{t.data.evento}</h3>
+                      <p class="peca__historia">{t.data.historia}</p>
+                      <span class="link-arrow">Ler a história</span>
                     </div>
-                  )}
+                  </a>
                 </article>
               ))}
             </div>
@@ -91,18 +107,17 @@ const conta = (n: string) => trofeus.filter((t) => t.data.nivel === n).length;
     <div class="wrap pendente">
       <div>
         <p class="eyebrow eyebrow--light">Esta página cresce com o tempo</p>
-        <h2 class="pendente__title">
-          Ainda faltam <em>dezenas</em> de troféus para fotografar.
-        </h2>
+        <h2 class="pendente__title">A prateleira enche a cada <em>fim de semana</em>.</h2>
       </div>
       <div>
         <p>
-          A prateleira de casa tem muito mais peças do que aparece aqui — algumas de encontros
-          que nem lembramos o nome. Vamos fotografando um por um e subindo com a história de
-          cada um.
+          Cada encontro do ano rende uma peça nova e o casal mesmo abastece esta sala: chega da
+          viagem, fotografa o troféu e escreve a história. Por isso a página nunca fica
+          pronta — e é assim que a gente gosta. As fotos aqui saem em cor, únicas do site:
+          nessas peças a cor é metade da história.
         </p>
         <p class="small-caps" style="margin:0">
-          Tem um troféu nosso aí na sua casa? A gente quer de volta. 😄
+          {ultima ? `Última peça: ${ultima.data.evento} · ${quando(ultima)}` : 'Fotos em cor: a única exceção do site.'}
         </p>
       </div>
     </div>
@@ -129,134 +144,229 @@ const conta = (n: string) => trofeus.filter((t) => t.data.nivel === n).length;
     margin-right: 0.15rem;
   }
 
-  .ano-bloco {
-    display: grid;
-    grid-template-columns: 180px minmax(0, 1fr);
-    gap: clamp(1.2rem, 3vw, 2.6rem);
-    padding-block: clamp(1.4rem, 3vw, 2.2rem);
-    border-top: 1px solid var(--line-strong);
+  /* ---------- Índice por ano ---------- */
+
+  .indice {
+    border-bottom: 1px solid var(--line);
+    background: var(--paper-2);
   }
 
-  .ano-bloco__marca {
+  .indice__in {
     display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    position: sticky;
-    top: 130px;
-    align-self: start;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.6rem 1.6rem;
+    padding-block: 0.7rem;
   }
 
-  .ano-bloco__ano {
+  .indice__rotulo {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .indice__lista {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem 1.3rem;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .indice__lista a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    padding-bottom: 0.1rem;
+    border-bottom: 1px solid transparent;
+    transition: color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .indice__lista a:hover {
+    color: var(--rust);
+    border-bottom-color: var(--rust);
+  }
+
+  .indice__qtd {
+    font-size: 0.68rem;
+    color: var(--ink-mute);
+  }
+
+  /* ---------- Bloco de um ano ---------- */
+
+  .ano {
+    padding-block: clamp(1.6rem, 3vw, 2.4rem);
+    scroll-margin-top: 120px;
+  }
+
+  .ano + .ano {
+    border-top: 1px solid var(--line);
+  }
+
+  .ano__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin-bottom: clamp(1.2rem, 2.5vw, 1.8rem);
+  }
+
+  .ano__num {
     font-family: var(--serif);
-    font-size: clamp(2.2rem, 3.4vw, 3rem);
+    font-size: clamp(1.9rem, 3.4vw, 2.6rem);
     line-height: 1;
+    letter-spacing: -0.02em;
   }
 
-  .ano-bloco__qtd {
+  .ano__qtd {
     font-family: var(--sans);
     font-size: 0.7rem;
     letter-spacing: 0.18em;
     text-transform: uppercase;
     color: var(--ink-mute);
-  }
-
-  .ano-bloco__lista {
-    display: grid;
-    gap: 0;
-  }
-
-  .trofeu {
-    display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) 130px;
-    gap: clamp(0.9rem, 2vw, 1.6rem);
-    align-items: center;
-    padding-block: 1.1rem;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .trofeu:first-child {
-    padding-top: 0;
-  }
-
-  .trofeu__selo {
-    width: 52px;
-    height: 52px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    font-family: var(--sans);
-    font-size: 0.78rem;
-    letter-spacing: 0.04em;
-    border: 1px solid var(--line-strong);
-    position: relative;
-  }
-
-  .trofeu__selo--ouro {
-    background: var(--rust);
-    border-color: var(--rust);
-    color: #fff;
-  }
-
-  .trofeu__selo--prata {
-    border-color: var(--ink);
-    border-width: 2px;
-    color: var(--ink);
-  }
-
-  .trofeu__selo--bronze {
-    border-color: var(--ink-mute);
-    color: var(--ink-soft);
-  }
-
-  .trofeu__selo--laco {
-    border-style: dashed;
-    color: var(--ink-mute);
-  }
-
-  .trofeu__topo {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.3rem 0.9rem;
-  }
-
-  .trofeu__evento {
-    font-size: clamp(1.1rem, 1.7vw, 1.4rem);
-    line-height: 1.2;
-  }
-
-  .trofeu__cat {
-    font-family: var(--sans);
-    font-size: 0.7rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--rust);
-    border: 1px solid rgba(165, 51, 29, 0.35);
-    padding: 0.12rem 0.45rem;
     white-space: nowrap;
   }
 
-  .trofeu__meta {
+  .ano__linha {
+    flex: 1;
+    height: 1px;
+    background: var(--line-strong);
+    transform: translateY(-4px);
+  }
+
+  /* ---------- Cartão da peça ---------- */
+
+  .grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
+    gap: clamp(1.1rem, 2.2vw, 1.9rem);
+  }
+
+  .peca {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    transition: border-color 0.25s ease, transform 0.4s ease;
+  }
+
+  .peca:hover {
+    border-color: var(--ink);
+    transform: translateY(-3px);
+  }
+
+  .peca__link {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .peca__foto {
+    position: relative;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: #d9d0bd;
+    border-bottom: 1px solid var(--line);
+  }
+
+  /* A sala de troféus é o único lugar do site com foto em cor:
+     nessas peças a cor é metade da história. */
+  .peca__foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: none;
+    transition: transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .peca:hover .peca__foto img {
+    transform: scale(1.04);
+  }
+
+  .peca__sem-foto {
+    display: grid;
+    place-items: center;
+    height: 100%;
     font-family: var(--sans);
-    font-size: 0.73rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .peca__selo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    padding: 0.3rem 0.55rem 0.26rem;
+  }
+
+  .peca__info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding: 0.95rem 1rem 1.15rem;
+    flex: 1;
+  }
+
+  .peca__meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+    font-family: var(--sans);
+    font-size: 0.68rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--ink-mute);
-    margin: 0.3rem 0 0;
+    margin: 0;
   }
 
-  .trofeu__nota {
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 0.94rem;
+  .peca__ponto {
+    color: var(--rust);
+  }
+
+  .peca__titulo {
+    font-size: clamp(1.1rem, 1.6vw, 1.28rem);
+    line-height: 1.18;
+    transition: color 0.25s ease;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .peca:hover .peca__titulo {
+    color: var(--rust);
+  }
+
+  .peca__historia {
+    font-size: 0.87rem;
+    line-height: 1.5;
     color: var(--ink-soft);
-    margin: 0.45rem 0 0;
-    max-width: 60ch;
+    margin: 0.15rem 0 0.9rem;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
-  .trofeu__foto {
-    aspect-ratio: 4 / 3;
+  .peca__info .link-arrow {
+    margin-top: auto;
+    font-size: 0.74rem;
+    align-self: flex-start;
   }
+
+  /* ---------- Fecho ---------- */
 
   .pendente {
     display: grid;
@@ -275,34 +385,30 @@ const conta = (n: string) => trofeus.filter((t) => t.data.nivel === n).length;
   }
 
   @media (max-width: 860px) {
-    .ano-bloco {
-      grid-template-columns: 1fr;
-      gap: 0.8rem;
-    }
-
-    .ano-bloco__marca {
-      position: static;
-      flex-direction: row;
-      align-items: baseline;
-      gap: 0.7rem;
-    }
-
-    .trofeu {
-      grid-template-columns: 44px minmax(0, 1fr);
-    }
-
-    .trofeu__foto {
-      display: none;
-    }
-
-    .trofeu__selo {
-      width: 44px;
-      height: 44px;
-      font-size: 0.7rem;
-    }
-
     .pendente {
       grid-template-columns: 1fr;
+    }
+
+    .grade {
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    }
+
+    .peca__historia {
+      -webkit-line-clamp: 3;
+    }
+
+    .peca__info .link-arrow {
+      font-size: 0.7rem;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .grade {
+      grid-template-columns: 1fr;
+    }
+
+    .peca__historia {
+      -webkit-line-clamp: 4;
     }
   }
 </style>

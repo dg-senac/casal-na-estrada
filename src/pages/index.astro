@@ -9,7 +9,7 @@ const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sor
 const posts = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
 );
-const trofeus = await getCollection('trofeus');
+const trofeus = await getCollection('trofeus', ({ data }) => !data.rascunho);
 const agenda = (await getCollection('encontros')).sort(
   (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
 );
@@ -22,9 +22,19 @@ const albumMosaico = albuns[1];
 const dataCurta = (d: Date) =>
   new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: 'short' }).format(d).replace('.', '');
 
-const medalha: Record<string, string> = { ouro: '1º', prata: '2º', bronze: '3º', laco: 'Part.' };
-const podio = trofeus.filter((t) => t.data.nivel === 'ouro' || t.data.nivel === 'prata').slice(0, 5);
+const ordendas = ordenar(trofeus);
+// A home mostra as peças marcadas com `destaque: true`; se ninguém marcar nada,
+// cai nas mais recentes da prateleira.
+const marcadas = ordendas.filter((t) => t.data.destaque);
+const podio = (marcadas.length > 0 ? marcadas : ordendas).slice(0, 5);
+
+// O número de peças é lido do conteúdo, não do site.ts: a prateleira cresce
+// e o painel da home acompanha sozinho.
+const numeros = site.numeros.map((n) =>
+  n.rotulo === 'peças na galeria' ? { ...n, valor: String(trofeus.length) } : n
+);
 import { url } from '../lib/url';
+import { ordenar, seloCurto } from '../lib/trofeus';
 ---
 
 <Base description={site.descricao}>
@@ -60,7 +70,7 @@ import { url } from '../lib/url';
   <div class="hero__strip">
     <div class="wrap hero__strip-in">
       {
-        site.numeros.map((n) => (
+        numeros.map((n) => (
           <div class="stat">
             <span class="stat__value">{n.valor}</span>
             <span class="stat__label">{n.rotulo}</span>
@@ -201,26 +211,33 @@ import { url } from '../lib/url';
       <div class="trofeus-home__list">
         {
           podio.map((t, i) => (
-            <div class="trofeu-linha" data-reveal style={`--reveal-delay:${i * 70}ms`}>
-              <span class="trofeu-linha__medalha">{medalha[t.data.nivel]}</span>
+            <a
+              class="trofeu-linha"
+              href={url(`/trofeus/${t.id}`)}
+              data-reveal
+              style={`--reveal-delay:${i * 70}ms`}
+            >
+              <span class="trofeu-linha__medalha">{seloCurto(t)}</span>
               <div>
                 <span class="trofeu-linha__evento">{t.data.evento}</span>
                 <span class="trofeu-linha__meta">
-                  {t.data.categoria} · {t.data.cidade} · {t.data.ano}
+                  {t.data.categoria}
+                  {t.data.cidade ? ` · ${t.data.cidade}` : ''}
+                  {t.data.ano ? ` · ${t.data.ano}` : ''}
                 </span>
               </div>
-            </div>
+            </a>
           ))
         }
       </div>
       <div class="trofeus-home__text" data-reveal>
         <p class="trofeus-home__big">
-          São <em>{trofeus.length}</em> troféus guardados em casa — e a lista completa está
-          chegando aos poucos por aqui.
+          São <em>{trofeus.length}</em> peças na prateleira — troféus, placas e lembranças
+          de cada encontro, com a história de como cada uma chegou.
         </p>
         <p>
-          Cada um tem um encontro, um nome e uma história atrás. A ideia é fotografar todos e
-          deixar essa prateleira visível pra vocês também, um por um, sem pressa.
+          Cada peça tem um encontro, um nome e uma história atrás. A sala é abastecida aos
+          poucos, pelo próprio casal, toda vez que volta de viagem.
         </p>
         <a class="btn" href={url("/trofeus")}>Entrar na sala de troféus</a>
       </div>
@@ -649,15 +666,14 @@ import { url } from '../lib/url';
 
   .trofeu-linha__medalha {
     font-family: var(--sans);
-    font-size: 0.74rem;
-    letter-spacing: 0.1em;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
     color: var(--rust);
     border: 1px solid var(--rust);
-    border-radius: 50%;
-    width: 34px;
-    height: 34px;
-    display: grid;
-    place-items: center;
+    padding: 0.34rem 0.5rem 0.3rem;
+    min-width: 64px;
+    text-align: center;
     flex: none;
   }
 
@@ -666,6 +682,11 @@ import { url } from '../lib/url';
     font-family: var(--serif);
     font-size: 1.08rem;
     line-height: 1.2;
+    transition: color 0.2s ease;
+  }
+
+  .trofeu-linha:hover .trofeu-linha__evento {
+    color: var(--rust);
   }
 
   .trofeu-linha__meta {

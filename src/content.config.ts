@@ -58,18 +58,36 @@ const albuns = defineCollection({
 });
 
 // ---------- Sala de troféus ----------
+// Cada arquivo é uma peça da prateleira: troféu de pódio, placa de participação,
+// lembrança comprada na estrada ou coisa feita em casa (o LEGO, por exemplo).
 const trofeus = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/trofeus' }),
   schema: z.object({
     evento: z.string(),
-    ano: z.number(),
-    categoria: z.string(),
-    cidade: z.string(),
-    colocacao: z.string(),
+    // Ano do encontro. Deixe de fora quando ninguém lembrar — a peça vai para "Sem data".
+    ano: z.number().int().min(1990).max(2100).optional(),
+    // Data exata do encontro, se souberem (ex.: 2026-11-08). Serve para ordenar.
+    data: z.coerce.date().optional(),
+    categoria: z.string().default('Participação'),
+    // Cidade ou região ("Iati — PE", "Pernambuco"). Opcional.
+    cidade: z.string().optional(),
+    colocacao: z.string().default('Participação'),
     // 'ouro' para 1º lugar, 'prata' 2º, 'bronze' 3º, 'laco' participação
     nivel: z.enum(['ouro', 'prata', 'bronze', 'laco']).default('laco'),
+    // trofeu = peça de pódio · placa = placa/acrílico de participação
+    // lembranca = souvenir da viagem · construcao = feito em casa
+    tipo: z.enum(['trofeu', 'placa', 'lembranca', 'construcao']).default('trofeu'),
+    edicao: z.string().optional(),
+    // A história curta de como a peça foi conquistada (2 a 4 frases).
+    historia: z.string(),
+    // Frase de efeito que aparece em destaque na página da peça.
     nota: z.string().optional(),
+    // Foto principal. As demais fotos da mesma peça vão em "fotos:".
     foto: z.string().optional(),
+    fotoAlt: z.string().optional(),
+    fotos: z.array(midia).default([]),
+    destaque: z.boolean().default(false),
+    rascunho: z.boolean().default(false),
   }),
 });
 

@@ -1,0 +1,394 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { url } from '../../lib/url';
+import { capa, capaAlt, NIVEIS, ordenar, quando, selo, TIPOS } from '../../lib/trofeus';
+
+interface Props {
+  trofeu: CollectionEntry<'trofeus'>;
+  maisNova: CollectionEntry<'trofeus'> | null;
+  maisAntiga: CollectionEntry<'trofeus'> | null;
+}
+
+export async function getStaticPaths() {
+  const pecas = ordenar(await getCollection('trofeus', ({ data }) => !data.rascunho));
+  return pecas.map((trofeu, i) => ({
+    params: { slug: trofeu.id },
+    props: { trofeu, maisNova: pecas[i - 1] ?? null, maisAntiga: pecas[i + 1] ?? null },
+  }));
+}
+
+const { trofeu, maisNova, maisAntiga } = Astro.props as Props;
+const { data } = trofeu;
+const { Content } = await render(trofeu);
+
+const temTexto = (trofeu.body ?? '').trim().length > 0;
+const foto = capa(trofeu);
+const extras = data.fotos.filter((f) => f.src !== foto);
+---
+
+<Base title={data.evento} description={data.historia} image={foto}>
+  <article class="peca-pagina">
+    <div class="wrap peca-pagina__topo">
+      <a class="back" href={url('/trofeus')}>← Sala de troféus</a>
+      <span class="peca-pagina__selo">{selo(trofeu)}</span>
+    </div>
+
+    <div class="wrap peca-pagina__grid">
+      <figure class="peca-pagina__foto">
+        {
+          foto ? (
+            <img src={url(foto)} alt={capaAlt(trofeu)} width="900" height="1200" />
+          ) : (
+            <span class="peca-pagina__sem-foto">Foto desta peça ainda não tirada</span>
+          )
+        }
+
+      </figure>
+
+      <div class="peca-pagina__texto">
+        <p class="eyebrow">
+          {data.data || data.ano ? `${quando(trofeu)} · ` : ''}{TIPOS[data.tipo].label}
+        </p>
+        <h1 class="peca-pagina__titulo">{data.evento}</h1>
+        {data.edicao && <p class="peca-pagina__edicao">{data.edicao}</p>}
+
+        <p class="peca-pagina__historia">{data.historia}</p>
+
+        {data.nota && <blockquote class="peca-pagina__nota">“{data.nota}”</blockquote>}
+
+        <dl class="peca-pagina__fatos">
+          {data.cidade && (
+            <div>
+              <dt>Onde</dt>
+              <dd>{data.cidade}</dd>
+            </div>
+          )}
+          <div>
+            <dt>Categoria</dt>
+            <dd>{data.categoria}</dd>
+          </div>
+          <div>
+            <dt>Colocação</dt>
+            <dd>
+              {data.nivel === 'laco' && data.tipo !== 'trofeu' ? TIPOS[data.tipo].label : NIVEIS[data.nivel].label}
+            </dd>
+          </div>
+          <div>
+            <dt>Quando</dt>
+            <dd>{quando(trofeu)}</dd>
+          </div>
+          {data.fotos.length > 0 && (
+            <div>
+              <dt>Fotos da peça</dt>
+              <dd>{data.fotos.length + 1}</dd>
+            </div>
+          )}
+        </dl>
+
+        <a class="link-arrow" href={url('/trofeus')}>Ver a prateleira inteira →</a>
+      </div>
+    </div>
+
+    {
+      temTexto && (
+        <section class="wrap peca-pagina__artigo prose">
+          <h2>A história completa</h2>
+          <Content />
+        </section>
+      )
+    }
+
+    {
+      extras.length > 0 && (
+        <section class="wrap peca-pagina__extras">
+          <p class="eyebrow">Detalhes da peça</p>
+          <div class="extras">
+            {extras.map((f) => (
+              <figure class="extras__item">
+                <div class="extras__foto">
+                  <img src={url(f.src)} alt={f.legenda ?? `Detalhe de ${data.evento}`} loading="lazy" />
+                </div>
+                {f.legenda && <figcaption>{f.legenda}</figcaption>}
+              </figure>
+            ))}
+          </div>
+        </section>
+      )
+    }
+
+    <nav class="wrap peca-pagina__nav" aria-label="Outras peças da prateleira">
+      <div>
+        {
+          maisNova && (
+            <a class="nav-peca" href={url(`/trofeus/${maisNova.id}`)}>
+              <span class="nav-peca__rotulo">← Peça anterior</span>
+              <span class="nav-peca__titulo">{maisNova.data.evento}</span>
+            </a>
+          )
+        }
+      </div>
+      <div class="nav-peca--dir">
+        {
+          maisAntiga && (
+            <a class="nav-peca" href={url(`/trofeus/${maisAntiga.id}`)}>
+              <span class="nav-peca__rotulo">Próxima peça →</span>
+              <span class="nav-peca__titulo">{maisAntiga.data.evento}</span>
+            </a>
+          )
+        }
+      </div>
+    </nav>
+  </article>
+</Base>
+
+<style>
+  .peca-pagina {
+    padding-bottom: clamp(2.5rem, 5vw, 4rem);
+  }
+
+  .peca-pagina__topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: clamp(1.4rem, 3vw, 2rem) clamp(1rem, 2vw, 1.4rem);
+    border-bottom: 1px solid var(--line);
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .back {
+    color: var(--ink);
+    transition: color 0.2s ease;
+  }
+
+  .back:hover {
+    color: var(--rust);
+  }
+
+  .peca-pagina__selo {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 0.3rem 0.6rem 0.26rem;
+    font-size: 0.68rem;
+    letter-spacing: 0.18em;
+  }
+
+  .peca-pagina__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 420px) minmax(0, 1fr);
+    gap: clamp(1.6rem, 4vw, 3.6rem);
+    align-items: start;
+    padding-block: clamp(1.6rem, 3.5vw, 2.6rem);
+  }
+
+  .peca-pagina__foto {
+    margin: 0;
+    position: sticky;
+    top: 110px;
+  }
+
+  .peca-pagina__foto img {
+    width: 100%;
+    height: auto;
+    background: #d9d0bd;
+  }
+
+  .peca-pagina__sem-foto {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 3 / 4;
+    background: var(--paper-2);
+    border: 1px dashed var(--line-strong);
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .peca-pagina__foto figcaption {
+    font-size: 0.76rem;
+    line-height: 1.5;
+    color: var(--ink-mute);
+    padding-top: 0.6rem;
+    border-top: 1px solid var(--line);
+    margin-top: 0.6rem;
+  }
+
+  .peca-pagina__titulo {
+    font-size: clamp(1.9rem, 4.6vw, 3.4rem);
+    max-width: 22ch;
+    margin-bottom: 0.5rem;
+  }
+
+  .peca-pagina__edicao {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--rust);
+    margin: 0 0 1.2rem;
+  }
+
+  .peca-pagina__historia {
+    font-size: clamp(1rem, 0.4vw + 0.95rem, 1.14rem);
+    line-height: 1.62;
+    color: var(--ink-2);
+    max-width: 60ch;
+    margin-bottom: 1.2rem;
+  }
+
+  .peca-pagina__nota {
+    margin: 0 0 1.8rem;
+    padding-left: 1.1rem;
+    border-left: 2px solid var(--rust);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    line-height: 1.45;
+    color: var(--ink-soft);
+    max-width: 46ch;
+  }
+
+  .peca-pagina__fatos {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem 1.6rem;
+    margin: 0 0 1.8rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .peca-pagina__fatos dt {
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.15rem;
+  }
+
+  .peca-pagina__fatos dd {
+    margin: 0;
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    line-height: 1.25;
+  }
+
+  .peca-pagina__artigo {
+    padding-block: clamp(1.4rem, 3vw, 2.2rem);
+    border-top: 1px solid var(--line);
+    max-width: 760px;
+  }
+
+  .peca-pagina__artigo h2 {
+    font-size: clamp(1.4rem, 2.4vw, 1.9rem);
+    margin-bottom: 1rem;
+  }
+
+  .peca-pagina__extras {
+    padding-block: clamp(1.4rem, 3vw, 2.2rem);
+    border-top: 1px solid var(--line);
+  }
+
+  .extras {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: clamp(1rem, 2vw, 1.6rem);
+  }
+
+  .extras__item {
+    margin: 0;
+  }
+
+  .extras__foto {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: #d9d0bd;
+    border: 1px solid var(--line);
+  }
+
+  .extras__foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: none;
+    transition: transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+
+  .extras__item:hover img {
+    transform: scale(1.03);
+  }
+
+  .extras__item figcaption {
+    font-size: 0.8rem;
+    color: var(--ink-mute);
+    padding-top: 0.5rem;
+  }
+
+  .peca-pagina__nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.4rem;
+    padding-top: clamp(1.4rem, 3vw, 2rem);
+    border-top: 1px solid var(--line-strong);
+  }
+
+  .nav-peca {
+    display: block;
+    padding: 1rem 1.1rem;
+    border: 1px solid var(--line);
+    transition: border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .nav-peca:hover {
+    border-color: var(--ink);
+    background: var(--paper-2);
+  }
+
+  .nav-peca__rotulo {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 0.3rem;
+  }
+
+  .nav-peca__titulo {
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    line-height: 1.2;
+  }
+
+  .nav-peca--dir {
+    text-align: right;
+  }
+
+  @media (max-width: 920px) {
+    .peca-pagina__grid {
+      grid-template-columns: 1fr;
+    }
+
+    .peca-pagina__foto {
+      position: static;
+      max-width: 460px;
+    }
+
+    .peca-pagina__nav {
+      grid-template-columns: 1fr;
+    }
+
+    .nav-peca--dir {
+      text-align: left;
+    }
+  }
+</style>
