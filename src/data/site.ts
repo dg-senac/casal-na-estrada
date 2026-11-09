@@ -17,11 +17,12 @@ export const site = {
   whatsappTexto: 'Olá! Encontrei o site de vocês e queria trocar uma ideia.',
   instagram: 'https://instagram.com/casalnaestrada',
   mapa: 'https://maps.google.com/?q=Recife,+PE',
-  // Números do "painel" da home — atualize quando quiser
+  // Números do "painel" da home — atualize quando quiser.
+  // O valor de "peças na galeria" é substituído pela contagem real do conteúdo.
   numeros: [
     { valor: '13', rotulo: 'anos de estrada' },
     { valor: '87', rotulo: 'encontros visitados' },
-    { valor: '46', rotulo: 'troféus na sala' },
+    { valor: '14', rotulo: 'peças na galeria' },
     { valor: '18', rotulo: 'estados rodados' },
   ],
 };
