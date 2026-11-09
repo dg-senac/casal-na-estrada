@@ -49,7 +49,7 @@ import { url } from '../lib/url';
     <meta property="og:site_name" content={site.nome} />
     <meta property="og:title" content={pageTitle} />
     <meta property="og:description" content={description} />
-    <meta property="og:image" content={new URL(image, canonical).href} />
+    <meta property="og:image" content={new URL(url(image), canonical).href} />
     <meta property="og:locale" content="pt_BR" />
     <meta name="twitter:card" content="summary_large_image" />
 

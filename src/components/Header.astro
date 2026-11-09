@@ -8,9 +8,13 @@ const nav = [
   { href: '/sobre', label: 'O Casal' },
 ];
 
-const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+// O site pode estar publicado dentro de uma subpasta (GitHub Pages usa
+// /nome-do-repositorio/). Tiramos esse prefixo antes de comparar para que o
+// item ativo do menu continue marcando certo em qualquer endereço.
+const caminhoAtual = basePath ? Astro.url.pathname.replace(basePath, '') : Astro.url.pathname;
+const path = caminhoAtual.replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
-import { url } from '../lib/url';
+import { basePath, url } from '../lib/url';
 ---
 
 <header class="masthead">
@@ -49,7 +53,7 @@ import { url } from '../lib/url';
         {
           nav.map((item) => (
             <a
-              href={item.href}
+              href={url(item.href)}
               class:list={['nav__link', { 'is-active': isActive(item.href) }]}
               aria-current={isActive(item.href) ? 'page' : undefined}
             >
@@ -71,7 +75,7 @@ import { url } from '../lib/url';
       <nav aria-label="Navegação principal (celular)">
         {
           nav.map((item) => (
-            <a href={item.href} class:list={['menu-mobile__link', { 'is-active': isActive(item.href) }]}>
+            <a href={url(item.href)} class:list={['menu-mobile__link', { 'is-active': isActive(item.href) }]}>
               {item.label}
             </a>
           ))
