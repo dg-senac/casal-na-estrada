@@ -90,52 +90,27 @@ const PASSOS_TOKEN = `
 `;
 
 /** Chama a função de servidor que dispara o build do site. */
-async function chamarPublicacao(acao, extra = {}) {
-  const endereco = `${ENDERECO}/functions/v1/publicar`;
+/**
+ * Chama uma função do banco (RPC) e devolve a resposta já normalizada.
+ * Vai pelo mesmo caminho que já salva as publicações — sem CORS, sem porta
+ * extra: é o PostgREST respondendo.
+ */
+async function chamarRpc(nome, args = {}) {
+  const { data, error } = await supabase.rpc(nome, args);
 
-  // Diferente de supabase.functions.invoke, esta chamada manda só os cabeçalhos
-  // que a função aceita — é o caminho mais curto e o mais fácil de depurar.
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
-  if (!token) {
-    return { ok: false, erro: 'sem_sessao', mensagem: 'Sessão expirada. Entre de novo no painel.' };
-  }
-
-  let resposta;
-  try {
-    resposta = await fetch(endereco, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: CHAVE,
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ acao, ...extra }),
-    });
-  } catch {
+  if (error) {
     return {
       ok: false,
-      erro: 'rede',
-      mensagem: 'Não consegui falar com o servidor de publicação. Confira a internet e tente de novo.',
+      erro: 'rpc',
+      mensagem: 'Não consegui falar com o servidor. Confira a internet e tente de novo.',
     };
   }
-
-  let corpo = {};
-  try {
-    corpo = await resposta.json();
-  } catch {
-    /* resposta sem corpo JSON */
+  if (!data) {
+    return { ok: false, erro: 'vazio', mensagem: 'O servidor respondeu vazio.' };
   }
 
-  if (!resposta.ok) {
-    return {
-      ok: false,
-      erro: corpo.erro || `http_${resposta.status}`,
-      mensagem: corpo.mensagem || `O servidor de publicação respondeu ${resposta.status}.`,
-    };
-  }
-
-  return { ok: true, ...corpo };
+  // A função devolve { ok, ... } como jsonb.
+  return data;
 }
 
 /** Aviso no topo do painel quando a publicação na hora ainda não está ligada. */
@@ -177,7 +152,7 @@ function desenharBanner() {
     }
     botao.disabled = true;
     botao.textContent = 'Ligando…';
-    const r = await chamarPublicacao('configurar', { token });
+    const r = await chamarRpc('definir_token_github', { novo_token: token });
     botao.disabled = false;
     botao.textContent = 'Ligar publicação';
     if (!r.ok) {
@@ -194,14 +169,14 @@ function desenharBanner() {
 
 /** Confere no servidor se a publicação na hora está configurada. */
 async function conferirPublicacao() {
-  const r = await chamarPublicacao('status');
-  publicacaoLigada = Boolean(r.ok && r.configurado);
+  const r = await chamarRpc('status_publicacao');
+  publicacaoLigada = Boolean(r.ok && r.configurada);
   desenharBanner();
 }
 
 /** Dispara o build e conta o resultado. Devolve true se o build saiu. */
 async function publicarSite(prefixo = '') {
-  const r = await chamarPublicacao('publicar');
+  const r = await chamarRpc('publicar_agora');
 
   if (r.ok) {
     avisar(`${prefixo}Site sendo publicado — em cerca de 1 minuto está no ar.`);
@@ -211,11 +186,11 @@ async function publicarSite(prefixo = '') {
   if (r.erro === 'sem_token') {
     publicacaoLigada = false;
     desenharBanner();
-    avisar(`${prefixo}Salvo. Ligue a publicação na hora no aviso do topo.`, 'erro');
+    avisar(`${prefixo}Ligue a publicação na hora no aviso do topo do painel.`, 'erro');
     return false;
   }
 
-  avisar(`${prefixo}Salvo, mas o build não saiu agora. ${r.mensagem ?? ''}`, 'erro');
+  avisar(`${prefixo}${r.mensagem ?? 'Não consegui publicar agora.'}`, 'erro');
   return false;
 }
 
@@ -586,7 +561,11 @@ async function excluir(id, nome) {
     return;
   }
   lista();
-  publicarSite('Excluído. ');
+  avisar(
+    publicacaoLigada === false
+      ? 'Excluído! Ligue a publicação na hora no aviso do topo.'
+      : 'Excluído! O site publica sozinho em cerca de 1 minuto.'
+  );
 }
 
 // ---------------------------------------------------------------- formulário
@@ -1068,7 +1047,11 @@ async function salvar(form) {
   botao.disabled = false;
   botao.textContent = 'Salvar';
   lista();
-  publicarSite('Salvo! ');
+  avisar(
+    publicacaoLigada === false
+      ? 'Salvo! Ligue a publicação na hora no aviso do topo para o site atualizar agora.'
+      : 'Salvo! O site publica sozinho em cerca de 1 minuto.'
+  );
 }
 
 // ---------------------------------------------------------------- início

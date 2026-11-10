@@ -60,21 +60,31 @@ Não existe link para o painel em nenhum menu: ele é acessado digitando
 - **Ao salvar, o site publica sozinho** — em cerca de 1 minuto. O painel dispara o
   build por uma função no servidor (`publicar`), sem ninguém precisar ir ao GitHub.
 
-### Publicação na hora (o botão que resolve)
+### Publicação na hora (o gatilho no banco)
 
 O GitHub só roda `schedule` "quando dá": em repositório de pouco movimento ele pode
-levar **horas** entre uma execução e outra. Por isso o painel não depende disso.
+levar **horas** entre uma execução e outra. Por isso o site não depende disso.
 
-1. Ao salvar (ou excluir), o navegador chama a função `publicar` no Supabase.
-2. A função confere a sessão, pega o token do GitHub guardado na tabela `config`
-   (RLS ligada, **sem** política — nada disso é legível pelo site) e chama
-   `workflow_dispatch` no repositório.
+1. Ao salvar (ou excluir) no painel, um **gatilho do Postgres** percebe a mudança em
+   `posts`, `albuns`, `album_fotos`, `album_videos`, `trofeus`, `trofeu_fotos` ou
+   `encontros`.
+2. O gatilho chama `public.envia_build()`, que lê o token do GitHub da tabela `config`
+   (RLS ligada, **sem** política — nada disso é legível pelo site) e faz o POST em
+   `workflow_dispatch` usando **pg_net**, de dentro do banco.
 3. O build roda, o Pages publica, e em ~1 minuto a publicação está no ar.
+
+Nada disso passa pelo navegador: o mesmo caminho que salva a publicação (o PostgREST)
+já basta. O gatilho tem um freio de 20 segundos para não disparar vários builds quando
+um formulário grava em mais de uma tabela, e nunca falha o salvamento se o GitHub
+estiver fora do ar.
+
+O painel guarda e confere o token por funções RPC (`definir_token_github`,
+`status_publicacao`) e o botão **"Publicar agora"** chama `publicar_agora()`.
 
 **Ligar isso é uma vez só.** No topo do painel aparece um aviso com o passo a passo:
 criar um *fine-grained token* no GitHub (só o repositório `casal-na-estrada`, permissão
 **Actions: read and write**) e colar no campo. O token fica no banco, nunca no código
-nem no navegador de quem visita o site. Para apagar: `{"acao":"desligar"}` na mesma função.
+nem no navegador de quem visita o site. Para apagar: `public.definir_token_github('')`.
 
 Sem o token configurado, o painel continua funcionando: só avisa que a publicação vai
 depender do relógio do GitHub (o `schedule` de 10 em 10 minutos).
@@ -96,7 +106,7 @@ Também existe o botão **"Publicar agora"** no topo do painel, para forçar um 
 | Textos da home | `src/pages/index.astro` |
 | Links e caminhos de imagem no código | `src/lib/url.ts` (função `url()`) |
 | Tabelas, formulários e regras do painel | `src/scripts/admin.js` |
-| Função que dispara o build (`publicar`) | `supabase/functions/publicar/index.ts` |
+| Gatilho que dispara o build | funções `envia_build` / `disparar_publicacao` no banco |
 
 ---
 
