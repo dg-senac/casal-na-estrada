@@ -65,6 +65,133 @@ function avisar(mensagem, tom = 'ok') {
   toastTimer = setTimeout(() => el.remove(), tom === 'erro' ? 7000 : 5000);
 }
 
+// ---------------------------------------------------------------- publicação
+
+let publicacaoLigada = null; // null = ainda não conferi
+
+/** Passos para ligar o token — aparecem no aviso do topo do painel. */
+const PASSOS_TOKEN = `
+  <ol>
+    <li>
+      Abra
+      <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">
+        github.com/settings/personal-access-tokens/new
+      </a>
+      — é o "Fine-grained token" do GitHub.
+    </li>
+    <li><b>Token name</b>: site casal &nbsp;·&nbsp; <b>Expiration</b>: 1 ano (ou sem expirar).</li>
+    <li><b>Repository access</b> → <b>Only select repositories</b> → escolha <b>casal-na-estrada</b>.</li>
+    <li>
+      <b>Repository permissions</b> → <b>Actions</b>: <b>Read and write</b>.
+      Não precisa marcar mais nada.
+    </li>
+    <li>Clique em <b>Generate token</b>, copie o código e cole no campo abaixo.</li>
+  </ol>
+`;
+
+/** Chama a função de servidor que dispara o build do site. */
+async function chamarPublicacao(acao, extra = {}) {
+  const { data, error } = await supabase.functions.invoke('publicar', {
+    body: { acao, ...extra },
+  });
+
+  if (error) {
+    let detalhe = {};
+    try {
+      detalhe = await error.context.json();
+    } catch {
+      /* resposta sem corpo */
+    }
+    return {
+      ok: false,
+      erro: detalhe.erro || 'rede',
+      mensagem: detalhe.mensagem || error.message,
+    };
+  }
+  return { ok: true, ...(data ?? {}) };
+}
+
+/** Aviso no topo do painel quando a publicação na hora ainda não está ligada. */
+function desenharBanner() {
+  const caixa = document.getElementById('pn-faixa');
+  if (!caixa) return;
+
+  if (publicacaoLigada !== false) {
+    caixa.innerHTML = '';
+    return;
+  }
+
+  caixa.innerHTML = `
+    <div class="pn-aviso pn-aviso--faixa">
+      <p>
+        <strong>Falta ligar a publicação na hora.</strong> Do jeito que está, o site só
+        atualiza quando o relógio do GitHub resolve rodar — e ele atrasa. Ligando aqui,
+        cada publicação entra no ar em cerca de 1 minuto, sem você fazer mais nada.
+      </p>
+      <details>
+        <summary>Como ligar (uma vez só, uns 2 minutos)</summary>
+        ${PASSOS_TOKEN}
+      </details>
+      <div class="pn-acoes" style="margin-top:0.8rem">
+        <input type="text" id="pn-token" placeholder="github_pat_…" autocomplete="off"
+               spellcheck="false" style="flex:1;min-width:220px" />
+        <button class="pn-btn" type="button" id="pn-salvar-token">Ligar publicação</button>
+      </div>
+    </div>
+  `;
+
+  document.getElementById('pn-salvar-token').addEventListener('click', async (ev) => {
+    const botao = ev.currentTarget;
+    const campo = document.getElementById('pn-token');
+    const token = campo.value.trim();
+    if (!token) {
+      avisar('Cole o token do GitHub no campo.', 'erro');
+      return;
+    }
+    botao.disabled = true;
+    botao.textContent = 'Ligando…';
+    const r = await chamarPublicacao('configurar', { token });
+    botao.disabled = false;
+    botao.textContent = 'Ligar publicação';
+    if (!r.ok) {
+      avisar(r.mensagem || 'Não consegui salvar o token.', 'erro');
+      return;
+    }
+    publicacaoLigada = true;
+    desenharBanner();
+    campo.value = '';
+    avisar('Publicação na hora ligada!');
+    publicarSite();
+  });
+}
+
+/** Confere no servidor se a publicação na hora está configurada. */
+async function conferirPublicacao() {
+  const r = await chamarPublicacao('status');
+  publicacaoLigada = Boolean(r.ok && r.configurado);
+  desenharBanner();
+}
+
+/** Dispara o build e conta o resultado. Devolve true se o build saiu. */
+async function publicarSite(prefixo = '') {
+  const r = await chamarPublicacao('publicar');
+
+  if (r.ok) {
+    avisar(`${prefixo}Site sendo publicado — em cerca de 1 minuto está no ar.`);
+    return true;
+  }
+
+  if (r.erro === 'sem_token') {
+    publicacaoLigada = false;
+    desenharBanner();
+    avisar(`${prefixo}Salvo. Ligue a publicação na hora no aviso do topo.`, 'erro');
+    return false;
+  }
+
+  avisar(`${prefixo}Salvo, mas o build não saiu agora. ${r.mensagem ?? ''}`, 'erro');
+  return false;
+}
+
 // ---------------------------------------------------------------- seções
 
 /**
@@ -285,6 +412,7 @@ function telaPainel() {
       <p class="pn-topo__marca">Casal na Estrada <b>Painel</b></p>
       <div class="pn-topo__direita">
         <span class="pn-quem">${esc(usuario?.email ?? '')}</span>
+        <button id="pn-publicar" type="button" title="Manda o site para o ar agora">Publicar agora</button>
         <a href="${BASE}">Ver o site</a>
         <button id="pn-sair" type="button">Sair</button>
       </div>
@@ -297,8 +425,17 @@ function telaPainel() {
           }">${SECOES[s].aba}</button>`
       ).join('')}
     </nav>
+    <div class="pn-faixa" id="pn-faixa"></div>
     <main class="pn-area" id="pn-area"></main>
   `;
+
+  document.getElementById('pn-publicar').addEventListener('click', (ev) => {
+    const botao = ev.currentTarget;
+    botao.disabled = true;
+    publicarSite().finally(() => {
+      botao.disabled = false;
+    });
+  });
 
   document.getElementById('pn-sair').addEventListener('click', async () => {
     await supabase.auth.signOut();
@@ -317,6 +454,7 @@ function telaPainel() {
   });
 
   lista();
+  conferirPublicacao();
 }
 
 const area = () => document.getElementById('pn-area');
@@ -356,8 +494,7 @@ async function lista() {
       <button class="pn-btn" id="pn-novo" type="button">+ Nova ${cfgSecao.singular}</button>
     </div>
     <p class="pn-aviso">
-      Tudo que você salva aqui entra no site em até <strong>10 minutos</strong> — o site
-      se reconstrói sozinho nesse intervalo.
+      Salve e o site publica sozinho: em cerca de <strong>1 minuto</strong> já está no ar.
     </p>
     ${
       itens.length === 0
@@ -421,8 +558,8 @@ async function excluir(id, nome) {
     avisar(`Não consegui excluir: ${error.message}`, 'erro');
     return;
   }
-  avisar('Excluído. O site se atualiza em até 10 minutos.');
   lista();
+  publicarSite('Excluído. ');
 }
 
 // ---------------------------------------------------------------- formulário
@@ -577,7 +714,7 @@ function formulario(registro) {
       <div class="pn-rodape-form">
         <button class="pn-btn" type="submit">Salvar</button>
         <button class="pn-btn pn-btn--claro" type="button" id="pn-cancelar">Cancelar</button>
-        <span class="pn-nota">O site se reconstrói sozinho em até 10 minutos.</span>
+        <span class="pn-nota">Ao salvar, o site publica sozinho em cerca de 1 minuto.</span>
       </div>
     </form>
   `;
@@ -903,8 +1040,8 @@ async function salvar(form) {
 
   botao.disabled = false;
   botao.textContent = 'Salvar';
-  avisar('Salvo! O site entra no ar em até 10 minutos.');
   lista();
+  publicarSite('Salvo! ');
 }
 
 // ---------------------------------------------------------------- início
