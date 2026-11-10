@@ -1,10 +1,10 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import { carregarTrofeus } from '../lib/dados';
 import { url } from '../lib/url';
 import { capa, capaAlt, metaData, porAno, quando, rotuloAno, selo } from '../lib/trofeus';
 
-const trofeus = await getCollection('trofeus', ({ data }) => !data.rascunho);
+const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
 const grupos = porAno(trofeus);
 
 // Contagem por tipo de peça, exibida no cabeçalho.

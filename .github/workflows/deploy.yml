@@ -1,10 +1,15 @@
 name: Publicar no GitHub Pages
 
-# Publica o site no GitHub Pages a cada push na branch principal.
+# Publica o site no GitHub Pages:
+#   • a cada push na branch principal (mudança de código);
+#   • de 10 em 10 minutos (para publicar o que foi salvo no painel /admin);
+#   • na mão, pelo botão "Run workflow".
 # Antes de rodar, em Settings → Pages, escolha "GitHub Actions" como fonte.
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: '*/10 * * * *'
   workflow_dispatch:
 
 permissions:
@@ -47,6 +52,15 @@ jobs:
 
       - name: Build
         env:
+          # Para apontar o site para outro projeto, crie as variáveis
+          # PUBLIC_SUPABASE_URL e PUBLIC_SUPABASE_ANON_KEY em Settings → Secrets
+          # and variables → Actions → Variables: elas têm prioridade sobre os
+          # valores padrão abaixo.
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://pjglrlullnchqazxpvyn.supabase.co' }}
+          # Chave anon (legada) do projeto: pública por definição, é a que o navegador
+          # usa. A publishable (sb_publishable_...) também serve; basta trocar aqui
+          # ou definir a variável PUBLIC_SUPABASE_ANON_KEY no repositório.
+          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2xybHVsbG5jaHFhenhwdnluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNzc2NTQsImV4cCI6MjEwOTg1MzY1NH0.Z9wc7bdEjIhSOmToVhDGBMC6TRc3oxhek5G2fI-mvlw' }}
           SITE_BASE: ${{ steps.endereco.outputs.base }}
           SITE_URL: https://dg-senac.github.io/casal-na-estrada
         run: npm run build

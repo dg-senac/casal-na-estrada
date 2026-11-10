@@ -1,17 +1,17 @@
 ---
-import { getCollection } from 'astro:content';
 import { site } from '../data/site';
+import { carregarAlbuns, carregarEncontros, carregarPosts, carregarTrofeus } from '../lib/dados';
 import Base from '../layouts/Base.astro';
 import Vazio from '../components/Vazio.astro';
 
-const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
+const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
 );
-const posts = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
+const posts = (await carregarPosts()).filter((p) => !p.data.rascunho).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
 );
-const trofeus = await getCollection('trofeus', ({ data }) => !data.rascunho);
-const agenda = (await getCollection('encontros')).sort(
+const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
+const agenda = (await carregarEncontros()).sort(
   (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
 );
 

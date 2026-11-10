@@ -1,9 +1,9 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../layouts/Base.astro';
+import { carregarEncontros } from '../lib/dados';
 import { site } from '../data/site';
 
-const todos = (await getCollection('encontros')).sort(
+const todos = (await carregarEncontros()).sort(
   (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
 );
 

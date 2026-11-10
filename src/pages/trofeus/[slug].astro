@@ -1,17 +1,18 @@
 ---
-import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { carregarTrofeus, type Trofeu } from '../../lib/dados';
+import { markdown } from '../../lib/markdown';
 import { url } from '../../lib/url';
 import { capa, capaAlt, NIVEIS, ordenar, quando, selo, TIPOS } from '../../lib/trofeus';
 
 interface Props {
-  trofeu: CollectionEntry<'trofeus'>;
-  maisNova: CollectionEntry<'trofeus'> | null;
-  maisAntiga: CollectionEntry<'trofeus'> | null;
+  trofeu: Trofeu;
+  maisNova: Trofeu | null;
+  maisAntiga: Trofeu | null;
 }
 
 export async function getStaticPaths() {
-  const pecas = ordenar(await getCollection('trofeus', ({ data }) => !data.rascunho));
+  const pecas = ordenar((await carregarTrofeus()).filter((t) => !t.data.rascunho));
   return pecas.map((trofeu, i) => ({
     params: { slug: trofeu.id },
     props: { trofeu, maisNova: pecas[i - 1] ?? null, maisAntiga: pecas[i + 1] ?? null },
@@ -20,7 +21,7 @@ export async function getStaticPaths() {
 
 const { trofeu, maisNova, maisAntiga } = Astro.props as Props;
 const { data } = trofeu;
-const { Content } = await render(trofeu);
+const corpo = markdown(trofeu.body);
 
 const temTexto = (trofeu.body ?? '').trim().length > 0;
 const foto = capa(trofeu);
@@ -94,7 +95,7 @@ const extras = data.fotos.filter((f) => f.src !== foto);
       temTexto && (
         <section class="wrap peca-pagina__artigo prose">
           <h2>A história completa</h2>
-          <Content />
+          <Fragment set:html={corpo} />
         </section>
       )
     }

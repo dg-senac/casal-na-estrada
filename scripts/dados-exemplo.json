@@ -1,0 +1,142 @@
+{
+  "_leia": "Dados de exemplo para rodar o build sem acesso ao Supabase. Uso: DADOS_FIXTURE=scripts/dados-exemplo.json npm run build",
+  "posts": [
+    {
+      "id": 1,
+      "slug": "primeira-volta-serra",
+      "titulo": "A primeira volta na serra do ano",
+      "data": "2026-10-18",
+      "local": "Gravatá",
+      "uf": "PE",
+      "resumo": "Saímos às seis da manhã para pegar a BR-232 vazia. Voltamos com a roupa de chuva suja e a cabeça leve.",
+      "tipo": "crônica",
+      "distancia": "186 km",
+      "tags": ["serra", "agreste"],
+      "destaque": true,
+      "publicado": true,
+      "capa_url": "/media/trofeus/gravata-motofest-2026.jpg",
+      "capa_alt": "Troféu em formato de guidão do Gravata Motofest",
+      "corpo": "Saímos às seis da manhã, com aquele frio de Recife que só existe nas madrugadas de outubro.\n\nA **BR-232** estava vazia e a gente chegou em Gravatá antes do café esfriar. É sempre assim: a gente promete parar no meio do caminho e nunca para.",
+      "video_youtube": "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    },
+    {
+      "id": 2,
+      "slug": "encontro-no-agreste",
+      "titulo": "Encontro no agreste",
+      "data": "2026-09-27",
+      "local": "João Alfredo",
+      "uf": "PE",
+      "resumo": "Dois dias de camping, barraca molhada e uma lista nova de amigos.",
+      "tipo": "relato",
+      "distancia": null,
+      "tags": ["camping"],
+      "destaque": false,
+      "publicado": true,
+      "capa_url": "/media/trofeus/camping-moto-casais-2026.jpg",
+      "capa_alt": "Troféu do 2º Camping Moto Casais",
+      "corpo": "Chegamos na sexta à noite, montamos a barraca no escuro e acordamos com o sol batendo na lona.",
+      "video_youtube": null
+    }
+  ],
+  "albuns": [
+    {
+      "id": 1,
+      "slug": "gravata-motofest-2026",
+      "titulo": "Gravata Motofest 2026",
+      "data": "2026-10-17",
+      "local": "Gravatá — PE",
+      "capa_url": "/media/trofeus/gravata-motofest-2026.jpg",
+      "capa_alt": "Troféu do 5º Gravata Motofest",
+      "descricao": "Quatro dias de serra, feijoada e rock no Pátio de Eventos.",
+      "ordem": 1,
+      "publicado": true,
+      "album_fotos": [
+        {
+          "url": "/media/trofeus/gravata-motofest-2026.jpg",
+          "legenda": "A peça do quinto aniversário esperando no palco.",
+          "vertical": false,
+          "ordem": 1
+        },
+        {
+          "url": "/media/trofeus/gravata-motofest-2025.jpg",
+          "legenda": "Para comparar: a placa do ano anterior.",
+          "vertical": true,
+          "ordem": 2
+        }
+      ],
+      "album_videos": [
+        {
+          "titulo": "Chegada na serra",
+          "youtube": "https://youtu.be/dQw4w9WgXcQ",
+          "arquivo": null,
+          "credito": "Cieri",
+          "ordem": 1
+        }
+      ]
+    }
+  ],
+  "trofeus": [
+    {
+      "id": 1,
+      "slug": "2026-10-gravata-motofest-5",
+      "evento": "5º Gravata Motofest",
+      "ano": 2026,
+      "data": "2026-10-17",
+      "categoria": "Participação no encontro",
+      "cidade": "Gravatá — PE",
+      "colocacao": "Participação",
+      "nivel": "laco",
+      "tipo": "trofeu",
+      "edicao": "5ª edição",
+      "historia": "A quinta edição ocupou o Pátio de Eventos por quatro dias, e a peça veio no formato de guidão, com o farol no meio.",
+      "nota": "Quatro dias de serra, feijoada e rock.",
+      "foto_url": "/media/trofeus/gravata-motofest-2026.jpg",
+      "foto_alt": "Troféu dourado em formato de guidão de moto com farol ao centro",
+      "destaque": true,
+      "publicado": true,
+      "corpo": null,
+      "trofeu_fotos": []
+    },
+    {
+      "id": 2,
+      "slug": "sem-ano-lego-bmw",
+      "evento": "BMW M 1000 RR em LEGO",
+      "ano": null,
+      "data": null,
+      "categoria": "Montagem em família",
+      "cidade": "Recife — PE",
+      "colocacao": "Feito em casa",
+      "nivel": "laco",
+      "tipo": "construcao",
+      "edicao": null,
+      "historia": "Essa peça não veio de encontro nenhum: foi montada em casa, peça por peça, do zero.",
+      "nota": "Tem corrente de verdade.",
+      "foto_url": "/media/trofeus/lego-bmw-moto.jpg",
+      "foto_alt": "Moto BMW em LEGO sobre base expositora",
+      "destaque": true,
+      "publicado": true,
+      "corpo": "Uma linha a mais de história contada em markdown.",
+      "trofeu_fotos": [
+        {
+          "url": "/media/trofeus/lego-bmw-placa.jpg",
+          "legenda": "A placa de especificações.",
+          "ordem": 1
+        }
+      ]
+    }
+  ],
+  "encontros": [
+    {
+      "id": 1,
+      "nome": "6º Gravata Motofest",
+      "inicio": "2027-10-15",
+      "fim": "2027-10-18",
+      "cidade": "Gravatá",
+      "uf": "PE",
+      "local": "Pátio de Eventos",
+      "confirmado": true,
+      "observacao": null,
+      "publicado": true
+    }
+  ]
+}
