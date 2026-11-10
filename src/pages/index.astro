@@ -116,9 +116,24 @@ import { ordenar, seloCurto } from '../lib/trofeus';
     {
       manchete && (
         <article class="headline" data-reveal>
-          <a class="headline__media photo photo--duotone" href={url(`/diario/${manchete.id}`)}>
-            <img src={url(manchete.data.capa)} alt={manchete.data.capaAlt} loading="eager" />
-          </a>
+          <div class="headline__moldura">
+            <a class="headline__media photo photo--duotone" href={url(`/diario/${manchete.id}`)}>
+              <img
+                id="manchete-foto"
+                src={url(manchete.data.capa)}
+                alt={manchete.data.capaAlt}
+                loading="eager"
+              />
+            </a>
+            <button
+              class="headline__zoom"
+              type="button"
+              data-ampliar="#manchete-foto"
+              aria-label="Ver a foto inteira"
+            >
+              Ampliar ⤢
+            </button>
+          </div>
           <div class="headline__body">
             <div class="headline__kicker">
               <span class="tag tag--rust">{manchete.data.tipo}</span>
@@ -494,9 +509,35 @@ import { ordenar, seloCurto } from '../lib/trofeus';
     border-bottom: 3px double var(--line-strong);
   }
 
+  .headline__moldura {
+    position: relative;
+  }
+
   .headline__media {
     aspect-ratio: 16 / 10;
     display: block;
+  }
+
+  .headline__zoom {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 2;
+    background: rgba(18, 15, 10, 0.78);
+    color: var(--paper);
+    border: 1px solid rgba(236, 229, 214, 0.35);
+    padding: 0.4rem 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+  }
+
+  .headline__zoom:hover {
+    background: var(--rust);
+    border-color: var(--rust);
   }
 
   .headline__body {

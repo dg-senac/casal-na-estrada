@@ -79,8 +79,15 @@ import { url } from '../../lib/url';
     </header>
 
     <figure class="hero-post__figure wrap">
-      <div class="photo photo--duotone hero-post__photo">
+      <div
+        class="photo photo--duotone hero-post__photo"
+        data-ampliar
+        role="button"
+        tabindex="0"
+        aria-label="Ver a foto inteira"
+      >
         <img src={url(data.capa)} alt={data.capaAlt} width="1600" height="1000" />
+        <span class="hero-post__zoom">Ampliar a foto ⤢</span>
       </div>
       <figcaption>{data.capaAlt}</figcaption>
     </figure>
@@ -235,6 +242,22 @@ import { url } from '../../lib/url';
 
   .hero-post__photo {
     aspect-ratio: 16 / 9;
+  }
+
+  .hero-post__zoom {
+    position: absolute;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    z-index: 2;
+    background: rgba(18, 15, 10, 0.78);
+    color: var(--paper);
+    border: 1px solid rgba(236, 229, 214, 0.35);
+    padding: 0.4rem 0.75rem;
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    pointer-events: none;
   }
 
   .hero-post__figure figcaption {
