@@ -1,9 +1,9 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { carregarAlbuns } from '../../lib/dados';
 import Vazio from '../../components/Vazio.astro';
 
-const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
+const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho).sort(
   (a, b) => a.data.ordem - b.data.ordem
 );
 

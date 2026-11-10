@@ -1,10 +1,10 @@
 ---
-import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { carregarPosts } from '../../lib/dados';
 import PostCard from '../../components/PostCard.astro';
 import Vazio from '../../components/Vazio.astro';
 
-const posts = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
+const posts = (await carregarPosts()).filter((p) => !p.data.rascunho).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
 );
 

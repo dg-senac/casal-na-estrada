@@ -3,10 +3,9 @@
 Site de recordações de **Cieri e Milla** — casal de Recife que roda o Brasil de moto desde 2013.
 Diário de viagem, galeria de fotos e vídeos, sala de troféus e agenda de encontros.
 
-Feito com **Astro 5** (site estático) + CSS escrito à mão. Sem banco de dados, sem painel,
-sem login: **todo o conteúdo são arquivos de texto** dentro de `src/content`. Isso significa
-que o site é barato de hospedar (Netlify, Vercel, Cloudflare Pages, GitHub Pages), rápido e
-praticamente impossível de sair do ar.
+Feito com **Astro 5**, publicado como site estático no GitHub Pages. O conteúdo
+(diário, galeria, troféus, encontros) mora no **Supabase** e é editado pelo painel
+**`/admin`**; a cada 10 minutos o GitHub reconstrói o site com o que estiver salvo lá.
 
 ---
 
@@ -19,202 +18,161 @@ npm run build    # gera o site final em dist/
 npm run preview  # confere o resultado do build
 ```
 
+O build conversa com o Supabase, então precisa das duas variáveis abaixo (crie um
+`.env` na raiz — ele não vai para o repositório):
+
+```env
+PUBLIC_SUPABASE_URL=https://SEU-PROJETO.supabase.co
+PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOi...   # chave anon/publishable do projeto
+```
+
+A chave é a pública do projeto (a **anon** legada ou a **publishable**): é a mesma que
+qualquer visitante vê no navegador — ela só lê conteúdo publicado e só grava com alguém
+logado. A `service_role` nunca entra aqui.
+
+### Rodar sem acesso ao banco
+
+Para mexer no layout sem internet, use os dados de exemplo:
+
+```bash
+DADOS_FIXTURE=scripts/dados-exemplo.json npm run dev
+```
+
+---
+
+## O painel — `/admin`
+
+Não existe link para o painel em nenhum menu: ele é acessado digitando
+`https://dg-senac.github.io/casal-na-estrada/admin`.
+
+- **Uma conta só, compartilhada pelos três.** Não há perfis nem permissões diferentes:
+  quem entra pode publicar, editar e excluir tudo.
+- Na primeira vez, use **“Primeiro acesso: criar a conta do casal”**, escolha o e-mail e
+  a senha combinados — e avise para que o cadastro público seja desligado no Supabase
+  (depois disso, `signUp` fica bloqueado e só essa conta entra).
+- Depois de logado, o painel abre em Diário / Galeria / Troféus / Encontros, com lista e
+  formulário para criar, editar e excluir. Fora do painel, o site ganha uma **faixa preta
+  no topo** com atalhos — ela só aparece no navegador que já entrou.
+- **Fotos são comprimidas no próprio navegador** (1600 px no maior lado, JPEG ~82%) antes
+  de subir para o bucket `midia`. Não precisa reduzir nada na mão.
+- **Vídeo é opcional**: no diário e nos álbuns dá para colar um link do YouTube.
+- Quem está logado vê o site normal; o painel é só o lugar de editar.
+- **Só aparece no ar depois do próximo build** — até 10 minutos. O rodapé de cada
+  formulário repete isso, e a faixa de admin também.
+
 ---
 
 ## Onde mexer em cada coisa
 
-| O que você quer mudar | Arquivo |
+| O que você quer mudar | Onde |
 | --- | --- |
-| Nome, WhatsApp, Instagram, e-mail, números da home | `src/data/site.ts` |
+| Conteúdo (posts, álbuns, troféus, encontros) | painel `/admin` |
+| Nome, WhatsApp, Instagram, e-mail, ano de início | `src/data/site.ts` |
 | Cores, fontes, espaçamentos (tudo) | `src/styles/global.css` |
 | Menu e rodapé | `src/components/Header.astro`, `src/components/Footer.astro` |
 | Textos da página "O Casal" | `src/pages/sobre.astro` |
 | Textos da home | `src/pages/index.astro` |
 | Links e caminhos de imagem no código | `src/lib/url.ts` (função `url()`) |
+| Tabelas, formulários e regras do painel | `src/scripts/admin.js` |
 
-### Publicar uma notícia / crônica no Diário
-
-Crie um arquivo em `src/content/diario/`, por exemplo `07-volta-a-caruaru.md`:
-
-```md
----
-titulo: 'Voltamos a Caruaru e o café acabou na serra'
-data: 2026-11-28
-local: 'Caruaru'
-uf: 'PE'
-resumo: 'Uma frase de resumo, até 260 caracteres, que aparece nos cartões.'
-capa: '/media/minha-foto.jpg'        # coloque o arquivo em public/media/
-capaAlt: 'Descrição da foto para quem usa leitor de tela'
-tipo: 'crônica'                       # crônica | notícia | relato | aviso
-distancia: '340 km'                   # opcional
-tags: ['Pernambuco', 'encontro']
-destaque: false                       # true = aparece maior na home
-rascunho: false                       # true = não aparece no site
 ---
 
-Texto do post em Markdown normal. Use `##` para subtítulos, `>` para citações
-e `**negrito**` quando precisar.
-```
+## Como o site é montado
 
-O post entra automaticamente na home, no diário, no arquivo por ano e no sitemap.
+O site continua **estático** — nada de servidor. No build:
 
-### Criar um álbum de fotos
+1. `src/lib/supabase.ts` consulta a API REST do Supabase com a chave publishable;
+2. `src/lib/dados.ts` transforma as linhas em objetos (`Post`, `Album`, `Trofeu`, `Encontro`)
+   e guarda o resultado em cache, uma consulta por tabela por build;
+3. as páginas de `src/pages/` montam o HTML, e o `deploy.yml` publica em `dist/`.
 
-`src/content/albuns/04-nome-do-album.md`:
+Se as variáveis de ambiente faltarem ou o banco não responder, **o build falha de
+propósito**: é melhor não publicar nada do que publicar um site vazio por cima do que já
+está no ar.
 
-```md
----
-titulo: 'Encontro de Verão — Salvador'
-data: 2026-12-14
-local: 'Salvador — BA'
-capa: '/media/salvador-capa.jpg'
-capaAlt: 'Descrição da capa'
-descricao: 'Um parágrafo sobre o álbum.'
-ordem: 4                     # ordem na página da galeria
-fotos:
-  - src: '/media/salvador-01.jpg'
-    legenda: 'Chegada na orla.'
-  - src: '/media/salvador-02.jpg'
-    legenda: 'Foto do grupo.'
-    vertical: true           # opcional
-videos:
-  - titulo: 'Chegada no comboio'
-    youtube: 'https://www.youtube.com/watch?v=SEU_ID'
-    credito: 'filmado por um amigo'
-#    arquivo: '/media/meu-video.mp4'   # alternativa ao YouTube (vídeo próprio)
----
+**Tabelas:** `posts`, `albuns` (+ `album_fotos`, `album_videos`), `trofeus` (+ `trofeu_fotos`),
+`encontros`. O que tem `publicado = true` aparece no site; o resto fica salvo fora do ar.
+Todas as imagens ficam no bucket público `midia` (10 MB por arquivo, jpg/png/webp/avif).
 
-Texto opcional de apresentação do álbum.
-```
+### Sala de troféus
 
-As fotos ficam em `public/media/`. Para o site ficar leve, exporte as imagens com
-**1600 px no lado maior** e qualidade ~80 — não precisa mais que isso.
-
-### Adicionar uma peça na Sala de Troféus
-
-Cada peça da prateleira é **um arquivo** em `src/content/trofeus/`. O nome do arquivo
-vira o endereço da página dela (ex.: `2026-11-estradeiros-do-rei.md` →
-`/trofeus/2026-11-estradeiros-do-rei`), então use nomes curtos, sem acento e sem espaço.
-
-```md
----
-evento: 'Encontro de Motos de Caruaru'
-ano: 2025                    # opcional: sem ano, a peça vai para o grupo "Sem data"
-data: 2025-11-15             # opcional: data exata do encontro (ordena a prateleira)
-edicao: '12ª edição'         # opcional
-categoria: 'Casal mais distante'
-cidade: 'Caruaru — PE'       # opcional
-colocacao: '1º lugar'
-nivel: 'ouro'                # ouro | prata | bronze | laco (participação)
-tipo: 'trofeu'               # trofeu | placa | lembranca | construcao
-historia: 'Duas a quatro frases contando como a peça foi conquistada na viagem.'
-nota: 'Uma frase de efeito, que aparece em destaque na página da peça.'   # opcional
-foto: '/media/trofeus/caruaru-2025.jpg'
-fotoAlt: 'Descrição da foto para quem usa leitor de tela'
-fotos:                       # opcional: outras fotos da mesma peça
-  - src: '/media/trofeus/caruaru-2025-detalhe.jpg'
-    legenda: 'Detalhe da gravação na base.'
-destaque: false              # true = aparece na home, na seção da sala de troféus
-rascunho: false              # true = não aparece no site
----
-```
-
-Se quiser contar a história inteira, é só escrever em Markdown abaixo do `---` — o texto
-aparece como "A história completa" na página da peça. É opcional: a `historia:` do
-cabeçalho já basta para o cartão da galeria.
-
-**O que a página faz sozinha:**
+A página monta tudo sozinha a partir do banco:
 
 - agrupa as peças **por ano**, da mais recente para a mais antiga ("Sem data" no fim);
 - monta o índice de anos no topo e a contagem de troféus, placas e lembranças;
-- troca a etiqueta de cada peça conforme o `nivel` e o `tipo`;
-- atualiza o número de "peças na galeria" no painel da home.
+- troca a etiqueta de cada peça conforme a `colocação` e o `tipo`
+  (troféu · placa · lembrança · feito em casa);
+- atualiza o número de "peças na sala" no painel da home.
 
-**Fotos:** ficam em `public/media/trofeus/`. Exporte com **1600 px no lado maior** e
-qualidade ~80 (as que estão lá hoje foram reduzidas na importação). Fotos na vertical
-funcionam melhor — a galeria recorta em 4:5.
-
-Em `src/content/trofeus/_modelos/` ficaram seis fichas de exemplo (marcadas com
-`rascunho: true`, ou seja, fora do site) para servir de referência de formato.
-
-### Agenda de encontros
-
-`src/content/encontros/05-nome.md`:
-
-```md
----
-nome: 'Encontro de Moto Casais de Aracaju'
-inicio: 2027-03-13
-fim: 2027-03-15            # opcional
-cidade: 'Aracaju'
-uf: 'SE'
-local: 'Praça de Eventos'   # opcional
-confirmado: false            # mostra o selo "a confirmar"
-observacao: 'Saímos do Recife na sexta de manhã.'
----
-```
-
-Encontros com data passada migram sozinhos para a seção "Já passou".
+O texto de **história** aparece no cartão e na página da peça; quem quiser contar mais
+escreve em Markdown num campo separado (aparece como "A história completa").
 
 ---
 
-## Trocar as fotos de exemplo
+## Segurança
 
-As imagens em `public/media/placeholder-estrada-*.jpg` são **fotos de demonstração**
-geradas para montar o layout. Substitua por fotos reais do casal mantendo os nomes dos
-arquivos — ou troque os caminhos nos arquivos de conteúdo acima.
+- **RLS ligado em todas as tabelas:** visitante anônimo lê só o que está publicado;
+  escrever exige login.
+- O painel usa a chave pública do projeto — ela é pública por definição. Quem protege os dados
+  são as políticas do banco, não o segredo da chave.
+- **Cadastro desligado** no Supabase depois da criação da primeira conta
+  (Authentication → Providers → Email → *Allow new users to sign up* = off).
+- A conta é compartilhada de propósito: os três usam o mesmo e-mail e senha. Se trocarem
+  a senha, é por ali também (Authentication → Users).
 
-O emblema original enviado pelo casal está em `src/assets/marca/emblema-original.png`
-(arquivo grande, fora do site). As versões leves usadas no site são
-`public/media/logo-144.png` (rodapé e ícone de app) e `logo-640.png` (reserva para uso
-grande, ex. impressão ou og:image).
+---
 
 ## O que ainda vale preencher com dados reais
 
 - [ ] WhatsApp, e-mail e Instagram em `src/data/site.ts` (hoje estão com valores de exemplo)
-- [ ] Os números da home (anos de estrada, encontros, troféus, estados)
+- [ ] Texto novo da página "O Casal" (o atual é rascunho)
+- [ ] Foto real do casal na home (hoje é o emblema)
 - [ ] Revisar as histórias dos troféus: as primeiras foram escritas a partir da data e do
       nome gravado em cada peça — ajustem com o que lembram da viagem
 - [ ] Cidade de algumas peças que só têm o estado (Coletamento dos Estradeiros do Rei,
       Moto Culto, aniversários das Estradeiras)
-- [ ] Nomes reais das cidades/eventos nas publicações de exemplo
 - [ ] Domínio final em `astro.config.mjs` (`site:`) — usado no sitemap e nos links absolutos
+
+---
 
 ## Deploy
 
-### Opção 1 — GitHub Pages (grátis, direto do repositório)
+### GitHub Pages (é o que está em uso)
 
-O projeto já vem com o workflow `.github/workflows/deploy.yml`: **cada push na `main`
-publica o site sozinho**.
+O workflow `.github/workflows/deploy.yml` publica o site:
 
-1. No GitHub, abra **Settings → Pages** e em *Source* escolha **GitHub Actions**.
-2. Faça o merge do pull request na `main` (ou dê push nela).
-3. Acompanhe em **Actions** — o job "Publicar no GitHub Pages" roda o build e publica.
-4. O endereço sai como `https://SEU-USUARIO.github.io/casal-na-estrada/`.
+- a cada push na `main`;
+- **de 10 em 10 minutos**, para levar ao ar o que foi salvo no painel;
+- na mão, em **Actions → Publicar no GitHub Pages → Run workflow**.
 
-O workflow descobre esse endereço sozinho e passa `SITE_BASE=/casal-na-estrada/` no build,
-para que links, imagens e CSS funcionem dentro da subpasta. Não precisa editar nada.
+Passos, se um dia precisar refazer: **Settings → Pages → Source: GitHub Actions**; o
+endereço sai como `https://SEU-USUARIO.github.io/casal-na-estrada/`.
 
-> O primeiro deploy pode falhar com "Get Pages site failed": é só confirmar
-> **Settings → Pages → Source: GitHub Actions** e rodar o workflow de novo
-> (aba Actions → Publicar no GitHub Pages → Re-run all jobs).
+O workflow descobre o endereço sozinho e passa `SITE_BASE=/casal-na-estrada/` no build,
+para que links, imagens e CSS funcionem dentro da subpasta.
 
-**Domínio próprio** (ex.: `casalnaestrada.com.br`): crie o arquivo `public/CNAME` com uma
-linha contendo o domínio, aponte no seu provedor de DNS um registro `CNAME` para
-`SEU-USUARIO.github.io` e preencha o campo em Settings → Pages → Custom domain
-(marque *Enforce HTTPS*). Com domínio próprio o site passa a ficar na raiz, então defina no
-workflow `SITE_BASE: /` — ou simplesmente troque o passo "Descobrir o endereço do site" por
-`echo "base=/"`.
+As credenciais do Supabase vão no passo **Build** como
+`vars.PUBLIC_SUPABASE_URL` e `vars.PUBLIC_SUPABASE_ANON_KEY` (Settings → Secrets and
+variables → Actions → **Variables**), com os valores do projeto atual como padrão no
+próprio arquivo — a chave publishable não é segredo. Para apontar para outro projeto,
+basta criar essas duas variáveis.
 
-### Opção 2 — hospedagem estática comum
+**Domínio próprio** (ex.: `casalnaestrada.com.br`): crie `public/CNAME` com uma linha
+contendo o domínio, aponte no DNS um `CNAME` para `SEU-USUARIO.github.io` e preencha em
+Settings → Pages → Custom domain (marque *Enforce HTTPS*). Com domínio próprio o site fica
+na raiz: troque o passo "Descobrir o endereço do site" por `echo "base=/"`.
+
+### Outra hospedagem estática
 
 - **Netlify**: build `npm run build`, pasta `dist`
 - **Vercel**: framework detectado automaticamente
 - **Cloudflare Pages**: build `npm run build`, saída `dist`
 
-Nesses casos o site fica na raiz e nenhuma variável é necessária. Depois de apontar o
-domínio, ajuste `SITE_URL` (ou a chave `site` em `astro.config.mjs`) para o endereço
-definitivo, senão o sitemap aponta para o lugar errado.
+Em qualquer uma delas, defina `PUBLIC_SUPABASE_URL`, `PUBLIC_SUPABASE_ANON_KEY` e
+`SITE_URL` nas variáveis do projeto. Sem build automático, o painel não publica sozinho:
+seria preciso agendar um build a cada X minutos.
+
+---
 
 ## Acessibilidade e detalhes de acabamento
 
@@ -223,3 +181,9 @@ definitivo, senão o sitemap aponta para o lugar errado.
 - Fotos em preto e branco por CSS (`filter: grayscale`) — se um dia quiserem cor,
   é só remover a regra `.photo img { filter: ... }` em `global.css`.
 - A textura de papel é um SVG gerado em CSS: nenhuma imagem extra para carregar.
+- O painel não aparece no menu, não entra no `sitemap` e responde `noindex`.
+
+O emblema original enviado pelo casal está em `src/assets/marca/emblema-original.png`
+(arquivo grande, fora do site). As versões leves usadas no site são
+`public/media/logo-144.png` (rodapé e ícone de app) e `logo-640.png` (reserva para uso
+grande, ex. impressão ou og:image); o emblema grande da home é `public/media/emblema.jpg`.

@@ -1,8 +1,8 @@
 ---
-import type { CollectionEntry } from 'astro:content';
+import type { Post } from '../lib/dados';
 
 interface Props {
-  post: CollectionEntry<'diario'>;
+  post: Post;
   /** 'large' para o primeiro item da lista, 'row' para os demais */
   variante?: 'large' | 'row';
   delay?: number;

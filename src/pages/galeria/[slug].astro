@@ -1,20 +1,20 @@
 ---
-import { getCollection, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import { carregarAlbuns, type Album } from '../../lib/dados';
 
 interface Props {
-  album: CollectionEntry<'albuns'>;
+  album: Album;
 }
 
 export async function getStaticPaths() {
-  const albuns = await getCollection('albuns', ({ data }) => !data.rascunho);
+  const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho);
   return albuns.map((album) => ({ params: { slug: album.id }, props: { album } }));
 }
 
 const { album } = Astro.props as Props;
 const { data } = album;
 
-const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
+const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho).sort(
   (a, b) => a.data.ordem - b.data.ordem
 );
 const indice = albuns.findIndex((a) => a.id === album.id);

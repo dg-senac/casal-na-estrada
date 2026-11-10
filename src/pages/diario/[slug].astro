@@ -1,23 +1,24 @@
 ---
-import { getCollection, render, type CollectionEntry } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PostCard from '../../components/PostCard.astro';
 import { site } from '../../data/site';
+import { carregarPosts, type Post } from '../../lib/dados';
+import { markdown } from '../../lib/markdown';
 
 interface Props {
-  post: CollectionEntry<'diario'>;
+  post: Post;
 }
 
 export async function getStaticPaths() {
-  const posts = await getCollection('diario', ({ data }) => !data.rascunho);
+  const posts = (await carregarPosts()).filter((p) => !p.data.rascunho);
   return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
 }
 
 const { post } = Astro.props as Props;
-const { Content } = await render(post);
+const corpo = markdown(post.body);
 const { data } = post;
 
-const todos = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
+const todos = (await carregarPosts()).filter((p) => !p.data.rascunho).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
 );
 const indice = todos.findIndex((p) => p.id === post.id);
@@ -28,6 +29,14 @@ const dataLonga = new Intl.DateTimeFormat('pt-BR', {
   month: 'long',
   year: 'numeric',
 }).format(data.data);
+
+/** Extrai o ID de um link do YouTube em qualquer formato comum. */
+const youtubeId = (link?: string) => {
+  if (!link) return null;
+  const m = link.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{6,})/);
+  return m ? m[1] : null;
+};
+const video = youtubeId(data.video);
 
 const palavras = (post.body ?? '').split(/\s+/).filter(Boolean).length;
 const leitura = Math.max(1, Math.round(palavras / 200));
@@ -76,9 +85,26 @@ import { url } from '../../lib/url';
       <figcaption>{data.capaAlt}</figcaption>
     </figure>
 
+    {
+      video && (
+        <section class="wrap video-post">
+          <div class="video-post__quadro">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${video}`}
+              title={`Vídeo: ${data.titulo}`}
+              loading="lazy"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowfullscreen
+            />
+          </div>
+          <p class="video-post__legenda">Vídeo gravado na estrada pelo casal.</p>
+        </section>
+      )
+    }
+
     <div class="wrap artigo">
       <div class="artigo__body prose">
-        <Content />
+        <Fragment set:html={corpo} />
       </div>
 
       <aside class="artigo__aside">
@@ -286,6 +312,34 @@ import { url } from '../../lib/url';
     margin-top: clamp(2rem, 5vw, 3.5rem);
     padding-block: clamp(1.6rem, 3vw, 2.4rem);
     background: var(--paper-2);
+  }
+
+  .video-post {
+    margin-block: clamp(1.6rem, 4vw, 2.6rem) clamp(1.6rem, 4vw, 2.4rem);
+  }
+
+  .video-post__quadro {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    background: var(--ink);
+    border: 1px solid var(--line-strong);
+    overflow: hidden;
+  }
+
+  .video-post__quadro iframe {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  .video-post__legenda {
+    margin-top: 0.6rem;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+    color: var(--ink-mute);
   }
 
   @media (max-width: 900px) {

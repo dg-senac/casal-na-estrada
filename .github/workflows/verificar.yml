@@ -1,0 +1,37 @@
+name: Verificar build
+
+# Só valida: roda o build em pull requests para garantir que o site ainda monta
+# (e que o Supabase responde) antes de publicar. Não faz deploy de nada.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Conferir tipos
+        run: npx astro check
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://pjglrlullnchqazxpvyn.supabase.co' }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2xybHVsbG5jaHFhenhwdnluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNzc2NTQsImV4cCI6MjEwOTg1MzY1NH0.Z9wc7bdEjIhSOmToVhDGBMC6TRc3oxhek5G2fI-mvlw' }}
+
+      - name: Build (lê o Supabase de verdade)
+        env:
+          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://pjglrlullnchqazxpvyn.supabase.co' }}
+          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2xybHVsbG5jaHFhenhwdnluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNzc2NTQsImV4cCI6MjEwOTg1MzY1NH0.Z9wc7bdEjIhSOmToVhDGBMC6TRc3oxhek5G2fI-mvlw' }}
+          SITE_BASE: /casal-na-estrada/
+        run: npm run build

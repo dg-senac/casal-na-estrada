@@ -2,12 +2,12 @@
  * Regras da sala de troféus num lugar só.
  *
  * As páginas /trofeus e /trofeus/[slug] usam estes ajudantes para transformar
- * os arquivos de src/content/trofeus em etiquetas, datas e grupos por ano —
- * assim, quando o casal adiciona uma peça nova, nada precisa ser ajustado à mão.
+ * os registros do Supabase em etiquetas, datas e grupos por ano — assim, quando
+ * o casal cadastra uma peça nova pelo /admin, nada precisa ser ajustado à mão.
  */
-import type { CollectionEntry } from 'astro:content';
+import type { Trofeu } from './dados';
 
-export type Trofeu = CollectionEntry<'trofeus'>;
+export type { Trofeu };
 
 export const NIVEIS = {
   ouro: { curto: '1º', label: '1º lugar' },
