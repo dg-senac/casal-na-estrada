@@ -60,6 +60,19 @@ Não existe link para o painel em nenhum menu: ele é acessado digitando
 - **Ao salvar, o site publica sozinho** — em cerca de 1 minuto. O painel dispara o
   build por uma função no servidor (`publicar`), sem ninguém precisar ir ao GitHub.
 
+### Fotos: sem corte e na cor original
+
+- **Nenhuma foto é cortada.** Quando a imagem carrega, o script em
+  `src/layouts/Base.astro` entrega à moldura a proporção real dela — foto tirada
+  em pé aparece em pé, inteira; foto deitada aparece deitada. As proporções fixas
+  do CSS (16/9, 4/3, 4/5…) valem só como reserva de espaço enquanto a foto não
+  chegou (e como fallback se o JavaScript estiver desligado).
+- **Cor original, sem filtro.** O site nasceu em preto e branco no layout; as
+  fotos agora saem como vieram da câmera. A única exceção é o emblema do rodapé,
+  que é logo (filtro faz parte do desenho).
+- Exceções propositais: as capas em mosaico da home (com texto por cima) e a
+  moldura do emblema continuam recortadas de propósito, para a composição fechar.
+
 ### Publicação na hora (o gatilho no banco)
 
 O GitHub só roda `schedule` "quando dá": em repositório de pouco movimento ele pode
