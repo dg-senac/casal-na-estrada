@@ -225,8 +225,9 @@ seria preciso agendar um build a cada X minutos.
 
 - Contraste alto, foco visível, link "pular para o conteúdo", `alt` em todas as fotos.
 - `prefers-reduced-motion` respeitado (as animações de entrada somem).
-- Fotos em preto e branco por CSS (`filter: grayscale`) — se um dia quiserem cor,
-  é só remover a regra `.photo img { filter: ... }` em `global.css`.
+- Fotos sempre na cor original (o filtro preto e branco saiu em 09/11).
+- Nenhuma faixa de "Modo admin" no site público: o painel vive só em `/admin`,
+  sem atalho visível nas páginas.
 - A textura de papel é um SVG gerado em CSS: nenhuma imagem extra para carregar.
 - O painel não aparece no menu, não entra no `sitemap` e responde `noindex`.
 
