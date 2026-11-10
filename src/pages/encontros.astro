@@ -25,7 +25,11 @@ const completo = (d: Date) =>
 >
   <header class="page-head">
     <div class="wrap">
-      <p class="eyebrow">Agenda · {futuros.length} compromissos pela frente</p>
+      <p class="eyebrow">
+        Agenda · {futuros.length > 0
+          ? `${futuros.length} ${futuros.length === 1 ? 'encontro' : 'encontros'} pela frente`
+          : 'em preparação'}
+      </p>
       <h1 class="display">Encontros</h1>
       <div class="page-head__bottom">
         <p>
@@ -36,11 +40,38 @@ const completo = (d: Date) =>
           class="btn btn--solid"
           href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent('Vou em um encontro também! Vamos combinar?')}`}
           target="_blank"
-          rel="noopener">Combinar comboio</a
+          rel="noopener">{futuros.length > 0 ? 'Combinar comboio' : 'Falar com a gente'}</a
         >
       </div>
     </div>
   </header>
+
+  {
+    futuros.length > 0 && (
+      <section class="section section--tight" aria-label="Contagem regressiva">
+        <div class="wrap">
+          <div
+            class="contagem"
+            data-contagem
+            data-alvo={futuros[0].data.inicio.toISOString()}
+          >
+            <div>
+              <p class="eyebrow">Contagem regressiva</p>
+              <p class="contagem__nome">{futuros[0].data.nome}</p>
+              <p class="contagem__local">
+                {futuros[0].data.cidade} — {futuros[0].data.uf} · {completo(futuros[0].data.inicio)}
+              </p>
+            </div>
+            <div class="contagem__nums">
+              <span><strong data-dias>—</strong><em>dias</em></span>
+              <span><strong data-horas>—</strong><em>horas</em></span>
+              <span><strong data-min>—</strong><em>min</em></span>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   <section class="section section--tight">
     <div class="wrap">
@@ -82,10 +113,26 @@ const completo = (d: Date) =>
         }
         {
           futuros.length === 0 && (
-            <p class="vazio">
-              Nenhum encontro confirmado no momento. A gente está sempre de olho — volta aqui
-              em breve ou pergunta direto no WhatsApp.
-            </p>
+            <div class="aviso-agenda" data-reveal>
+              <p class="eyebrow">Em breve</p>
+              <p class="aviso-agenda__titulo">A agenda nova está sendo montada.</p>
+              <p class="aviso-agenda__texto">
+                Ainda não temos encontro confirmado. Assim que o calendário fechar, cada um
+                entra aqui com data, cidade e uma contagem regressiva que some sozinha quando
+                o dia chega.
+              </p>
+              <div class="aviso-agenda__acoes">
+                <a
+                  class="btn btn--solid"
+                  href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent('Me avisa quando a agenda de encontros sair?')}`}
+                  target="_blank"
+                  rel="noopener">Quero saber primeiro</a
+                >
+                <a class="link-arrow" href={`mailto:${site.email}?subject=Indica%C3%A7%C3%A3o%20de%20encontro`}>
+                  Indicar um encontro
+                </a>
+              </div>
+            </div>
           )
         }
       </div>
@@ -134,7 +181,118 @@ const completo = (d: Date) =>
   </section>
 </Base>
 
+<script>
+  // A contagem some sozinha quando a data do encontro chega.
+  const caixa = document.querySelector<HTMLElement>('[data-contagem]');
+  if (caixa?.dataset.alvo) {
+    const alvo = new Date(caixa.dataset.alvo).getTime();
+    const dias = caixa.querySelector<HTMLElement>('[data-dias]');
+    const horas = caixa.querySelector<HTMLElement>('[data-horas]');
+    const mins = caixa.querySelector<HTMLElement>('[data-min]');
+
+    const tique = () => {
+      const resta = alvo - Date.now();
+      if (resta <= 0) {
+        caixa.hidden = true;
+        window.clearInterval(relogio);
+        return;
+      }
+      const totalMin = Math.floor(resta / 60000);
+      if (dias) dias.textContent = String(Math.floor(totalMin / 1440));
+      if (horas) horas.textContent = String(Math.floor((totalMin % 1440) / 60)).padStart(2, '0');
+      if (mins) mins.textContent = String(totalMin % 60).padStart(2, '0');
+    };
+
+    tique();
+    const relogio = window.setInterval(tique, 30000);
+  }
+</script>
+
 <style>
+  .contagem {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1.4rem 2.5rem;
+    border: 1px solid var(--line-strong);
+    background: var(--paper-2);
+    padding: clamp(1.3rem, 3vw, 2rem);
+  }
+
+  .contagem__nome {
+    font-family: var(--serif);
+    font-size: clamp(1.4rem, 2.6vw, 2rem);
+    line-height: 1.15;
+    margin: 0.1rem 0 0.35rem;
+  }
+
+  .contagem__local {
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 0;
+  }
+
+  .contagem__nums {
+    display: flex;
+    gap: clamp(1rem, 2.5vw, 2rem);
+  }
+
+  .contagem__nums span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 62px;
+  }
+
+  .contagem__nums strong {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: clamp(2rem, 4.4vw, 3rem);
+    line-height: 1;
+    color: var(--rust);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .contagem__nums em {
+    font-family: var(--sans);
+    font-style: normal;
+    font-size: 0.66rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-top: 0.35rem;
+  }
+
+  .aviso-agenda {
+    border: 1px dashed var(--line-strong);
+    padding: clamp(1.3rem, 3vw, 2.1rem);
+    max-width: 64ch;
+  }
+
+  .aviso-agenda__titulo {
+    font-family: var(--serif);
+    font-size: clamp(1.5rem, 2.8vw, 2rem);
+    line-height: 1.15;
+    margin-bottom: 0.7rem;
+  }
+
+  .aviso-agenda__texto {
+    color: var(--ink-soft);
+    font-size: 0.95rem;
+    margin-bottom: 1.4rem;
+  }
+
+  .aviso-agenda__acoes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.9rem 1.6rem;
+  }
+
   .sr-title {
     position: absolute;
     width: 1px;

@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import { site } from '../data/site';
 import Base from '../layouts/Base.astro';
+import Vazio from '../components/Vazio.astro';
 
 const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
@@ -28,11 +29,14 @@ const ordendas = ordenar(trofeus);
 const marcadas = ordendas.filter((t) => t.data.destaque);
 const podio = (marcadas.length > 0 ? marcadas : ordendas).slice(0, 5);
 
-// O número de peças é lido do conteúdo, não do site.ts: a prateleira cresce
-// e o painel da home acompanha sozinho.
-const numeros = site.numeros.map((n) =>
-  n.rotulo === 'peças na galeria' ? { ...n, valor: String(trofeus.length) } : n
-);
+// Painel da home: tudo é contado do conteúdo, nada fixo no código.
+const anosDeEstrada = new Date().getFullYear() - site.desde;
+const numeros = [
+  { valor: String(anosDeEstrada), rotulo: 'anos de estrada' },
+  { valor: String(posts.length), rotulo: posts.length === 1 ? 'publicação' : 'publicações' },
+  { valor: String(albuns.length), rotulo: albuns.length === 1 ? 'álbum' : 'álbuns' },
+  { valor: String(trofeus.length), rotulo: 'peças na sala' },
+];
 import { url } from '../lib/url';
 import { ordenar, seloCurto } from '../lib/trofeus';
 ---
@@ -57,12 +61,17 @@ import { ordenar, seloCurto } from '../lib/trofeus';
     </div>
 
     <figure class="hero__media">
-      <div class="photo photo--duotone hero__photo">
-        <img src={url("/media/placeholder-estrada-02.jpg")} alt="Casal de capacete seguindo por uma estrada de terra no sertão, vistos por trás" width="1400" height="900" />
+      <div class="hero__emblema">
+        <img
+          src={url('/media/emblema.jpg')}
+          alt="Emblema do Casal na Estrada: casal de moto dentro de um selo do Moto Clube, Recife — PE"
+          width="900"
+          height="900"
+        />
       </div>
       <figcaption class="hero__caption">
-        <span class="hero__caption-num">Nº 01</span>
-        <span>Estrada de terra entre o agreste e o sertão. Sem pressa, como deve ser.</span>
+        <span class="hero__caption-num">MC</span>
+        <span>O emblema do clube de dois. A foto grande da estrada entra aqui.</span>
       </figcaption>
     </figure>
   </div>
@@ -91,6 +100,18 @@ import { ordenar, seloCurto } from '../lib/trofeus';
       </div>
       <a class="link-arrow" href={url("/diario")}>Todas as publicações →</a>
     </div>
+
+    {
+      !manchete && (
+        <Vazio
+          eyebrow="Diário zerado"
+          titulo="O diário recomeça na próxima estrada."
+          texto="Tiramos as publicações antigas, que eram só de teste. A próxima viagem vira o primeiro capítulo de verdade."
+          ctaHref="/diario"
+          ctaLabel="Ver o diário"
+        />
+      )
+    }
 
     {
       manchete && (
@@ -153,6 +174,19 @@ import { ordenar, seloCurto } from '../lib/trofeus';
       </div>
       <a class="link-arrow" href={url("/galeria")}>Abrir a galeria →</a>
     </div>
+
+    {
+      !albumCapa && (
+        <Vazio
+          tom="escuro"
+          eyebrow="Galeria vazia por enquanto"
+          titulo="Nenhum álbum publicado ainda."
+          texto="As fotos das próximas viagens entram aqui, álbum por álbum, com legenda e data."
+          ctaHref="/galeria"
+          ctaLabel="Ver a galeria"
+        />
+      )
+    }
 
     <div class="mosaico">
       {
@@ -260,6 +294,19 @@ import { ordenar, seloCurto } from '../lib/trofeus';
 
     <div class="agenda-home__list">
       {
+        agenda.length === 0 && (
+          <div class="agenda-vazio" data-reveal>
+            <p class="eyebrow">Em breve</p>
+            <p class="agenda-vazio__titulo">Agenda em preparação.</p>
+            <p class="agenda-vazio__texto">
+              Estamos montando o calendário do próximo ano. Assim que os encontros forem
+              confirmados, cada um entra aqui com data, cidade e contagem regressiva.
+            </p>
+            <a class="link-arrow" href={url('/encontros')}>Ver a página de encontros</a>
+          </div>
+        )
+      }
+      {
         agenda.slice(0, 4).map((e, i) => (
           <div class="agenda-item" data-reveal style={`--reveal-delay:${i * 70}ms`}>
             <div class="agenda-item__date">
@@ -347,6 +394,37 @@ import { ordenar, seloCurto } from '../lib/trofeus';
 
   .hero__photo {
     aspect-ratio: 4 / 3.25;
+  }
+
+  .hero__emblema {
+    aspect-ratio: 1 / 1;
+    overflow: hidden;
+    border: 1px solid var(--line-strong);
+    background: #16130e;
+  }
+
+  .hero__emblema img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .agenda-vazio {
+    border: 1px dashed var(--line-strong);
+    padding: clamp(1.2rem, 2.5vw, 1.7rem);
+  }
+
+  .agenda-vazio__titulo {
+    font-family: var(--serif);
+    font-size: clamp(1.25rem, 2vw, 1.55rem);
+    line-height: 1.2;
+    margin-bottom: 0.6rem;
+  }
+
+  .agenda-vazio__texto {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin-bottom: 1.1rem;
   }
 
   .hero__caption {

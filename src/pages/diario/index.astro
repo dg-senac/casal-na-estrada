@@ -2,6 +2,7 @@
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
 import PostCard from '../../components/PostCard.astro';
+import Vazio from '../../components/Vazio.astro';
 
 const posts = (await getCollection('diario', ({ data }) => !data.rascunho)).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
@@ -42,7 +43,15 @@ import { url } from '../../lib/url';
   <section class="section section--tight">
     <div class="wrap">
       {
-        posts.length === 0 && <p>Em breve, as primeiras publicações.</p>
+        posts.length === 0 && (
+          <Vazio
+            eyebrow="Primeira página em branco"
+            titulo="O diário recomeça na próxima estrada."
+            texto="Apagamos as publicações de teste. Daqui pra frente, cada viagem entra aqui com foto, data e o causo inteiro."
+            ctaHref="/encontros"
+            ctaLabel="Ver os encontros"
+          />
+        )
       }
       {
         posts.map((post, i) => (
@@ -52,7 +61,7 @@ import { url } from '../../lib/url';
     </div>
   </section>
 
-  <section class="arquivo">
+  <section class="arquivo" hidden={posts.length === 0}>
     <div class="wrap arquivo__in">
       <p class="eyebrow">Arquivo</p>
       <div class="arquivo__grid">

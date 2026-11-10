@@ -1,6 +1,7 @@
 ---
 import { getCollection } from 'astro:content';
 import Base from '../../layouts/Base.astro';
+import Vazio from '../../components/Vazio.astro';
 
 const albuns = (await getCollection('albuns', ({ data }) => !data.rascunho)).sort(
   (a, b) => a.data.ordem - b.data.ordem
@@ -36,7 +37,19 @@ import { url } from '../../lib/url';
 
   <section class="section section--tight">
     <div class="wrap">
-      <div class="albuns">
+      {
+        albuns.length === 0 && (
+          <Vazio
+            eyebrow="Nenhum álbum ainda"
+            titulo="A galeria abre na próxima viagem."
+            texto="Os álbuns antigos eram de teste e saíram do ar. Quando a gente voltar da estrada, as fotos entram aqui com legenda e data."
+            ctaHref="/trofeus"
+            ctaLabel="Ver a sala de troféus"
+          />
+        )
+      }
+
+      <div class="albuns" hidden={albuns.length === 0}>
         {
           albuns.map((album, i) => (
             <article
