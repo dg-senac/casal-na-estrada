@@ -238,12 +238,9 @@ function telaEntrada(mensagem = '') {
             <a class="pn-btn pn-btn--claro" href="${BASE}">Ver o site</a>
           </div>
         </form>
-        <p style="margin-top:1.6rem">
-          <button class="pn-btn--texto" id="pn-abrir-cadastro" type="button">
-            Primeiro acesso: criar a conta do casal
-          </button>
+        <p class="pn-esqueci">
+          Esqueceu a senha? Quem cuida do site reabre o acesso pelo Supabase.
         </p>
-        <div id="pn-cadastro" hidden></div>
       </div>
     </div>
   `;
@@ -265,65 +262,6 @@ function telaEntrada(mensagem = '') {
     }
   });
 
-  document.getElementById('pn-abrir-cadastro').addEventListener('click', mostrarCadastro);
-}
-
-function mostrarCadastro() {
-  const caixa = document.getElementById('pn-cadastro');
-  caixa.hidden = false;
-  caixa.innerHTML = `
-    <div class="pn-secao">
-      <h3>Criar a conta (só uma vez)</h3>
-      <p class="pn-aviso">
-        Escolha um e-mail e uma senha que os três vão usar. Depois que a conta
-        existir, eu desligo o cadastro no Supabase e só ela entra aqui.
-      </p>
-      <form id="pn-signup">
-        <label class="pn-campo">
-          <span>E-mail</span>
-          <input type="email" name="email" autocomplete="username" required />
-        </label>
-        <label class="pn-campo">
-          <span>Senha <em>mínimo 8 caracteres</em></span>
-          <input type="password" name="senha" minlength="8" autocomplete="new-password" required />
-        </label>
-        <label class="pn-campo">
-          <span>Repita a senha</span>
-          <input type="password" name="senha2" minlength="8" autocomplete="new-password" required />
-        </label>
-        <div class="pn-acoes">
-          <button class="pn-btn" type="submit">Criar conta</button>
-        </div>
-      </form>
-    </div>
-  `;
-  document.getElementById('pn-signup').addEventListener('submit', async (ev) => {
-    ev.preventDefault();
-    const form = ev.currentTarget;
-    if (form.senha.value !== form.senha2.value) {
-      avisar('As duas senhas não são iguais.', 'erro');
-      return;
-    }
-    const botao = form.querySelector('button');
-    botao.disabled = true;
-    botao.textContent = 'Criando…';
-    const { data, error } = await supabase.auth.signUp({
-      email: form.email.value.trim(),
-      password: form.senha.value,
-    });
-    botao.disabled = false;
-    botao.textContent = 'Criar conta';
-    if (error) {
-      avisar(traduzErro(error.message), 'erro');
-      return;
-    }
-    if (!data.session) {
-      avisar('Conta criada. Confirme o e-mail e entre.', 'ok');
-      telaEntrada('Conta criada. Faça o login com a senha que você escolheu.');
-      return;
-    }
-    avisar('Conta criada. Bem-vindos!');
-  });
 }
 
 function traduzErro(mensagem = '') {
