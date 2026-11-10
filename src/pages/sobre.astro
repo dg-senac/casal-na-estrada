@@ -2,12 +2,14 @@
 import Base from '../layouts/Base.astro';
 import { site } from '../data/site';
 import { url } from '../lib/url';
+
+const foto = '/media/casal-cieri-milla.jpg';
 ---
 
 <Base
   title="O Casal"
-  description="Quem são Cieri e Milla, o casal de Recife que roda o Brasil de moto desde 2013."
-  image="/media/emblema.jpg"
+  description={`A história oficial do Casal na Estrada: Cieri e Milla, de Recife, na estrada desde ${site.desde} — da Yamaha Lander 250 à primeira grande viagem até Salvador.`}
+  image={foto}
 >
   <header class="page-head">
     <div class="wrap">
@@ -15,10 +17,10 @@ import { url } from '../lib/url';
       <h1 class="display">Cieri <span class="amp">&</span> Milla</h1>
       <div class="page-head__bottom">
         <p>
-          Dois pernambucanos, uma moto e uma teimosia: a de que sempre cabe mais um encontro
-          no calendário.
+          Um casal de Recife que fez da estrada um estilo de vida — cumplicidade, parceria e
+          histórias para contar.
         </p>
-        <span class="small-caps">Recife — PE · na estrada desde {site.desde}</span>
+        <span class="small-caps">Recife — PE · clube fundado em {site.desde}</span>
       </div>
     </div>
   </header>
@@ -28,43 +30,74 @@ import { url } from '../lib/url';
       <figure class="sobre__foto" data-reveal>
         <div class="photo">
           <img
-            src={url("/media/emblema.jpg")}
-            alt="Emblema do Casal na Estrada: casal de moto dentro de um selo do Moto Clube, Recife — PE"
-            width="900"
-            height="900"
+            src={url(foto)}
+            alt="Cieri e Milla de colete de moto, em pé num morro de capim alto, com o céu azul e as serras ao fundo"
+            width="1000"
+            height="1333"
           />
         </div>
-        <figcaption>O emblema do casal. A foto grande entra aqui.</figcaption>
+        <figcaption>Cieri e Milla — a dupla que assina este diário.</figcaption>
       </figure>
 
       <div class="sobre__texto" data-reveal style="--reveal-delay:120ms">
         <p class="sobre__lead">
-          A gente se conheceu numa festa em Boa Viagem, em 2011. Namoramos dois anos antes da
-          primeira viagem de moto — e a primeira viagem de moto decidiu o resto.
+          Fundado em {site.desde}, o Casal na Estrada Cieri e Milla nasceu do encontro entre o
+          amor e a paixão pelo motociclismo de estrada.
         </p>
 
         <p>
-          Era uma moto emprestada, um encontro em Carpina e 78 km de ida. Voltamos com dor nas
-          costas, queimadura de sol no pescoço e a certeza de que aquilo ia virar rotina. Virou.
-          Dois anos depois já éramos presença certa nos encontros do Nordeste.
+          Mais do que registrar quilômetros, a dupla transformou a liberdade de pilotar em um
+          estilo de vida, fincando bandeira na estrada com muita cumplicidade, parceria e
+          histórias para contar.
+        </p>
+
+        <h2>Rumo à Bahia</h2>
+
+        <p>
+          O destino da primeira grande viagem oficial, em 2023, foi cruzar rodovias com destino
+          à vibrante e cultural Bahia, tendo a chegada apoteótica em Salvador como o grande
+          marco dessa iniciação no mototurismo de longa distância.
+        </p>
+
+        <h2>Perrengues na estrada: o batismo de fogo</h2>
+
+        <p>
+          Toda viagem de moto que se preze tem aquela dose de adrenalina que não sai nos
+          panfletos turísticos — e com Cieri e Milla não foi diferente.
         </p>
 
         <p>
-          De lá pra cá foram 18 estados, muitos fins de semana dormindo em cidade que a gente
-          nem sabia que existia, e uma quantidade de amigos que não caberia em uma mesa só.
-          A Milla fotografa tudo. O Cieri conversa com todo mundo — inclusive com quem só
-          parou pra perguntar se a moto é boa.
+          Entre trechos de asfalto desafiador, variações climáticas, ajustes de última hora na
+          bagagem e imprevistos mecânicos comuns de quem desbrava o asfalto em uma 250 cc, os
+          chamados “perrengues na estrada” serviram para testar a resiliência do casal. Foram
+          momentos de tensão virando gargalhada na parada seguinte, daqueles perrengues que, no
+          fim, se transformam nas melhores histórias das rodovias e fortalecem ainda mais a
+          sintonia entre piloto e garupa.
         </p>
 
-        <blockquote>
-          A estrada ensina duas coisas: que dá pra ir mais longe do que você imagina, e que
-          vale mais parar pra conversar do que chegar cedo.
-        </blockquote>
+        <h2>O Pinta Pede Rudo <em>(ou a Lei do Motociclista)</em></h2>
+
+        <blockquote>“O pinta pede rudo!”</blockquote>
 
         <p>
-          Este site nasceu de uma caixa de sapatos cheia de foto impressa e ingresso de
-          encontro. A gente queria um lugar para guardar isso — e para que quem a gente
-          conhece na estrada pudesse ver também.
+          Na estrada, cada detalhe importa, e o lema que rege os perrengues e os acertos é claro:
+          o pinta pede rudo. Seja na hora de negociar um pernoite inesperado, de peito aberto
+          para resolver um imprevisto mecânico no meio do nada, de pedir informação na beira da
+          rodovia ou de peitar o cansaço acumulado debaixo de sol e chuva, a regra é não abaixar
+          a cabeça para a dificuldade.
+        </p>
+
+        <p>
+          Na estrada, a postura tem que ser firme, o espírito leve e a vontade de seguir adiante
+          sempre maior do que qualquer obstáculo.
+        </p>
+
+        <h2>O legado da rota 2023</h2>
+
+        <p>
+          Chegar a Salvador na Lander 250, superando os perrengues e mantendo o estilo autêntico,
+          marcou o nascimento oficial do Casal na Estrada. Uma biografia feita de borracha
+          queimada, vento no rosto e a certeza de que o próximo destino já está logo ali.
         </p>
       </div>
     </div>
@@ -76,35 +109,41 @@ import { url } from '../lib/url';
         <p class="eyebrow">A companheira de viagem</p>
         <h2 class="display">A moto</h2>
         <p class="lead" style="margin-top:1.2rem">
-          Uma touring de 2019, já com 94 mil km no odômetro, alforge de couro e um adesivo do
-          primeiro encontro que a gente foi. Ela não é rápida, mas nunca deixou a gente na mão.
+          A fiel companheira dessa estreia foi a versátil e valente Yamaha Lander 250. Ágil e
+          pronta para qualquer terreno, ela provou que o tamanho da cilindrada nunca limitou a
+          grandeza da aventura.
         </p>
         <p class="moto__txt">
-          A manutenção é feita em casa, com o manual aberto na mesa da cozinha. O Cieri troca
-          óleo, a Milla organiza o mapa. A divisão de trabalho funciona desde 2013.
+          Foi nela que a primeira grande viagem oficial saiu do Recife rumo à Bahia, em 2023:
+          bagagem ajustada no meio do caminho, imprevisto mecânico resolvido na beira da
+          rodovia e a chegada a Salvador como recompensa.
         </p>
       </div>
 
       <div class="moto__ficha" data-reveal style="--reveal-delay:100ms">
         <div class="ficha-linha">
           <span class="ficha-linha__k">Modelo</span>
-          <span class="ficha-linha__v">Touring 2019</span>
+          <span class="ficha-linha__v">Yamaha Lander 250</span>
         </div>
         <div class="ficha-linha">
-          <span class="ficha-linha__k">Km rodados</span>
-          <span class="ficha-linha__v">94.000</span>
+          <span class="ficha-linha__k">Cilindrada</span>
+          <span class="ficha-linha__v">250 cc</span>
         </div>
         <div class="ficha-linha">
-          <span class="ficha-linha__k">Estados visitados</span>
-          <span class="ficha-linha__v">18</span>
+          <span class="ficha-linha__k">Estreia na estrada</span>
+          <span class="ficha-linha__v">{site.desde}</span>
         </div>
         <div class="ficha-linha">
-          <span class="ficha-linha__k">Item obrigatório</span>
-          <span class="ficha-linha__v">garrafa térmica</span>
+          <span class="ficha-linha__k">Primeira grande viagem</span>
+          <span class="ficha-linha__v">Recife → Salvador</span>
         </div>
         <div class="ficha-linha">
-          <span class="ficha-linha__k">Música de estrada</span>
-          <span class="ficha-linha__v">forró pé de serra</span>
+          <span class="ficha-linha__k">Estilo</span>
+          <span class="ficha-linha__v">mototurismo de longa distância</span>
+        </div>
+        <div class="ficha-linha">
+          <span class="ficha-linha__k">Lema</span>
+          <span class="ficha-linha__v">o pinta pede rudo</span>
         </div>
       </div>
     </div>
@@ -198,6 +237,26 @@ import { url } from '../lib/url';
   .sobre__lead {
     font-size: 1.14rem;
     color: var(--ink);
+  }
+
+  .sobre__texto h2 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 1.45rem;
+    line-height: 1.18;
+    color: var(--ink);
+    margin: 2.2rem 0 0.8rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .sobre__texto h2 em {
+    display: block;
+    font-size: 0.72em;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink-mute);
+    margin-top: 0.25rem;
   }
 
   .sobre__texto blockquote {

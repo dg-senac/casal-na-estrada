@@ -15,6 +15,7 @@ const caminhoAtual = basePath ? Astro.url.pathname.replace(basePath, '') : Astro
 const path = caminhoAtual.replace(/\/$/, '') || '/';
 const isActive = (href: string) => (href === '/' ? path === '/' : path.startsWith(href));
 import { basePath, url } from '../lib/url';
+import { site } from '../data/site';
 ---
 
 <header class="masthead">
@@ -22,7 +23,7 @@ import { basePath, url } from '../lib/url';
     <div class="wrap masthead__meta-in">
       <span>Recife — Pernambuco</span>
       <span class="masthead__dot">·</span>
-      <span>Na estrada desde 2013</span>
+      <span>Na estrada desde {site.desde}</span>
       <span class="masthead__spacer"></span>
       <a href={url("/encontros")} class="masthead__meta-link">Agenda: novos encontros em breve →</a>
     </div>
@@ -81,7 +82,7 @@ import { basePath, url } from '../lib/url';
           ))
         }
       </nav>
-      <p class="menu-mobile__foot">Recife — PE · desde 2013</p>
+      <p class="menu-mobile__foot">Recife — PE · desde {site.desde}</p>
     </div>
   </div>
 </header>

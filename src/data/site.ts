@@ -6,7 +6,7 @@
 export const site = {
   nome: 'Casal na Estrada',
   nomes: 'Cieri & Milla',
-  desde: 2013,
+  desde: 2023,
   base: 'Recife — PE',
   lema: 'Cieri e Milla',
   descricao:
