@@ -91,24 +91,51 @@ const PASSOS_TOKEN = `
 
 /** Chama a função de servidor que dispara o build do site. */
 async function chamarPublicacao(acao, extra = {}) {
-  const { data, error } = await supabase.functions.invoke('publicar', {
-    body: { acao, ...extra },
-  });
+  const endereco = `${ENDERECO}/functions/v1/publicar`;
 
-  if (error) {
-    let detalhe = {};
-    try {
-      detalhe = await error.context.json();
-    } catch {
-      /* resposta sem corpo */
-    }
+  // Diferente de supabase.functions.invoke, esta chamada manda só os cabeçalhos
+  // que a função aceita — é o caminho mais curto e o mais fácil de depurar.
+  const { data } = await supabase.auth.getSession();
+  const token = data.session?.access_token;
+  if (!token) {
+    return { ok: false, erro: 'sem_sessao', mensagem: 'Sessão expirada. Entre de novo no painel.' };
+  }
+
+  let resposta;
+  try {
+    resposta = await fetch(endereco, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: CHAVE,
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ acao, ...extra }),
+    });
+  } catch {
     return {
       ok: false,
-      erro: detalhe.erro || 'rede',
-      mensagem: detalhe.mensagem || error.message,
+      erro: 'rede',
+      mensagem: 'Não consegui falar com o servidor de publicação. Confira a internet e tente de novo.',
     };
   }
-  return { ok: true, ...(data ?? {}) };
+
+  let corpo = {};
+  try {
+    corpo = await resposta.json();
+  } catch {
+    /* resposta sem corpo JSON */
+  }
+
+  if (!resposta.ok) {
+    return {
+      ok: false,
+      erro: corpo.erro || `http_${resposta.status}`,
+      mensagem: corpo.mensagem || `O servidor de publicação respondeu ${resposta.status}.`,
+    };
+  }
+
+  return { ok: true, ...corpo };
 }
 
 /** Aviso no topo do painel quando a publicação na hora ainda não está ligada. */

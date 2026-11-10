@@ -7,7 +7,9 @@
  * esta rota depois de salvar e o build começa em segundos.
  *
  * Ela guarda o token do GitHub na tabela `config` (inacessível pelo site) e
- * só responde a quem estiver logado no painel.
+ * só responde a quem estiver logado no painel — a sessão é conferida aqui
+ * dentro (`getUser(jwt)`), então a função roda com verify_jwt desligado no
+ * gateway: quem não tiver sessão recebe 401 daqui, sem passar do portão.
  *
  * Ações (POST, corpo JSON):
  *   { "acao": "status" }                 → { configurado: true|false }
@@ -21,10 +23,15 @@ const REPO = 'dg-senac/casal-na-estrada';
 const WORKFLOW = 'deploy.yml';
 const REF = 'main';
 
+// Cabeçalhos de CORS bem abertos: esta função é chamada do site (outro domínio)
+// e só responde a quem estiver logado (a checagem é feita aqui dentro, com o
+// token da sessão). A lista explícita de cabeçalhos quebrava o preflight quando
+// a biblioteca do Supabase mandava algum cabeçalho novo — por isso o "*".
 const CORS = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 };
 
 const responder = (corpo: unknown, status = 200) =>
