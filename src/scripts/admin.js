@@ -239,7 +239,7 @@ function telaEntrada(mensagem = '') {
           </div>
         </form>
         <p class="pn-esqueci">
-          Esqueceu a senha? Quem cuida do site reabre o acesso pelo Supabase.
+          Esqueceu a senha? Fale com quem cuida do site que a gente reabre o acesso.
         </p>
       </div>
     </div>
@@ -912,8 +912,8 @@ async function salvar(form) {
 if (!supabase) {
   app.innerHTML = `<div class="pn-entrada"><div class="pn-entrada__caixa">
     <p class="pn-marca">Casal na Estrada<span>Painel do casal</span></p>
-    <p class="pn-aviso">O painel ainda não está conectado: faltam PUBLIC_SUPABASE_URL e
-    PUBLIC_SUPABASE_ANON_KEY no build.</p>
+    <p class="pn-aviso">O painel está fora do ar no momento. Avise quem cuida do site
+    que a gente resolve.</p>
     <a class="pn-btn" href="${BASE}">Voltar para o site</a>
   </div></div>`;
 } else {
