@@ -113,12 +113,13 @@ const ultima = grupos[0]?.pecas[0];
         <p>
           Cada encontro do ano rende uma peça nova e o casal mesmo abastece esta sala: chega da
           viagem, fotografa o troféu e escreve a história. Por isso a página nunca fica
-          pronta — e é assim que a gente gosta. As fotos aqui saem em cor, únicas do site:
-          nessas peças a cor é metade da história.
+          pronta — e é assim que a gente gosta.
         </p>
-        <p class="small-caps" style="margin:0">
-          {ultima ? `Última peça: ${ultima.data.evento} · ${quando(ultima)}` : 'Fotos em cor: a única exceção do site.'}
-        </p>
+        {ultima && (
+          <p class="small-caps" style="margin:0">
+            Última peça: {ultima.data.evento} · {quando(ultima)}
+          </p>
+        )}
       </div>
     </div>
   </section>
@@ -273,8 +274,7 @@ const ultima = grupos[0]?.pecas[0];
     border-bottom: 1px solid var(--line);
   }
 
-  /* A sala de troféus é o único lugar do site com foto em cor:
-     nessas peças a cor é metade da história. */
+  /* Foto da peça, na cor original como todas as outras. */
   .peca__foto img {
     width: 100%;
     height: 100%;
