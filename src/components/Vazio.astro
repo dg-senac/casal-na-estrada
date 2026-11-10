@@ -1,0 +1,67 @@
+---
+interface Props {
+  eyebrow?: string;
+  titulo: string;
+  texto?: string;
+  ctaHref?: string;
+  ctaLabel?: string;
+  tom?: 'claro' | 'escuro';
+}
+
+const { eyebrow = 'Em breve', titulo, texto, ctaHref, ctaLabel, tom = 'claro' } = Astro.props;
+import { url } from '../lib/url';
+---
+
+<div class:list={['vazio-bloco', `vazio-bloco--${tom}`]} data-reveal>
+  <p class="eyebrow">{eyebrow}</p>
+  <p class="vazio-bloco__titulo">{titulo}</p>
+  {texto && <p class="vazio-bloco__texto">{texto}</p>}
+  {
+    ctaHref && ctaLabel && (
+      <a class={tom === 'escuro' ? 'link-arrow' : 'btn'} href={url(ctaHref)}>
+        {ctaLabel}
+      </a>
+    )
+  }
+</div>
+
+<style>
+  .vazio-bloco {
+    border: 1px dashed var(--line-strong);
+    padding: clamp(1.3rem, 3vw, 2.1rem);
+    max-width: 62ch;
+  }
+
+  .vazio-bloco--escuro {
+    border-color: rgba(236, 229, 214, 0.34);
+  }
+
+  .vazio-bloco .eyebrow {
+    margin-bottom: 0.8rem;
+  }
+
+  .vazio-bloco--escuro .eyebrow {
+    color: rgba(236, 229, 214, 0.6);
+  }
+
+  .vazio-bloco__titulo {
+    font-family: var(--serif);
+    font-size: clamp(1.3rem, 2.4vw, 1.75rem);
+    line-height: 1.2;
+    margin: 0 0 0.6rem;
+  }
+
+  .vazio-bloco--escuro .vazio-bloco__titulo {
+    color: var(--paper);
+  }
+
+  .vazio-bloco__texto {
+    font-size: 0.93rem;
+    color: var(--ink-soft);
+    margin: 0 0 1.2rem;
+  }
+
+  .vazio-bloco--escuro .vazio-bloco__texto {
+    color: rgba(236, 229, 214, 0.76);
+  }
+</style>
