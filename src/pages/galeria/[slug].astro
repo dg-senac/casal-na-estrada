@@ -294,8 +294,7 @@ import { url } from '../../lib/url';
     height: 100%;
     aspect-ratio: 4 / 3;
     object-fit: cover;
-    filter: grayscale(1) contrast(1.06);
-    transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1), filter 0.4s ease;
+    transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
   .foto:nth-child(5n + 1) .foto__btn img {
@@ -305,7 +304,6 @@ import { url } from '../../lib/url';
   .foto__btn:hover img,
   .foto__btn:focus-visible img {
     transform: scale(1.03);
-    filter: grayscale(1) contrast(1.1) brightness(1.05);
   }
 
   .foto figcaption {

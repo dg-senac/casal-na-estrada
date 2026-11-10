@@ -69,6 +69,43 @@ import { url } from '../lib/url';
     <Footer />
 
     <script>
+      /*
+       * Foto em pé não é cortada: quando a imagem carrega, a moldura recebe a
+       * proporção real dela (em vez da proporção fixa do layout). Foto em pé
+       * fica em pé, foto deitada fica deitada — e nunca sobra corte.
+       * Se o JS não rodar, tudo continua como antes.
+       */
+      const MOLDURAS = [
+        '.headline__media',
+        '.ultima__media',
+        '.post__media',
+        '.hero-post__photo',
+        '.album__photo',
+        '.foto__btn',
+        '.sobre__foto .photo',
+        '.peca__foto',
+        '.extras__foto',
+      ].join(',');
+
+      const ajustarFoto = (moldura: HTMLElement) => {
+        const img = moldura.querySelector('img');
+        if (!img) return;
+
+        const aplicar = () => {
+          const { naturalWidth: w, naturalHeight: h } = img;
+          if (!w || !h) return;
+          const proporcao = `${w} / ${h}`;
+          moldura.style.aspectRatio = proporcao;
+          moldura.style.height = 'auto';
+          moldura.classList.add('foto-inteira');
+        };
+
+        if (img.complete) aplicar();
+        else img.addEventListener('load', aplicar, { once: true });
+      };
+
+      document.querySelectorAll<HTMLElement>(MOLDURAS).forEach(ajustarFoto);
+
       // Entrada suave dos blocos conforme rolam na tela.
       const items = document.querySelectorAll('[data-reveal]');
       if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && items.length) {
