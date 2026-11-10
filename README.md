@@ -5,7 +5,7 @@ Diário de viagem, galeria de fotos e vídeos, sala de troféus e agenda de enco
 
 Feito com **Astro 5**, publicado como site estático no GitHub Pages. O conteúdo
 (diário, galeria, troféus, encontros) mora no **Supabase** e é editado pelo painel
-**`/admin`**; a cada 10 minutos o GitHub reconstrói o site com o que estiver salvo lá.
+**`/admin`**; ao salvar, o painel dispara o build e o site entra no ar em cerca de 1 minuto.
 
 ---
 
@@ -57,8 +57,30 @@ Não existe link para o painel em nenhum menu: ele é acessado digitando
   de subir para o bucket `midia`. Não precisa reduzir nada na mão.
 - **Vídeo é opcional**: no diário e nos álbuns dá para colar um link do YouTube.
 - Quem está logado vê o site normal; o painel é só o lugar de editar.
-- **Só aparece no ar depois do próximo build** — até 10 minutos. O rodapé de cada
-  formulário repete isso, e a faixa de admin também.
+- **Ao salvar, o site publica sozinho** — em cerca de 1 minuto. O painel dispara o
+  build por uma função no servidor (`publicar`), sem ninguém precisar ir ao GitHub.
+
+### Publicação na hora (o botão que resolve)
+
+O GitHub só roda `schedule` "quando dá": em repositório de pouco movimento ele pode
+levar **horas** entre uma execução e outra. Por isso o painel não depende disso.
+
+1. Ao salvar (ou excluir), o navegador chama a função `publicar` no Supabase.
+2. A função confere a sessão, pega o token do GitHub guardado na tabela `config`
+   (RLS ligada, **sem** política — nada disso é legível pelo site) e chama
+   `workflow_dispatch` no repositório.
+3. O build roda, o Pages publica, e em ~1 minuto a publicação está no ar.
+
+**Ligar isso é uma vez só.** No topo do painel aparece um aviso com o passo a passo:
+criar um *fine-grained token* no GitHub (só o repositório `casal-na-estrada`, permissão
+**Actions: read and write**) e colar no campo. O token fica no banco, nunca no código
+nem no navegador de quem visita o site. Para apagar: `{"acao":"desligar"}` na mesma função.
+
+Sem o token configurado, o painel continua funcionando: só avisa que a publicação vai
+depender do relógio do GitHub (o `schedule` de 10 em 10 minutos).
+
+Também existe o botão **"Publicar agora"** no topo do painel, para forçar um build
+(fora do fluxo de salvar).
 
 ---
 
@@ -74,6 +96,7 @@ Não existe link para o painel em nenhum menu: ele é acessado digitando
 | Textos da home | `src/pages/index.astro` |
 | Links e caminhos de imagem no código | `src/lib/url.ts` (função `url()`) |
 | Tabelas, formulários e regras do painel | `src/scripts/admin.js` |
+| Função que dispara o build (`publicar`) | `supabase/functions/publicar/index.ts` |
 
 ---
 
@@ -142,7 +165,7 @@ escreve em Markdown num campo separado (aparece como "A história completa").
 O workflow `.github/workflows/deploy.yml` publica o site:
 
 - a cada push na `main`;
-- **de 10 em 10 minutos**, para levar ao ar o que foi salvo no painel;
+- **de 10 em 10 minutos**, só como rede de segurança (veja abaixo por quê);
 - na mão, em **Actions → Publicar no GitHub Pages → Run workflow**.
 
 Passos, se um dia precisar refazer: **Settings → Pages → Source: GitHub Actions**; o
