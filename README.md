@@ -60,18 +60,19 @@ Não existe link para o painel em nenhum menu: ele é acessado digitando
 - **Ao salvar, o site publica sozinho** — em cerca de 1 minuto. O painel dispara o
   build por uma função no servidor (`publicar`), sem ninguém precisar ir ao GitHub.
 
-### Fotos: sem corte e na cor original
+### Fotos: recorte leve, cor original e zoom
 
-- **Nenhuma foto é cortada.** Quando a imagem carrega, o script em
-  `src/layouts/Base.astro` entrega à moldura a proporção real dela — foto tirada
-  em pé aparece em pé, inteira; foto deitada aparece deitada. As proporções fixas
-  do CSS (16/9, 4/3, 4/5…) valem só como reserva de espaço enquanto a foto não
-  chegou (e como fallback se o JavaScript estiver desligado).
-- **Cor original, sem filtro.** O site nasceu em preto e branco no layout; as
-  fotos agora saem como vieram da câmera. A única exceção é o emblema do rodapé,
-  que é logo (filtro faz parte do desenho).
-- Exceções propositais: as capas em mosaico da home (com texto por cima) e a
-  moldura do emblema continuam recortadas de propósito, para a composição fechar.
+- **Recorte leve, nunca agressivo.** O script em `src/layouts/Base.astro` lê a
+  proporção real de cada foto e aplica à moldura, com piso `0.85` e teto `2.2`
+  (`PROPORCAO_MINIMA` / `PROPORCAO_MAXIMA`). Foto em pé não vira um poste e não
+  perde o topo; foto muito larga também não vira faixa. Nas fotos em pé o
+  recorte é puxado para cima (`object-position: 50% 32%`) para não comer cabeça.
+- **Clique na foto = foto original.** Qualquer elemento com `data-ampliar` abre a
+  imagem inteira num zoom em tela cheia (fechar com Esc, com o botão ou clicando
+  fora). Está na capa de cada publicação e no botão "Ampliar ⤢" da manchete da
+  home; a galeria tem o lightbox próprio, com as fotos do álbum.
+- **Cor original, sem filtro.** As fotos saem como vieram da câmera. A única
+  exceção é o emblema do rodapé, que é logo (o filtro faz parte do desenho).
 
 ### Publicação na hora (o gatilho no banco)
 

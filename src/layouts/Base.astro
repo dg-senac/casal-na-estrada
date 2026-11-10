@@ -68,12 +68,22 @@ import { url } from '../lib/url';
     </main>
     <Footer />
 
+    <div class="zoom" id="zoom" hidden>
+      <button class="zoom__fechar" type="button" data-zoom-fechar aria-label="Fechar a foto">
+        Fechar ✕
+      </button>
+      <img id="zoom-img" alt="" />
+      <p class="zoom__dica">Clique fora ou aperte Esc para voltar</p>
+    </div>
+
     <script>
       /*
-       * Foto em pé não é cortada: quando a imagem carrega, a moldura recebe a
-       * proporção real dela (em vez da proporção fixa do layout). Foto em pé
-       * fica em pé, foto deitada fica deitada — e nunca sobra corte.
-       * Se o JS não rodar, tudo continua como antes.
+       * 1) Moldura proporcional: cada espaço de foto recebe a proporção da
+       *    imagem, mas com um teto e um piso — assim foto em pé não perde
+       *    quase nada e o bloco não vira um poste. (Segue recortando de leve;
+       *    a foto inteira aparece no zoom, clicando nela.)
+       * 2) Zoom: qualquer elemento com [data-ampliar] abre a foto original
+       *    em tela cheia. Em links, nada é aberto — o link continua linkando.
        */
       const MOLDURAS = [
         '.headline__media',
@@ -87,6 +97,9 @@ import { url } from '../lib/url';
         '.extras__foto',
       ].join(',');
 
+      const PROPORCAO_MINIMA = 0.85; // piso: no máximo ~8% mais alta que larga
+      const PROPORCAO_MAXIMA = 2.2; // teto: no máximo ~2,2x mais larga que alta
+
       const ajustarFoto = (moldura: HTMLElement) => {
         const img = moldura.querySelector('img');
         if (!img) return;
@@ -94,10 +107,12 @@ import { url } from '../lib/url';
         const aplicar = () => {
           const { naturalWidth: w, naturalHeight: h } = img;
           if (!w || !h) return;
-          const proporcao = `${w} / ${h}`;
-          moldura.style.aspectRatio = proporcao;
-          moldura.style.height = 'auto';
-          moldura.classList.add('foto-inteira');
+          const real = w / h;
+          const proporcao = Math.min(PROPORCAO_MAXIMA, Math.max(PROPORCAO_MINIMA, real));
+          moldura.style.aspectRatio = String(proporcao);
+          moldura.classList.add('foto-proporcao');
+          // Foto em pé: puxa o recorte para cima, para não comer cabeça.
+          if (real < 0.95) img.style.objectPosition = '50% 32%';
         };
 
         if (img.complete) aplicar();
@@ -105,6 +120,71 @@ import { url } from '../lib/url';
       };
 
       document.querySelectorAll<HTMLElement>(MOLDURAS).forEach(ajustarFoto);
+
+      // ----------------------------------------------------------- zoom
+      const caixaZoom = document.getElementById('zoom');
+      const imagemZoom = document.getElementById('zoom-img') as HTMLImageElement | null;
+
+      const fecharZoom = () => {
+        if (!caixaZoom) return;
+        caixaZoom.hidden = true;
+        if (imagemZoom) imagemZoom.removeAttribute('src');
+        document.documentElement.style.overflow = '';
+      };
+
+      const abrirZoom = (img: HTMLImageElement) => {
+        if (!caixaZoom || !imagemZoom) return;
+        imagemZoom.src = img.currentSrc || img.src;
+        imagemZoom.alt = img.alt;
+        caixaZoom.hidden = false;
+        document.documentElement.style.overflow = 'hidden';
+      };
+
+      /** Descobre qual imagem o gatilho manda ampliar. */
+      const imagemDoGatilho = (gatilho: HTMLElement): HTMLImageElement | null => {
+        const seletor = gatilho.getAttribute('data-ampliar');
+        if (seletor && seletor !== '') return document.querySelector<HTMLImageElement>(seletor);
+        return gatilho.querySelector('img');
+      };
+
+      document.addEventListener('click', (ev) => {
+        const alvo = ev.target as HTMLElement | null;
+        if (!alvo || !caixaZoom) return;
+
+        if (alvo === caixaZoom || alvo.closest('[data-zoom-fechar]')) {
+          fecharZoom();
+          return;
+        }
+
+        const gatilho = alvo.closest<HTMLElement>('[data-ampliar]');
+        if (!gatilho) return;
+
+        const img = imagemDoGatilho(gatilho);
+        if (!img) return;
+
+        ev.preventDefault();
+        abrirZoom(img);
+      });
+
+      document.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Escape') {
+          fecharZoom();
+          return;
+        }
+
+        if (ev.key !== 'Enter' && ev.key !== ' ') return;
+
+        // <div data-ampliar> não abre com teclado sozinho; botões e links já abrem.
+        const alvo = ev.target as HTMLElement | null;
+        const gatilho = alvo?.closest?.<HTMLElement>('[data-ampliar]');
+        if (!gatilho || ['BUTTON', 'A', 'INPUT'].includes(gatilho.tagName)) return;
+
+        const img = imagemDoGatilho(gatilho);
+        if (!img) return;
+
+        ev.preventDefault();
+        abrirZoom(img);
+      });
 
       // Entrada suave dos blocos conforme rolam na tela.
       const items = document.querySelectorAll('[data-reveal]');
@@ -126,4 +206,70 @@ import { url } from '../lib/url';
       }
     </script>
   </body>
+
+<style>
+  .zoom[hidden] {
+    display: none;
+  }
+
+  .zoom {
+    position: fixed;
+    inset: 0;
+    z-index: 900;
+    display: grid;
+    place-items: center;
+    padding: clamp(1rem, 3vw, 2.6rem);
+    background: rgba(13, 11, 8, 0.95);
+  }
+
+  .zoom img {
+    max-width: 100%;
+    max-height: 84vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.55);
+    border: 1px solid rgba(236, 229, 214, 0.18);
+  }
+
+  .zoom__fechar {
+    position: absolute;
+    top: clamp(0.8rem, 2vw, 1.6rem);
+    right: clamp(0.8rem, 2vw, 1.6rem);
+    background: rgba(20, 17, 12, 0.85);
+    color: var(--paper);
+    border: 1px solid rgba(236, 229, 214, 0.35);
+    padding: 0.45rem 0.85rem;
+    font-family: var(--sans);
+    font-size: 0.74rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+  }
+
+  .zoom__fechar:hover {
+    background: var(--rust);
+    border-color: var(--rust);
+  }
+
+  .zoom__dica {
+    position: absolute;
+    bottom: clamp(0.8rem, 2vw, 1.6rem);
+    left: 50%;
+    transform: translateX(-50%);
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(236, 229, 214, 0.55);
+    white-space: nowrap;
+  }
+
+  @media (max-width: 700px) {
+    .zoom__dica {
+      display: none;
+    }
+  }
+</style>
 </html>

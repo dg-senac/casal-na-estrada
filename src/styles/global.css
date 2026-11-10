@@ -327,13 +327,18 @@ a:hover .photo img,
 }
 
 /*
- * Foto "inteira": a moldura recebe a proporção real da foto (pelo script do
- * Base.astro), então nada é cortado — inclusive as fotos tiradas em pé.
- * Sem zoom no hover, porque o zoom também come as beiradas.
+ * Moldura proporcional: o script do Base.astro entrega a proporção real da
+ * foto, com piso e teto (ver PROPORCAO_MINIMA/MAXIMA). Recorte leve, nunca o
+ * corte agressivo de antes. Sem zoom no hover, para não comer mais beirada.
  */
-.foto-inteira:hover img,
-a:hover .foto-inteira img {
+.foto-proporcao:hover img,
+a:hover .foto-proporcao img {
   transform: none;
+}
+
+/* Moldura clicável: abre a foto original em tela cheia. */
+[data-ampliar] {
+  cursor: zoom-in;
 }
 
 .photo--duotone::after {
