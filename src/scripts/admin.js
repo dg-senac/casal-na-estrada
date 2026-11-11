@@ -441,7 +441,6 @@ function telaPainel() {
 
   document.getElementById('pn-sair').addEventListener('click', async () => {
     await supabase.auth.signOut();
-    localStorage.removeItem('cne-admin');
   });
 
   document.getElementById('pn-abas').addEventListener('click', (ev) => {
@@ -1067,10 +1066,8 @@ if (!supabase) {
   supabase.auth.getSession().then(({ data }) => {
     usuario = data.session?.user ?? null;
     if (usuario) {
-      localStorage.setItem('cne-admin', '1');
       telaPainel();
     } else {
-      localStorage.removeItem('cne-admin');
       telaEntrada();
     }
   });
@@ -1079,10 +1076,8 @@ if (!supabase) {
     const antes = Boolean(usuario);
     usuario = sessao?.user ?? null;
     if (usuario) {
-      localStorage.setItem('cne-admin', '1');
       if (!document.querySelector('.pn-topo')) telaPainel();
     } else {
-      localStorage.removeItem('cne-admin');
       if (antes) telaEntrada('Você saiu do painel.');
       else if (!document.querySelector('.pn-entrada')) telaEntrada();
     }
