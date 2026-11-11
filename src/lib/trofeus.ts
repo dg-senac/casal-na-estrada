@@ -97,5 +97,56 @@ export function capaAlt(t: Trofeu): string {
   return t.data.fotoAlt ?? `Peça da sala de troféus: ${t.data.evento}`;
 }
 
+/**
+ * Seções da prateleira. Cada peça cai numa delas pelas colunas `tipo` e
+ * `nivel` — nada é escolhido à mão no site, então cadastrar uma peça no painel
+ * já coloca ela no lugar certo.
+ */
+export const CATEGORIAS = [
+  {
+    id: 'podio',
+    titulo: 'Troféus de pódio',
+    resumo: 'As peças que vieram de 1º, 2º ou 3º lugar — as que dão mais orgulho na estante.',
+  },
+  {
+    id: 'placa',
+    titulo: 'Placas',
+    resumo: 'A plaquinha que o clube entrega na inscrição, com o nome do encontro gravado.',
+  },
+  {
+    id: 'participacao',
+    titulo: 'Participação',
+    resumo: 'Troféu de quem foi, rodou e voltou — sem pódio, mas com história igual.',
+  },
+  {
+    id: 'construcao',
+    titulo: 'Feito em casa',
+    resumo: 'Peças que não vieram de encontro nenhum: foram montadas aqui, na mão.',
+  },
+  {
+    id: 'lembranca',
+    titulo: 'Lembranças',
+    resumo: 'O que veio na mala de uma viagem e não é prêmio de ninguém.',
+  },
+] as const;
+
+export type CategoriaId = (typeof CATEGORIAS)[number]['id'];
+
+/** Em qual seção a peça aparece. */
+export function categoriaDe(t: Trofeu): CategoriaId {
+  if (t.data.tipo === 'placa') return 'placa';
+  if (t.data.tipo === 'construcao') return 'construcao';
+  if (t.data.tipo === 'lembranca') return 'lembranca';
+  return t.data.nivel === 'laco' ? 'participacao' : 'podio';
+}
+
+/** Peças separadas por categoria, na ordem de CATEGORIAS; seção vazia não aparece. */
+export function porCategoria(lista: Trofeu[]) {
+  return CATEGORIAS.map((c) => ({
+    ...c,
+    pecas: ordenar(lista.filter((t) => categoriaDe(t) === c.id)),
+  })).filter((g) => g.pecas.length > 0);
+}
+
 /** Rótulo curto do ano para o índice do topo da página. */
 export const rotuloAno = (ano: number | null) => (ano === null ? 'Sem data' : String(ano));

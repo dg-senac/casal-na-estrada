@@ -285,7 +285,7 @@ const SECOES = {
         ['prata', '2º lugar'],
         ['bronze', '3º lugar'],
       ] },
-      { n: 'tipo', r: 'Tipo de peça', t: 'select', col: 3, opcoes: [
+      { n: 'tipo', r: 'Categoria da peça', t: 'select', col: 3, dica: 'É o que separa a prateleira em Placas, Feito em casa e Lembranças. Troféu de encontro entra em "Participação" — ou em "Troféus de pódio", se a colocação for 1º, 2º ou 3º.', opcoes: [
         ['trofeu', 'Troféu de encontro'],
         ['placa', 'Placa de participação'],
         ['lembranca', 'Lembrança de viagem'],
