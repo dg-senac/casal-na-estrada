@@ -145,8 +145,13 @@ Todas as imagens ficam no bucket público `midia` (10 MB por arquivo, jpg/png/we
 
 A página monta tudo sozinha a partir do banco:
 
-- agrupa as peças **por ano**, da mais recente para a mais antiga ("Sem data" no fim);
-- monta o índice de anos no topo e a contagem de troféus, placas e lembranças;
+- separa a prateleira em **categorias** (`CATEGORIAS` em `src/lib/trofeus.ts`), nesta
+  ordem: Troféus de pódio · Placas · Participação · Feito em casa · Lembranças — o índice
+  do topo aponta para cada seção e a contagem sai do conteúdo;
+- a seção vem do que está cadastrado, sem escolha manual: `tipo` decide (placa, feito em
+  casa, lembrança) e, no caso de troféu de encontro, a `colocação` decide entre
+  "Participação" e "Troféus de pódio" (1º/2º/3º). Seção vazia não aparece;
+- dentro de cada seção, as peças ficam da mais recente para a mais antiga;
 - troca a etiqueta de cada peça conforme a `colocação` e o `tipo`
   (troféu · placa · lembrança · feito em casa);
 - atualiza o número de "peças na sala" no painel da home.

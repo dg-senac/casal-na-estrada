@@ -2,16 +2,12 @@
 import Base from '../layouts/Base.astro';
 import { carregarTrofeus } from '../lib/dados';
 import { url } from '../lib/url';
-import { capa, capaAlt, metaData, porAno, quando, rotuloAno, selo } from '../lib/trofeus';
+import { capa, capaAlt, metaData, ordenar, porCategoria, quando, selo } from '../lib/trofeus';
 
 const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
-const grupos = porAno(trofeus);
+const grupos = porCategoria(trofeus);
 
-// Contagem por tipo de peça, exibida no cabeçalho.
-const contaTipo = (tipo: string) => trofeus.filter((t) => t.data.tipo === tipo).length;
-const lembrancas = contaTipo('lembranca') + contaTipo('construcao');
-
-const ultima = grupos[0]?.pecas[0];
+const ultima = ordenar(trofeus)[0];
 ---
 
 <Base
@@ -24,14 +20,16 @@ const ultima = grupos[0]?.pecas[0];
       <h1 class="display">Sala de Troféus</h1>
       <div class="page-head__bottom">
         <p>
-          Nem tudo aqui é prêmio de pódio: a maior parte são placas de participação, lembranças
-          de viagem e uma coisa ou outra feita em casa. Cada peça tem o encontro, a cidade e a
-          história anotados atrás — e é isso que a gente quer guardar aqui.
+          Nem tudo aqui é prêmio de pódio: a maior parte são placas, troféus de participação,
+          lembranças de viagem e uma coisa ou outra feita em casa. A prateleira está dividida
+          por tipo de peça — e cada uma tem o encontro, a cidade e a história anotados atrás.
         </p>
         <div class="contagem">
-          <span><strong>{contaTipo('trofeu')}</strong> troféus</span>
-          <span><strong>{contaTipo('placa')}</strong> placas</span>
-          <span><strong>{lembrancas}</strong> lembranças e feitos em casa</span>
+          {grupos.map((g) => (
+            <span>
+              <strong>{g.pecas.length}</strong> {g.titulo.toLowerCase()}
+            </span>
+          ))}
         </div>
       </div>
     </div>
@@ -39,14 +37,14 @@ const ultima = grupos[0]?.pecas[0];
 
   {
     grupos.length > 0 && (
-      <nav class="indice" aria-label="Pular para um ano">
+      <nav class="indice" aria-label="Pular para uma categoria">
         <div class="wrap indice__in">
-          <span class="indice__rotulo">Prateleira por ano</span>
+          <span class="indice__rotulo">Prateleira por categoria</span>
           <ul class="indice__lista">
             {grupos.map((g) => (
               <li>
-                <a href={`#ano-${g.ano ?? 'sem-data'}`}>
-                  {rotuloAno(g.ano)} <span class="indice__qtd">{g.pecas.length}</span>
+                <a href={`#cat-${g.id}`}>
+                  {g.titulo} <span class="indice__qtd">{g.pecas.length}</span>
                 </a>
               </li>
             ))}
@@ -60,14 +58,15 @@ const ultima = grupos[0]?.pecas[0];
     <div class="wrap">
       {
         grupos.map((grupo) => (
-          <div class="ano" id={`ano-${grupo.ano ?? 'sem-data'}`}>
-            <header class="ano__head">
-              <h2 class="ano__num">{rotuloAno(grupo.ano)}</h2>
-              <span class="ano__qtd">
+          <div class="grupo" id={`cat-${grupo.id}`}>
+            <header class="grupo__head">
+              <h2 class="grupo__titulo">{grupo.titulo}</h2>
+              <span class="grupo__qtd">
                 {grupo.pecas.length} {grupo.pecas.length === 1 ? 'peça' : 'peças'}
               </span>
-              <span class="ano__linha" aria-hidden="true" />
+              <span class="grupo__linha" aria-hidden="true" />
             </header>
+            <p class="grupo__resumo">{grupo.resumo}</p>
 
             <div class="grade">
               {grupo.pecas.map((t, i) => (
@@ -145,7 +144,7 @@ const ultima = grupos[0]?.pecas[0];
     margin-right: 0.15rem;
   }
 
-  /* ---------- Índice por ano ---------- */
+  /* ---------- Índice por categoria ---------- */
 
   .indice {
     border-bottom: 1px solid var(--line);
@@ -200,32 +199,32 @@ const ultima = grupos[0]?.pecas[0];
     color: var(--ink-mute);
   }
 
-  /* ---------- Bloco de um ano ---------- */
+  /* ---------- Bloco de uma categoria ---------- */
 
-  .ano {
+  .grupo {
     padding-block: clamp(1.6rem, 3vw, 2.4rem);
     scroll-margin-top: 120px;
   }
 
-  .ano + .ano {
+  .grupo + .grupo {
     border-top: 1px solid var(--line);
   }
 
-  .ano__head {
+  .grupo__head {
     display: flex;
     align-items: baseline;
     gap: 0.9rem;
-    margin-bottom: clamp(1.2rem, 2.5vw, 1.8rem);
+    margin-bottom: 0.7rem;
   }
 
-  .ano__num {
+  .grupo__titulo {
     font-family: var(--serif);
     font-size: clamp(1.9rem, 3.4vw, 2.6rem);
     line-height: 1;
     letter-spacing: -0.02em;
   }
 
-  .ano__qtd {
+  .grupo__qtd {
     font-family: var(--sans);
     font-size: 0.7rem;
     letter-spacing: 0.18em;
@@ -234,11 +233,19 @@ const ultima = grupos[0]?.pecas[0];
     white-space: nowrap;
   }
 
-  .ano__linha {
+  .grupo__linha {
     flex: 1;
     height: 1px;
     background: var(--line-strong);
     transform: translateY(-4px);
+  }
+
+  .grupo__resumo {
+    max-width: 64ch;
+    margin: 0 0 clamp(1.1rem, 2vw, 1.7rem);
+    font-size: 0.92rem;
+    line-height: 1.5;
+    color: var(--ink-soft);
   }
 
   /* ---------- Cartão da peça ---------- */
