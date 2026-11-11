@@ -237,6 +237,6 @@ seria preciso agendar um build a cada X minutos.
 - O painel não aparece no menu, não entra no `sitemap` e responde `noindex`.
 
 O emblema original enviado pelo casal está em `src/assets/marca/emblema-original.png`
-(arquivo grande, fora do site). As versões leves usadas no site são
-`public/media/logo-144.png` (rodapé e ícone de app) e `logo-640.png` (reserva para uso
-grande, ex. impressão ou og:image); o emblema grande da home é `public/media/emblema.jpg`.
+(arquivo grande, fora do site, guardado como arquivo-mestre da marca). A versão pequena
+usada no site é `public/media/logo-144.png` (rodapé e ícone de app); o emblema grande da
+home — e o `og:image` padrão — é `public/media/emblema.jpg`.

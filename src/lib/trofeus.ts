@@ -148,5 +148,3 @@ export function porCategoria(lista: Trofeu[]) {
   })).filter((g) => g.pecas.length > 0);
 }
 
-/** Rótulo curto do ano para o índice do topo da página. */
-export const rotuloAno = (ano: number | null) => (ano === null ? 'Sem data' : String(ano));

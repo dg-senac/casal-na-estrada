@@ -25,7 +25,6 @@
 
   --wrap: 1240px;
   --gutter: clamp(1.15rem, 4vw, 3.5rem);
-  --rule: 1px solid var(--line);
 }
 
 *,
@@ -136,13 +135,8 @@ p {
   font-size: clamp(2.9rem, 9.5vw, 8rem);
 }
 
-em,
-.italic {
+em {
   font-style: italic;
-}
-
-.rust {
-  color: var(--rust);
 }
 
 .display em {
@@ -280,11 +274,6 @@ em,
   color: rgba(236, 229, 214, 0.55);
 }
 
-.rule {
-  border: 0;
-  border-top: var(--rule);
-  margin: 0;
-}
 
 .section-head {
   display: flex;

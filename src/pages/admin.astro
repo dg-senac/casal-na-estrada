@@ -213,25 +213,6 @@ const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     }
   }
 
-  .pn-dupla {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0 1rem;
-  }
-
-  .pn-tripla {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0 1rem;
-  }
-
-  @media (max-width: 640px) {
-    .pn-dupla,
-    .pn-tripla {
-      grid-template-columns: 1fr;
-    }
-  }
-
   .pn-check {
     display: flex;
     align-items: center;
@@ -699,11 +680,6 @@ const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     line-height: 1.5;
     color: var(--ink-2);
     margin: 0 0 1.2rem;
-  }
-
-  .pn-aviso--ok {
-    border-color: #3f6b3a;
-    background: rgba(63, 107, 58, 0.08);
   }
 
   .pn-aviso a {
