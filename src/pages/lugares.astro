@@ -1,0 +1,184 @@
+---
+import Base from '../layouts/Base.astro';
+import { carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
+import { lugares } from '../lib/estrada';
+import { url } from '../lib/url';
+
+const posts = postsNoAr(await carregarPosts());
+const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
+const grupos = lugares(posts, trofeus);
+
+const totalLugares = new Set(grupos.flatMap((g) => g.lugares.map((l) => l.nome.toLowerCase()))).size;
+const totalEstados = grupos.filter((g) => g.uf).length;
+---
+
+<Base
+  title="Onde a gente já esteve"
+  description="Índice das cidades e estados por onde Cieri e Milla já rodaram de moto — com as publicações e as peças da sala de troféus de cada lugar."
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Mapa de papel · {totalLugares} lugares · {totalEstados} estados</p>
+      <h1 class="display">Onde a gente <em>já esteve</em></h1>
+      <div class="page-head__bottom">
+        <p>
+          Tudo o que está aqui saiu do nosso próprio caderno: cada viagem tem uma cidade, cada
+          troféu tem uma origem. É o mapa que a gente consegue desenhar sem internet — só com
+          o que a estrada deixou.
+        </p>
+        <span class="small-caps">Por estado, do mais visitado ao menos</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      {
+        grupos.map((grupo) => (
+          <div class="estado" id={`uf-${grupo.uf ?? 'sem-uf'}`}>
+            <header class="estado__head">
+              <h2 class="estado__nome">{grupo.estado}</h2>
+              <span class="estado__qtd">
+                {grupo.publicacoes > 0 && `${grupo.publicacoes} ${grupo.publicacoes === 1 ? 'publicação' : 'publicações'}`}
+                {grupo.publicacoes > 0 && grupo.pecas > 0 && ' · '}
+                {grupo.pecas > 0 && `${grupo.pecas} ${grupo.pecas === 1 ? 'peça' : 'peças'}`}
+              </span>
+              <span class="estado__linha" aria-hidden="true" />
+            </header>
+
+            <ul class="lugares">
+              {grupo.lugares.map((lugar) => (
+                <li class="lugar">
+                  <a class="lugar__nome" href={url(`/diario?lugar=${encodeURIComponent(lugar.nome)}`)}>
+                    {lugar.nome}
+                  </a>
+                  <span class="lugar__nums">
+                    {lugar.publicacoes > 0 && (
+                      <span>{lugar.publicacoes} {lugar.publicacoes === 1 ? 'publicação' : 'publicações'}</span>
+                    )}
+                    {lugar.publicacoes > 0 && lugar.pecas > 0 && <span class="lugar__ponto">·</span>}
+                    {lugar.pecas > 0 && (
+                      <span>{lugar.pecas} {lugar.pecas === 1 ? 'peça' : 'peças'}</span>
+                    )}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      }
+
+      {
+        grupos.length === 0 && (
+          <p class="vazio-bloco__texto">Nada registrado ainda: o mapa começa na próxima viagem.</p>
+        )
+      }
+    </div>
+  </section>
+
+  <section class="section section--ink section--tight">
+    <div class="wrap pendente">
+      <div>
+        <p class="eyebrow eyebrow--light">Continua crescendo</p>
+        <h2 class="pendente__title">Cada viagem <em>finca uma bandeira</em>.</h2>
+      </div>
+      <div>
+        <p>
+          Este índice é montado sozinho: quando vocês cadastram uma publicação com a cidade e a
+          UF, ela entra aqui no dia seguinte — e cada peça da sala de troféus já traz o lugar
+          de onde veio.
+        </p>
+        <a class="link-arrow" href={url('/linha-do-tempo')} style="color:var(--paper)">Ver a linha do tempo →</a>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .estado {
+    padding-block: clamp(1.4rem, 2.6vw, 2rem);
+    scroll-margin-top: 120px;
+  }
+
+  .estado + .estado {
+    border-top: 1px solid var(--line);
+  }
+
+  .estado__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .estado__nome {
+    font-family: var(--serif);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .estado__qtd {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    white-space: nowrap;
+  }
+
+  .estado__linha {
+    flex: 1;
+    height: 1px;
+    background: var(--line-strong);
+    transform: translateY(-4px);
+  }
+
+  .lugares {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.2rem 2rem;
+    max-width: 90ch;
+  }
+
+  .lugar {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-block: 0.45rem;
+    border-bottom: 1px dotted var(--line-strong);
+  }
+
+  .lugar__nome {
+    font-family: var(--serif);
+    font-size: 1.02rem;
+    border-bottom: 1px solid transparent;
+  }
+
+  .lugar__nome:hover {
+    color: var(--rust);
+    border-bottom-color: var(--rust);
+  }
+
+  .lugar__nums {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    white-space: nowrap;
+  }
+
+  .lugar__ponto {
+    opacity: 0.5;
+  }
+</style>

@@ -1,0 +1,181 @@
+---
+import Base from '../layouts/Base.astro';
+import { carregarEncontros, carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
+import { linhaDoTempo } from '../lib/estrada';
+import { url } from '../lib/url';
+
+const posts = postsNoAr(await carregarPosts());
+const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
+const encontros = await carregarEncontros();
+const anos = linhaDoTempo(posts, trofeus, encontros);
+
+const total = anos.reduce((n, g) => n + g.itens.length, 0);
+const primeiroAno = [...anos].reverse().find((g) => g.ano !== null)?.ano;
+---
+
+<Base
+  title="Linha do tempo"
+  description="A história do Casal na Estrada em ordem: viagens, encontros e peças da sala de troféus, ano por ano."
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">
+        Caderno de anos · {total} registros{primeiroAno ? ` desde ${primeiroAno}` : ''}
+      </p>
+      <h1 class="display">Linha do <em>tempo</em></h1>
+      <div class="page-head__bottom">
+        <p>
+          Publicação, encontro e peça de prateleira, tudo na mesma ordem. É o jeito de ver a
+          estrada inteira de uma vez: o que a gente escreveu, onde a gente foi e o que voltou
+          no bagageiro.
+        </p>
+        <span class="small-caps">Do mais recente ao mais antigo</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      {
+        anos.map((grupo) => (
+          <div class="ano">
+            <header class="ano__head">
+              <h2 class="ano__num">{grupo.ano ?? 'Sem data'}</h2>
+              <span class="ano__qtd">
+                {grupo.itens.length} {grupo.itens.length === 1 ? 'registro' : 'registros'}
+              </span>
+              <span class="ano__linha" aria-hidden="true" />
+            </header>
+
+            <ol class="eventos">
+              {grupo.itens.map((item) => (
+                <li class="evento">
+                  <span class="evento__tipo" data-tipo={item.tipo}>
+                    {item.tipo === 'publicação' ? 'Diário' : item.tipo === 'peça' ? 'Peça' : 'Encontro'}
+                  </span>
+                  <span class="evento__titulo">
+                    {item.href ? <a href={url(item.href)}>{item.titulo}</a> : item.titulo}
+                  </span>
+                  {item.onde && <span class="evento__onde">{item.onde}</span>}
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))
+      }
+
+      {
+        anos.length === 0 && (
+          <p class="vazio-bloco__texto">
+            A linha do tempo começa na primeira publicação. Enquanto isso, dá para ver{' '}
+            <a href={url('/trofeus')}>a sala de troféus</a>.
+          </p>
+        )
+      }
+    </div>
+  </section>
+</Base>
+
+<style>
+  .ano {
+    padding-block: clamp(1.4rem, 2.6vw, 2rem);
+  }
+
+  .ano + .ano {
+    border-top: 1px solid var(--line);
+  }
+
+  .ano__head {
+    display: flex;
+    align-items: baseline;
+    gap: 0.9rem;
+    margin-bottom: 1rem;
+  }
+
+  .ano__num {
+    font-family: var(--serif);
+    font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .ano__qtd {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    white-space: nowrap;
+  }
+
+  .ano__linha {
+    flex: 1;
+    height: 1px;
+    background: var(--line-strong);
+    transform: translateY(-4px);
+  }
+
+  .eventos {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    max-width: 74ch;
+  }
+
+  .evento {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.6rem 1.1rem;
+    padding-block: 0.55rem;
+    border-bottom: 1px dotted var(--line-strong);
+  }
+
+  .evento__tipo {
+    font-family: var(--sans);
+    font-size: 0.64rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .evento__tipo[data-tipo='publicação'] {
+    color: var(--rust);
+  }
+
+  .evento__titulo {
+    font-family: var(--serif);
+    font-size: 1.02rem;
+  }
+
+  .evento__titulo a {
+    border-bottom: 1px solid transparent;
+  }
+
+  .evento__titulo a:hover {
+    color: var(--rust);
+    border-bottom-color: var(--rust);
+  }
+
+  .evento__onde {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    text-align: right;
+  }
+
+  @media (max-width: 640px) {
+    .evento {
+      grid-template-columns: 1fr;
+      gap: 0.2rem;
+    }
+
+    .evento__onde {
+      text-align: left;
+    }
+  }
+</style>

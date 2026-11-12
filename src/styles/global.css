@@ -302,6 +302,19 @@ em {
   background: #1b1813;
 }
 
+/*
+ * Espaço reservado antes da foto carregar: o molde já nasce com proporção, o
+ * script do Base.astro depois acerta a da imagem. Sem isso, a página "pula"
+ * quando a foto chega.
+ */
+.headline__media,
+.ultima__media,
+.post__media,
+.album__photo,
+.peca__foto {
+  aspect-ratio: 3 / 2;
+}
+
 /* Foto sempre na cor original, do jeito que saiu da câmera. */
 .photo img {
   width: 100%;
@@ -415,4 +428,115 @@ a:hover .foto-proporcao img {
   max-width: 52ch;
   color: var(--ink-soft);
   margin: 0;
+}
+
+/* ---------- Legenda de foto (um padrão só no site inteiro) ---------- */
+
+.legenda {
+  font-family: var(--sans);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  letter-spacing: 0.02em;
+  color: var(--ink-mute);
+  padding-top: 0.55rem;
+  border-top: 1px solid var(--line);
+  margin-top: 0.55rem;
+}
+
+/* ---------- Capitular: a primeira letra da crônica ---------- */
+
+.prose > p:first-of-type::first-letter {
+  float: left;
+  font-family: var(--serif);
+  font-size: 4.1em;
+  line-height: 0.82;
+  padding: 0.08em 0.12em 0 0;
+  color: var(--ink);
+}
+
+/* ---------- Barra de progresso da leitura ---------- */
+
+.progresso {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 200;
+  height: 2px;
+  width: 0;
+  background: var(--rust);
+  transition: width 0.1s linear;
+  pointer-events: none;
+}
+
+/* ---------- Entrada suave da página ---------- */
+
+@keyframes pagina-entra {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  main {
+    animation: pagina-entra 0.35s ease both;
+  }
+}
+
+/* ---------- Impressão: a crônica sai como página de revista ---------- */
+
+@media print {
+  .masthead,
+  .foot,
+  .zoom,
+  .progresso,
+  .proximo,
+  .compartilhar,
+  .folhear,
+  .busca,
+  .artigo__aside,
+  .hero-post__zoom,
+  .skip-link,
+  .pular {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    font-size: 11pt;
+  }
+
+  .wrap {
+    max-width: none;
+    padding: 0;
+  }
+
+  .hero-post__title {
+    font-size: 26pt;
+  }
+
+  .photo,
+  .photo img {
+    max-height: 8cm;
+    object-fit: contain;
+    background: #fff;
+  }
+
+  .legenda,
+  .hero-post__edicao {
+    color: #333;
+  }
+
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 8pt;
+    color: #444;
+  }
+
+  .prose > p:first-of-type::first-letter {
+    font-size: 3.4em;
+  }
 }

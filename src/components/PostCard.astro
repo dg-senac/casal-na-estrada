@@ -11,6 +11,19 @@ interface Props {
 const { post, variante = 'row', delay = 0 } = Astro.props;
 const { data } = post;
 
+/** Texto usado pela busca do diário (sem acento, minúsculo). */
+const busca = [data.titulo, data.local, data.uf, data.tipo, data.resumo, ...data.tags]
+  .filter(Boolean)
+  .join(' ')
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase();
+
+/** Cartão usa a miniatura quando o painel gerou uma. */
+const srcCartao = data.capaMini ?? data.capa;
+const srcsetCartao = data.capaMini ? `${url(data.capaMini)} 900w, ${url(data.capa)} 2000w` : undefined;
+const sizesCartao = variante === 'large' ? '(max-width: 780px) 100vw, 46vw' : '(max-width: 780px) 100vw, 40vw';
+
 const dataLonga = new Intl.DateTimeFormat('pt-BR', {
   day: '2-digit',
   month: 'long',
@@ -19,9 +32,27 @@ const dataLonga = new Intl.DateTimeFormat('pt-BR', {
 import { url } from '../lib/url';
 ---
 
-<article class:list={['post', `post--${variante}`]} data-reveal style={`--reveal-delay:${delay}ms`}>
-  <a class="post__media photo" href={url(`/diario/${post.id}`)} tabindex="-1" aria-hidden="true">
-    <img src={url(data.capa)} alt={data.capaAlt} loading="lazy" />
+<article
+  class:list={['post', `post--${variante}`]}
+  data-reveal
+  data-busca={busca}
+  style={`--reveal-delay:${delay}ms`}
+>
+  <a
+    class="post__media photo"
+    href={url(`/diario/${post.id}`)}
+    tabindex="-1"
+    aria-hidden="true"
+    data-foco={data.capaFoco}
+  >
+    <img
+      src={url(srcCartao)}
+      srcset={srcsetCartao}
+      sizes={srcsetCartao ? sizesCartao : undefined}
+      alt={data.capaAlt}
+      loading="lazy"
+      decoding="async"
+    />
   </a>
 
   <div class="post__body">

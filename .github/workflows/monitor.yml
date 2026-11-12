@@ -1,0 +1,34 @@
+# Vigia semanal: o site responde? Se não, o GitHub avisa por e-mail.
+#
+# É um check leve, uma vez por semana, para ninguém descobrir o problema por
+# acaso. O repositório é público, então o actions/upload-artifact não é usado:
+# o resultado fica no log da execução.
+name: Vigia do site
+
+on:
+  schedule:
+    - cron: '17 9 * * 1' # segunda-feira, 9h17 UTC (6h17 em Recife)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  checar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Abrir a home e o diário
+        run: |
+          falhou=0
+          for caminho in "" "diario/" "galeria/" "trofeus/" "rss.xml"; do
+            url="https://dg-senac.github.io/casal-na-estrada/${caminho}"
+            codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 --retry 3 --retry-delay 5 "$url")
+            echo "$codigo  $url"
+            if [ "$codigo" -lt 200 ] || [ "$codigo" -ge 400 ]; then falhou=1; fi
+          done
+
+          if [ "$falhou" -ne 0 ]; then
+            echo "::error::Alguma página do site não respondeu."
+            exit 1
+          fi
+          echo "Tudo no ar."

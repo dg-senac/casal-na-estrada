@@ -57,8 +57,15 @@ import { url } from '../../lib/url';
               style={`--reveal-delay:${(i % 3) * 80}ms`}
             >
               <a class="album__link" href={url(`/galeria/${album.id}`)}>
-                <div class="photo album__photo">
-                  <img src={url(album.data.capa)} alt={album.data.capaAlt} loading="lazy" />
+                <div class="photo album__photo" data-foco={album.data.capaFoco}>
+                  <img
+                    src={url(album.data.capaMini ?? album.data.capa)}
+                    srcset={album.data.capaMini ? `${url(album.data.capaMini)} 900w, ${url(album.data.capa)} 2000w` : undefined}
+                    sizes={album.data.capaMini ? '(max-width: 780px) 100vw, 50vw' : undefined}
+                    alt={album.data.capaAlt}
+                    loading="lazy"
+                    decoding="async"
+                  />
                   <span class="album__count">
                     {album.data.fotos.length + album.data.videos.length} registros
                   </span>

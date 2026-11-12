@@ -1,0 +1,25 @@
+{
+  "name": "Casal na Estrada",
+  "short_name": "Casal na Estrada",
+  "description": "Diário de estrada de Cieri e Milla: viagens de moto, encontros, troféus e fotografias.",
+  "lang": "pt-BR",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ece5d6",
+  "theme_color": "#16130e",
+  "icons": [
+    {
+      "src": "media/logo-144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "media/emblema.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ]
+}

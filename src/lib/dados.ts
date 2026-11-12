@@ -30,6 +30,10 @@ export type Post = {
     resumo: string;
     capa: string;
     capaAlt: string;
+    /** Ponto focal do recorte da capa, no formato "50% 32%". */
+    capaFoco?: string;
+    /** Miniatura gerada no painel (900px), usada nos cartões. */
+    capaMini?: string;
     tipo: 'crônica' | 'notícia' | 'relato' | 'aviso';
     distancia?: string;
     tags: string[];
@@ -49,6 +53,8 @@ export type Album = {
     local: string;
     capa: string;
     capaAlt: string;
+    capaFoco?: string;
+    capaMini?: string;
     descricao: string;
     fotos: Foto[];
     videos: Video[];
@@ -75,6 +81,8 @@ export type Trofeu = {
     nota?: string;
     foto?: string;
     fotoAlt?: string;
+    fotoFoco?: string;
+    fotoMini?: string;
     fotos: Foto[];
     destaque: boolean;
     rascunho: boolean;
@@ -143,6 +151,8 @@ export function carregarPosts(): Promise<Post[]> {
           resumo: (l.resumo ?? '') as string,
           capa: (l.capa_url ?? '') as string,
           capaAlt: texto(l.capa_alt) ?? (l.titulo ?? '') as string,
+          capaFoco: texto(l.capa_foco),
+          capaMini: texto(l.capa_mini),
           tipo: (l.tipo ?? 'relato') as Post['data']['tipo'],
           distancia: texto(l.distancia),
           tags: lista<string>(l.tags),
@@ -153,6 +163,25 @@ export function carregarPosts(): Promise<Post[]> {
       };
     });
   });
+}
+
+/**
+ * Publicação que já pode aparecer no site.
+ *
+ * Rascunho nunca aparece; data no futuro fica guardada até o dia chegar — é o
+ * "agendar" do painel (o build do dia seguinte encontra a publicação pronta).
+ */
+export function publicavel(p: Post, hoje = new Date()): boolean {
+  if (p.data.rascunho) return false;
+  const dia = (d: Date) => d.toISOString().slice(0, 10);
+  return dia(p.data.data) <= dia(hoje);
+}
+
+/** Atalho: só as publicações liberadas, da mais nova para a mais antiga. */
+export function postsNoAr(posts: Post[], hoje = new Date()): Post[] {
+  return posts
+    .filter((p) => publicavel(p, hoje))
+    .sort((a, b) => b.data.data.valueOf() - a.data.data.valueOf());
 }
 
 // ---------------------------------------------------------------- galeria
@@ -171,6 +200,8 @@ export function carregarAlbuns(): Promise<Album[]> {
         local: (l.local ?? '') as string,
         capa: (l.capa_url ?? '') as string,
         capaAlt: texto(l.capa_alt) ?? (l.titulo ?? '') as string,
+        capaFoco: texto(l.capa_foco),
+        capaMini: texto(l.capa_mini),
         descricao: (l.descricao ?? '') as string,
         fotos: lista<Linha>(l.album_fotos)
           .slice()
@@ -219,6 +250,8 @@ export function carregarTrofeus(): Promise<Trofeu[]> {
         nota: texto(l.nota),
         foto: texto(l.foto_url),
         fotoAlt: texto(l.foto_alt),
+        fotoFoco: texto(l.foto_foco),
+        fotoMini: texto(l.foto_mini),
         fotos: lista<Linha>(l.trofeu_fotos)
           .slice()
           .sort(porOrdem)
