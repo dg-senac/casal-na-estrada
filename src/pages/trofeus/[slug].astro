@@ -36,10 +36,17 @@ const extras = data.fotos.filter((f) => f.src !== foto);
     </div>
 
     <div class="wrap peca-pagina__grid">
-      <figure class="peca-pagina__foto">
+      <figure class="peca-pagina__foto" data-foco={trofeu.data.fotoFoco}>
         {
           foto ? (
-            <img src={url(foto)} alt={capaAlt(trofeu)} width="900" height="1200" />
+            <img
+              src={url(foto)}
+              alt={capaAlt(trofeu)}
+              width="900"
+              height="1200"
+              decoding="async"
+              style={trofeu.data.fotoFoco ? `object-position:${trofeu.data.fotoFoco}` : undefined}
+            />
           ) : (
             <span class="peca-pagina__sem-foto">Foto desta peça ainda não tirada</span>
           )

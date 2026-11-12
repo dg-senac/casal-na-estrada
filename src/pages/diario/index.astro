@@ -1,12 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { carregarPosts } from '../../lib/dados';
+import { carregarPosts, postsNoAr } from '../../lib/dados';
 import PostCard from '../../components/PostCard.astro';
 import Vazio from '../../components/Vazio.astro';
 
-const posts = (await carregarPosts()).filter((p) => !p.data.rascunho).sort(
-  (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
-);
+// `postsNoAr` esconde rascunho e publicação com data no futuro (o "agendar").
+const posts = postsNoAr(await carregarPosts());
 
 const tags = [...new Set(posts.flatMap((p) => p.data.tags))].sort();
 
@@ -40,8 +39,23 @@ import { url } from '../../lib/url';
     </div>
   </header>
 
+  <section class="busca" hidden={posts.length === 0}>
+    <div class="wrap busca__in">
+      <label class="busca__campo" for="busca-campo">
+        <span class="busca__rotulo">Buscar</span>
+        <input
+          id="busca-campo"
+          type="search"
+          autocomplete="off"
+          placeholder="Cidade, tipo de viagem, palavra do texto…"
+        />
+      </label>
+      <p class="busca__info" id="busca-info" role="status" aria-live="polite"></p>
+    </div>
+  </section>
+
   <section class="section section--tight">
-    <div class="wrap">
+    <div class="wrap" id="lista-do-diario">
       {
         posts.length === 0 && (
           <Vazio
@@ -58,6 +72,10 @@ import { url } from '../../lib/url';
           <PostCard post={post} variante={i === 0 ? 'large' : 'row'} delay={i === 0 ? 0 : 40} />
         ))
       }
+
+      <p class="busca__vazio" id="busca-vazio" hidden>
+        Nada com essa palavra por aqui. Tente o nome de uma cidade ou um pedaço da história.
+      </p>
     </div>
   </section>
 
@@ -86,7 +104,122 @@ import { url } from '../../lib/url';
   </section>
 </Base>
 
+<script>
+  // Busca do diário: filtra os cartões pelo texto que já está na página.
+  // Sem servidor, sem índice extra — e já aceita ?lugar=Gravatá vindo do
+  // índice "onde a gente já esteve".
+  const campo = document.getElementById('busca-campo') as HTMLInputElement | null;
+  const info = document.getElementById('busca-info');
+  const vazio = document.getElementById('busca-vazio');
+  const lista = document.getElementById('lista-do-diario');
+  const cartoes = Array.from(lista?.querySelectorAll<HTMLElement>('.post') ?? []);
+
+  const limpar = (texto: string) =>
+    texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
+  const filtrar = () => {
+    if (!campo) return;
+    const termo = limpar(campo.value);
+    let achou = 0;
+
+    for (const cartao of cartoes) {
+      const alvo = limpar(cartao.dataset.busca ?? '');
+      const dentro = termo === '' || alvo.includes(termo);
+      cartao.hidden = !dentro;
+      if (dentro) achou += 1;
+    }
+
+    if (vazio) vazio.hidden = achou > 0 || termo === '';
+    if (info) {
+      info.textContent =
+        termo === ''
+          ? ''
+          : achou === 0
+            ? 'Nenhuma publicação encontrada'
+            : `${achou} ${achou === 1 ? 'publicação encontrada' : 'publicações encontradas'}`;
+    }
+  };
+
+  const parametros = new URLSearchParams(location.search);
+  const inicial = parametros.get('q') ?? parametros.get('lugar') ?? '';
+  if (campo && inicial) {
+    campo.value = inicial;
+    filtrar();
+    document.getElementById('lista-do-diario')?.scrollIntoView({ block: 'start' });
+  }
+
+  campo?.addEventListener('input', filtrar);
+  document.getElementById('busca-form')?.addEventListener('submit', (ev) => ev.preventDefault());
+</script>
+
 <style>
+  .busca {
+    border-block: 1px solid var(--line);
+    background: var(--paper-2);
+  }
+
+  .busca__in {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.6rem 1.4rem;
+    padding-block: 0.75rem;
+  }
+
+  .busca__campo {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+    flex: 1;
+    min-width: 240px;
+  }
+
+  .busca__rotulo {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .busca__campo input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--line-strong);
+    padding: 0.35rem 0;
+    font-family: var(--serif);
+    font-size: 1rem;
+    color: var(--ink);
+  }
+
+  .busca__campo input:focus {
+    outline: 2px solid var(--rust);
+    outline-offset: 3px;
+  }
+
+  .busca__info {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .busca__vazio {
+    margin: 2rem 0 0;
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--ink-soft);
+  }
+
   .tags {
     display: flex;
     flex-wrap: wrap;

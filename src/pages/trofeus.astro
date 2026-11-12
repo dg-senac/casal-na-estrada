@@ -72,9 +72,16 @@ const ultima = ordenar(trofeus)[0];
               {grupo.pecas.map((t, i) => (
                 <article class="peca" data-reveal style={`--reveal-delay:${(i % 3) * 70}ms`}>
                   <a class="peca__link" href={url(`/trofeus/${t.id}`)}>
-                    <div class="peca__foto">
+                    <div class="peca__foto" data-foco={t.data.fotoFoco}>
                       {capa(t) ? (
-                        <img src={url(capa(t)!)} alt={capaAlt(t)} loading="lazy" />
+                        <img
+                          src={url(t.data.fotoMini ?? capa(t)!)}
+                          srcset={t.data.fotoMini ? `${url(t.data.fotoMini)} 900w, ${url(capa(t)!)} 2000w` : undefined}
+                          sizes={t.data.fotoMini ? '(max-width: 700px) 90vw, 30vw' : undefined}
+                          alt={capaAlt(t)}
+                          loading="lazy"
+                          decoding="async"
+                        />
                       ) : (
                         <span class="peca__sem-foto">Sem foto ainda</span>
                       )}

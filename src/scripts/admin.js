@@ -9,6 +9,7 @@
  * escrito são as políticas RLS do banco: só usuário autenticado grava.
  */
 import { createClient } from '@supabase/supabase-js';
+import { marked } from 'marked';
 
 // ---------------------------------------------------------------- configuração
 
@@ -172,6 +173,60 @@ async function conferirPublicacao() {
   const r = await chamarRpc('status_publicacao');
   publicacaoLigada = Boolean(r.ok && r.configurada);
   desenharBanner();
+  mostrarUltimaPublicacao(r.ultima_em);
+}
+
+/** "última publicação há 4 min" no topo do painel. */
+function mostrarUltimaPublicacao(quando) {
+  const alvo = document.getElementById('pn-ultima');
+  if (!alvo) return;
+  if (!quando) {
+    alvo.textContent = '';
+    return;
+  }
+  const minutos = Math.round((Date.now() - new Date(quando).getTime()) / 60000);
+  alvo.textContent =
+    minutos < 1
+      ? 'publicado agora'
+      : minutos < 60
+        ? `publicado há ${minutos} min`
+        : minutos < 1440
+          ? `publicado há ${Math.round(minutos / 60)} h`
+          : `publicado há ${Math.round(minutos / 1440)} d`;
+  alvo.title = new Date(quando).toLocaleString('pt-BR');
+}
+
+/** Backup: baixa um JSON com todas as tabelas de conteúdo. */
+async function baixarBackup() {
+  try {
+    const partes = {};
+    for (const [chave, cfgSecao] of Object.entries(SECOES)) {
+      const { data, error } = await supabase.from(cfgSecao.tabela).select('*');
+      if (error) throw new Error(`${chave}: ${error.message}`);
+      partes[chave] = data ?? [];
+    }
+    for (const [chave, cfgSecao] of Object.entries(SECOES)) {
+      const filhos = cfgSecao.filhos?.fotos;
+      if (!filhos) continue;
+      const { data } = await supabase.from(filhos.tabela).select('*');
+      partes[chave + '_fotos'] = data ?? [];
+    }
+
+    const conteudo = JSON.stringify(
+      { gerado_em: new Date().toISOString(), tabelas: partes },
+      null,
+      2
+    );
+    const url = URL.createObjectURL(new Blob([conteudo], { type: 'application/json' }));
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `casal-na-estrada-backup-${hoje()}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    avisar('Backup baixado.');
+  } catch (erro) {
+    avisar(`Não consegui montar o backup: ${erro.message}`, 'erro');
+  }
 }
 
 /** Dispara o build e conta o resultado. Devolve true se o build saiu. */
@@ -221,7 +276,7 @@ const SECOES = {
       { n: 'distancia', r: 'Distância', t: 'texto', col: 3, dica: 'Opcional. Ex.: 186 km' },
       { n: 'tags', r: 'Marcadores', t: 'tags', col: 3, dica: 'Separe por vírgula' },
       { n: 'resumo', r: 'Resumo', t: 'area', req: true, dica: 'Duas frases que aparecem no cartão e na home.' },
-      { n: 'capa_url', r: 'Foto de capa', t: 'foto', req: true },
+      { n: 'capa_url', r: 'Foto de capa', t: 'foto', req: true, mini: 'capa_mini', foco: 'capa_foco' },
       { n: 'capa_alt', r: 'Descrição da foto', t: 'texto', dica: 'Para quem não enxerga a imagem.' },
       { n: 'corpo', r: 'Texto da publicação', t: 'grande', dica: 'Aceita Markdown: **negrito**, ## subtítulo, - lista. Linha em branco separa parágrafos.' },
       { n: 'video_youtube', r: 'Vídeo do YouTube', t: 'youtube', dica: 'Opcional. Cole o link do vídeo.' },
@@ -247,7 +302,7 @@ const SECOES = {
       { n: 'data', r: 'Data', t: 'data', req: true, col: 3 },
       { n: 'ordem', r: 'Ordem na galeria', t: 'numero', col: 3, dica: 'Menor aparece primeiro' },
       { n: 'local', r: 'Onde foi', t: 'texto', col: 4 },
-      { n: 'capa_url', r: 'Foto de capa', t: 'foto', req: true },
+      { n: 'capa_url', r: 'Foto de capa', t: 'foto', req: true, mini: 'capa_mini', foco: 'capa_foco' },
       { n: 'capa_alt', r: 'Descrição da capa', t: 'texto' },
       { n: 'descricao', r: 'Descrição do álbum', t: 'area' },
       { n: 'fotos', r: 'Fotos do álbum', t: 'fotos' },
@@ -291,7 +346,7 @@ const SECOES = {
         ['lembranca', 'Lembrança de viagem'],
         ['construcao', 'Feito em casa'],
       ] },
-      { n: 'foto_url', r: 'Foto da peça', t: 'foto', req: true },
+      { n: 'foto_url', r: 'Foto da peça', t: 'foto', req: true, mini: 'foto_mini', foco: 'foto_foco' },
       { n: 'foto_alt', r: 'Descrição da foto', t: 'texto' },
       { n: 'historia', r: 'A história da peça', t: 'area', req: true, dica: 'Duas a quatro frases: como ela chegou na prateleira.' },
       { n: 'nota', r: 'Frase de destaque', t: 'texto', dica: 'Opcional. Aparece em itálico na página da peça.' },
@@ -414,7 +469,9 @@ function telaPainel() {
       <p class="pn-topo__marca">Casal na Estrada <b>Painel</b></p>
       <div class="pn-topo__direita">
         <span class="pn-quem">${esc(usuario?.email ?? '')}</span>
+        <span class="pn-ultima" id="pn-ultima"></span>
         <button id="pn-publicar" type="button" title="Manda o site para o ar agora">Publicar agora</button>
+        <button id="pn-backup" type="button" title="Baixa um arquivo com todo o conteúdo">Backup</button>
         <a href="${BASE}">Ver o site</a>
         <button id="pn-sair" type="button">Sair</button>
       </div>
@@ -441,6 +498,12 @@ function telaPainel() {
 
   document.getElementById('pn-sair').addEventListener('click', async () => {
     await supabase.auth.signOut();
+  });
+
+  document.getElementById('pn-backup').addEventListener('click', (ev) => {
+    const botao = ev.currentTarget;
+    botao.disabled = true;
+    baixarBackup().finally(() => (botao.disabled = false));
   });
 
   document.getElementById('pn-abas').addEventListener('click', (ev) => {
@@ -498,6 +561,14 @@ async function lista() {
       Salve e o site publica sozinho: em cerca de <strong>1 minuto</strong> já está no ar.
     </p>
     ${
+      itens.length > 3
+        ? `<div class="pn-filtrar">
+             <input id="pn-filtro" type="search" placeholder="Filtrar a lista pelo nome…" autocomplete="off" />
+             <span id="pn-filtro-info"></span>
+           </div>`
+        : ''
+    }
+    ${
       itens.length === 0
         ? `<p class="pn-vazio">Nada cadastrado ainda. Comece pela primeira ${cfgSecao.singular}.</p>`
         : `<div class="pn-lista">${itens.map((r) => itemHTML(r)).join('')}</div>`
@@ -505,6 +576,28 @@ async function lista() {
   `;
 
   document.getElementById('pn-novo').addEventListener('click', () => formulario(null));
+
+  const filtro = document.getElementById('pn-filtro');
+  filtro?.addEventListener('input', () => {
+    const semAcento = (texto) =>
+      texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+    const termo = semAcento(filtro.value.trim());
+    let achados = 0;
+    area()
+      .querySelectorAll('.pn-item')
+      .forEach((item) => {
+        const dentro = termo === '' || semAcento(item.textContent ?? '').includes(termo);
+        item.hidden = !dentro;
+        if (dentro) achados += 1;
+      });
+    const info = document.getElementById('pn-filtro-info');
+    if (info) {
+      info.textContent =
+        termo === ''
+          ? ''
+          : `${achados} de ${itens.length} ${achados === 1 ? 'resultado' : 'resultados'}`;
+    }
+  });
 
   area()
     .querySelectorAll('[data-editar]')
@@ -569,7 +662,7 @@ async function excluir(id, nome) {
 
 // ---------------------------------------------------------------- formulário
 
-function campoHTML(campo, valor) {
+function campoHTML(campo, valor, registro = null) {
   const span = campo.col ? ` style="grid-column: span ${campo.col}"` : '';
   const obrigatorio = campo.req ? ' <em>*</em>' : '';
   const dica = campo.dica ? `<small class="pn-dica">${esc(campo.dica)}</small>` : '';
@@ -618,10 +711,14 @@ function campoHTML(campo, valor) {
     case 'youtube':
       controle = `<input type="text" name="${campo.n}" value="${esc(v)}" placeholder="https://youtu.be/..." />`;
       break;
-    case 'foto':
+    case 'foto': {
+      const mini = campo.mini ? registro?.[campo.mini] ?? '' : '';
+      const foco = campo.foco ? registro?.[campo.foco] ?? '' : '';
       return `<div class="pn-campo"${span}>
         <span>${esc(campo.r)}${obrigatorio}</span>
-        <div class="pn-upload" data-upload="${campo.n}" data-obrigatorio="${campo.req ? '1' : ''}">
+        <div class="pn-upload" data-upload="${campo.n}" data-obrigatorio="${campo.req ? '1' : ''}"
+             ${campo.mini ? `data-mini-col="${campo.mini}"` : ''}
+             ${campo.foco ? `data-foco-col="${campo.foco}"` : ''}>
           <div class="pn-upload__previa" data-previa>
             ${
               v
@@ -630,6 +727,7 @@ function campoHTML(campo, valor) {
             }
           </div>
           <input type="hidden" name="${campo.n}" value="${esc(v)}" />
+          ${campo.mini ? `<input type="hidden" data-mini value="${esc(mini)}" />` : ''}
           <div class="pn-upload__barra" data-barra><i></i></div>
           <div class="pn-acoes">
             <label class="pn-btn pn-btn--claro" style="cursor:pointer">
@@ -640,9 +738,25 @@ function campoHTML(campo, valor) {
               v ? '' : 'hidden'
             }>remover</button>
           </div>
+          ${
+            campo.foco
+              ? `<div class="pn-foco" data-foco-bloco ${v ? '' : 'hidden'}>
+                   <p class="pn-dica">Toque no ponto da foto que precisa aparecer no recorte do site.</p>
+                   <div class="pn-foco__area" data-foco-area>
+                     ${v ? `<img src="${esc(v)}" alt="" data-foco-img />` : ''}
+                     <span class="pn-foco__mira" data-foco-mira></span>
+                   </div>
+                   <div class="pn-acoes">
+                     <button class="pn-btn--texto" type="button" data-foco-limpar>voltar ao centro</button>
+                   </div>
+                   <input type="hidden" data-foco value="${esc(foco)}" />
+                 </div>`
+              : ''
+          }
           ${dica}
         </div>
       </div>`;
+    }
     case 'fotos':
       return `<div class="pn-secao" data-fotos="${campo.n}">
         <h3>${esc(campo.r)}</h3>
@@ -678,7 +792,8 @@ function campoHTML(campo, valor) {
 
 function formulario(registro) {
   const cfgSecao = SECOES[secaoAtual];
-  editando = registro;
+  // Registro sem id = cópia nova (botão "Duplicar"): salva como inserção.
+  editando = registro?.id ? registro : null;
   const valores = {};
   for (const campo of cfgSecao.campos) {
     if (campo.t === 'sim') {
@@ -714,10 +829,16 @@ function formulario(registro) {
     </div>
     <form class="pn-form" id="pn-form">
       <div class="pn-grade">
-        ${cfgSecao.campos.map((c) => campoHTML(c, valores[c.n])).join('')}
+        ${cfgSecao.campos.map((c) => campoHTML(c, valores[c.n], registro)).join('')}
       </div>
       <div class="pn-rodape-form">
         <button class="pn-btn" type="submit">Salvar</button>
+        <button class="pn-btn pn-btn--claro" type="button" id="pn-previa">Prévia</button>
+        ${
+          editando
+            ? '<button class="pn-btn pn-btn--claro" type="button" id="pn-duplicar">Duplicar</button>'
+            : ''
+        }
         <button class="pn-btn pn-btn--claro" type="button" id="pn-cancelar">Cancelar</button>
         <span class="pn-nota">Ao salvar, o site publica sozinho em cerca de 1 minuto.</span>
       </div>
@@ -726,6 +847,17 @@ function formulario(registro) {
 
   document.getElementById('pn-voltar').addEventListener('click', lista);
   document.getElementById('pn-cancelar').addEventListener('click', lista);
+  document.getElementById('pn-previa').addEventListener('click', () => mostrarPrevia());
+
+  document.getElementById('pn-duplicar')?.addEventListener('click', () => {
+    if (!registro) return;
+    const copia = { ...registro, id: undefined, slug: undefined };
+    if (copia.titulo) copia.titulo = `${copia.titulo} (cópia)`;
+    if (copia.evento) copia.evento = `${copia.evento} (cópia)`;
+    if ('publicado' in copia) copia.publicado = false;
+    formulario(copia);
+    avisar('Cópia aberta. Ajuste o que quiser e salve — ela entra fora do ar.');
+  });
 
   prepararUploads();
   prepararFilhos(registro);
@@ -738,7 +870,7 @@ function formulario(registro) {
 
 // ---------------------------------------------------------------- uploads
 
-/** Reduz a foto no navegador antes de enviar: 1600 px no maior lado, JPEG 82%. */
+/** Reduz a foto no navegador antes de enviar: 1600 px no maior lado, WebP 82%. */
 async function comprimir(arquivo, maxLado = 1600, qualidade = 0.82) {
   if (!arquivo.type.startsWith('image/')) {
     throw new Error('O arquivo precisa ser uma foto (JPG, PNG, WEBP).');
@@ -758,16 +890,22 @@ async function comprimir(arquivo, maxLado = 1600, qualidade = 0.82) {
   tela.width = largura;
   tela.height = altura;
   tela.getContext('2d').drawImage(bitmap, 0, 0, largura, altura);
-  const blob = await new Promise((ok) => tela.toBlob(ok, 'image/jpeg', qualidade));
+
+  // WebP pesa bem menos; navegador antigo cai no JPEG sozinho.
+  const blob =
+    (await new Promise((ok) => tela.toBlob(ok, 'image/webp', qualidade))) ??
+    (await new Promise((ok) => tela.toBlob(ok, 'image/jpeg', qualidade)));
   if (!blob) throw new Error('Não consegui preparar a imagem para envio.');
   return blob;
 }
 
-async function enviarFoto(arquivo, pasta) {
-  const blob = await comprimir(arquivo);
-  const nome = `${pasta}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}.jpg`;
+async function enviarFoto(arquivo, pasta, opcoes = {}) {
+  const { maxLado = 1600, qualidade = 0.82, sufixo = '' } = opcoes;
+  const blob = await comprimir(arquivo, maxLado, qualidade);
+  const extensao = blob.type === 'image/webp' ? 'webp' : 'jpg';
+  const nome = `${pasta}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}${sufixo}.${extensao}`;
   const { error } = await supabase.storage.from('midia').upload(nome, blob, {
-    contentType: 'image/jpeg',
+    contentType: blob.type || 'image/jpeg',
     cacheControl: '31536000',
     upsert: false,
   });
@@ -796,16 +934,34 @@ function prepararUploads() {
     const barra = bloco.querySelector('[data-barra]');
     const remover = bloco.querySelector('[data-remover-foto]');
 
+    const mini = bloco.querySelector('[data-mini]');
+
     input.addEventListener('change', async () => {
       const arquivo = input.files?.[0];
       if (!arquivo) return;
       try {
         progresso(barra, 0.15);
         const url = await enviarFoto(arquivo, nomeDaPasta());
+
+        // Versão leve (900 px) que o site usa no celular e nos cartões.
+        if (mini) {
+          progresso(barra, 0.6);
+          try {
+            mini.value = await enviarFoto(arquivo, nomeDaPasta(), {
+              maxLado: 900,
+              qualidade: 0.78,
+              sufixo: '-mini',
+            });
+          } catch {
+            mini.value = ''; // sem miniatura o site usa a foto grande
+          }
+        }
+
         progresso(barra, 1);
         oculto.value = url;
         previa.innerHTML = `<img src="${esc(url)}" alt="" />`;
         if (remover) remover.hidden = false;
+        montarAreaDeFoco(bloco, url);
         avisar('Foto enviada.');
       } catch (erro) {
         avisar(erro.message, 'erro');
@@ -820,10 +976,110 @@ function prepararUploads() {
 
     remover?.addEventListener('click', () => {
       oculto.value = '';
+      if (mini) mini.value = '';
       previa.textContent = 'Nenhuma foto escolhida';
       remover.hidden = true;
+      bloco.querySelector('[data-foco-bloco]')?.setAttribute('hidden', '');
     });
+
+    prepararFoco(bloco);
   });
+}
+
+/** Marca no próprio painel o ponto da foto que precisa ficar visível. */
+function prepararFoco(bloco) {
+  const area = bloco.querySelector('[data-foco-area]');
+  const entrada = bloco.querySelector('[data-foco]');
+  if (!area || !entrada) return;
+  const mira = area.querySelector('[data-foco-mira]');
+
+  const pintarMira = () => {
+    const [x = '50%', y = '50%'] = (entrada.value || '50% 50%').split(' ');
+    if (mira) {
+      mira.style.left = x;
+      mira.style.top = y;
+    }
+    area.dataset.marcado = entrada.value ? 'sim' : 'nao';
+  };
+
+  area.addEventListener('click', (ev) => {
+    const caixa = area.getBoundingClientRect();
+    const x = Math.min(100, Math.max(0, ((ev.clientX - caixa.left) / caixa.width) * 100));
+    const y = Math.min(100, Math.max(0, ((ev.clientY - caixa.top) / caixa.height) * 100));
+    entrada.value = `${Math.round(x)}% ${Math.round(y)}%`;
+    pintarMira();
+  });
+
+  bloco.querySelector('[data-foco-limpar]')?.addEventListener('click', () => {
+    entrada.value = '';
+    pintarMira();
+  });
+
+  pintarMira();
+}
+
+/** Troca a imagem do seletor de recorte quando chega uma foto nova. */
+function montarAreaDeFoco(bloco, url) {
+  const caixa = bloco.querySelector('[data-foco-bloco]');
+  const area = bloco.querySelector('[data-foco-area]');
+  if (!caixa || !area) return;
+  caixa.removeAttribute('hidden');
+  area.querySelector('[data-foco-img]')?.remove();
+  const img = document.createElement('img');
+  img.src = url;
+  img.alt = '';
+  img.dataset.focoImg = '';
+  area.prepend(img);
+  prepararFoco(bloco);
+}
+
+// ---------------------------------------------------------------- prévia
+
+/** Mostra a publicação montada, do jeito que ela vai aparecer no site. */
+function mostrarPrevia() {
+  const pegar = (nome) => document.querySelector(`[name="${nome}"]`)?.value?.trim() ?? '';
+
+  const titulo = pegar('titulo') || pegar('evento') || 'Sem título';
+  const resumo = pegar('resumo') || pegar('historia') || '';
+  const foto = pegar('capa_url') || pegar('foto_url');
+  const alt = pegar('capa_alt') || pegar('foto_alt') || '';
+  const corpo = pegar('corpo');
+  const local = [pegar('local'), pegar('cidade'), pegar('uf')].filter(Boolean).join(' — ');
+  const tipo = pegar('tipo') || secaoAtual;
+
+  const html = corpo ? marked.parse(corpo, { async: false }) : '';
+
+  const tela = document.createElement('div');
+  tela.className = 'pn-visor';
+  tela.innerHTML = `
+    <div class="pn-visor__topo">
+      <span>Prévia — ainda não está no site</span>
+      <button class="pn-btn pn-btn--claro" type="button" data-fechar>Fechar ✕</button>
+    </div>
+    <div class="pn-visor__doc">
+      <p class="pn-visor__kicker">${esc(tipo)}${local ? ` · ${esc(local)}` : ''}</p>
+      <h1>${esc(titulo)}</h1>
+      ${resumo ? `<p class="pn-visor__resumo">${esc(resumo)}</p>` : ''}
+      ${foto ? `<img class="pn-visor__foto" src="${esc(foto)}" alt="${esc(alt)}" />` : ''}
+      ${alt ? `<p class="pn-visor__legenda">${esc(alt)}</p>` : ''}
+      <div class="pn-visor__corpo">${html}</div>
+    </div>
+  `;
+
+  const fechar = () => tela.remove();
+  tela.querySelector('[data-fechar]').addEventListener('click', fechar);
+  tela.addEventListener('click', (ev) => {
+    if (ev.target === tela) fechar();
+  });
+  document.addEventListener(
+    'keydown',
+    (ev) => {
+      if (ev.key === 'Escape') fechar();
+    },
+    { once: true }
+  );
+
+  document.body.appendChild(tela);
 }
 
 /** Fotos extras e vídeos: listas dinâmicas. */
@@ -969,6 +1225,14 @@ async function salvar(form) {
     const fonte = cfgSecao.slugFonte || 'titulo';
     dados.slug = editando?.slug || slugDe(dados[fonte], 'registro');
   }
+
+  // Miniatura e ponto de recorte vêm dos blocos de foto, não dos campos fixos.
+  form.querySelectorAll('[data-upload][data-foco-col], [data-upload][data-mini-col]').forEach((bloco) => {
+    const miniCol = bloco.dataset.miniCol;
+    const focoCol = bloco.dataset.focoCol;
+    if (miniCol) dados[miniCol] = bloco.querySelector('[data-mini]')?.value || null;
+    if (focoCol) dados[focoCol] = bloco.querySelector('[data-foco]')?.value || null;
+  });
 
   // campos obrigatórios que aceitam nulo no banco
   if (dados.uf) dados.uf = dados.uf.toUpperCase().slice(0, 2);

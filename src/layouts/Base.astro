@@ -32,6 +32,22 @@ const {
 const pageTitle = title ? `${title} — ${site.nome}` : `${site.nome} · ${site.nomes}`;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://casalnaestrada.com.br');
 import { url } from '../lib/url';
+
+// Ficha do site para os buscadores (schema.org).
+const fichaSite = {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: site.nome,
+  alternateName: site.nomes,
+  url: canonical.origin + url('/'),
+  description: site.descricao,
+  inLanguage: 'pt-BR',
+  publisher: {
+    '@type': 'Organization',
+    name: site.nome,
+    logo: new URL(url('/media/logo-144.png'), canonical).href,
+  },
+};
 ---
 
 <!doctype html>
@@ -55,7 +71,10 @@ import { url } from '../lib/url';
 
     <link rel="icon" href={url("/favicon.svg")} type="image/svg+xml" />
     <link rel="apple-touch-icon" href={url("/media/logo-144.png")} />
+    <link rel="manifest" href={url("/manifest.webmanifest")} />
+    <link rel="alternate" type="application/rss+xml" title={`${site.nome} — Diário`} href={url("/rss.xml")} />
     <link rel="sitemap" href={url("/sitemap-index.xml")} />
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(fichaSite)} />
   </head>
 
   <body>
@@ -109,8 +128,13 @@ import { url } from '../lib/url';
           const proporcao = Math.min(PROPORCAO_MAXIMA, Math.max(PROPORCAO_MINIMA, real));
           moldura.style.aspectRatio = String(proporcao);
           moldura.classList.add('foto-proporcao');
-          // Foto em pé: puxa o recorte para cima, para não comer cabeça.
-          if (real < 0.95) img.style.objectPosition = '50% 32%';
+
+          // Ponto focal escolhido no painel manda em tudo.
+          const foco = moldura.dataset.foco?.trim();
+          if (foco) img.style.objectPosition = foco;
+          // Sem ponto focal e foto em pé: puxa o recorte para cima, para não
+          // comer cabeça.
+          else if (real < 0.95) img.style.objectPosition = '50% 32%';
         };
 
         if (img.complete) aplicar();

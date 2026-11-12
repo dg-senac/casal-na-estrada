@@ -1,15 +1,15 @@
 ---
 import { site } from '../data/site';
-import { carregarAlbuns, carregarEncontros, carregarPosts, carregarTrofeus } from '../lib/dados';
+import { carregarAlbuns, carregarEncontros, carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
+import { kilometros, kmTexto } from '../lib/estrada';
 import Base from '../layouts/Base.astro';
 import Vazio from '../components/Vazio.astro';
 
 const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
 );
-const posts = (await carregarPosts()).filter((p) => !p.data.rascunho).sort(
-  (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
-);
+// Esconde rascunho e publicação agendada para o futuro.
+const posts = postsNoAr(await carregarPosts());
 const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
 const agenda = (await carregarEncontros()).sort(
   (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
@@ -31,10 +31,11 @@ const podio = (marcadas.length > 0 ? marcadas : ordendas).slice(0, 5);
 
 // Painel da home: tudo é contado do conteúdo, nada fixo no código.
 const anosDeEstrada = new Date().getFullYear() - site.desde;
+const km = kilometros(posts);
 const numeros = [
   { valor: String(anosDeEstrada), rotulo: 'anos de estrada' },
   { valor: String(posts.length), rotulo: posts.length === 1 ? 'publicação' : 'publicações' },
-  { valor: String(albuns.length), rotulo: albuns.length === 1 ? 'álbum' : 'álbuns' },
+  ...(km > 0 ? [{ valor: kmTexto(km), rotulo: 'km registrados' }] : []),
   { valor: String(trofeus.length), rotulo: 'peças na sala' },
 ];
 import { url } from '../lib/url';
@@ -117,12 +118,22 @@ import { ordenar, seloCurto } from '../lib/trofeus';
       manchete && (
         <article class="headline" data-reveal>
           <div class="headline__moldura">
-            <a class="headline__media photo photo--duotone" href={url(`/diario/${manchete.id}`)}>
+            <a
+              class="headline__media photo photo--duotone"
+              href={url(`/diario/${manchete.id}`)}
+              data-foco={manchete.data.capaFoco}
+            >
               <img
                 id="manchete-foto"
-                src={url(manchete.data.capa)}
+                src={url(manchete.data.capaMini ?? manchete.data.capa)}
+                srcset={manchete.data.capaMini
+                  ? `${url(manchete.data.capaMini)} 900w, ${url(manchete.data.capa)} 2000w`
+                  : undefined}
+                sizes="(max-width: 780px) 100vw, 56vw"
                 alt={manchete.data.capaAlt}
                 loading="eager"
+                fetchpriority="high"
+                decoding="async"
               />
             </a>
             <button
@@ -158,8 +169,17 @@ import { ordenar, seloCurto } from '../lib/trofeus';
       {
         ultimas.map((post, i) => (
           <article class="ultima" data-reveal style={`--reveal-delay:${i * 90}ms`}>
-            <a class="ultima__media photo" href={url(`/diario/${post.id}`)}>
-              <img src={url(post.data.capa)} alt={post.data.capaAlt} loading="lazy" />
+            <a class="ultima__media photo" href={url(`/diario/${post.id}`)} data-foco={post.data.capaFoco}>
+              <img
+                src={url(post.data.capaMini ?? post.data.capa)}
+                srcset={post.data.capaMini
+                  ? `${url(post.data.capaMini)} 900w, ${url(post.data.capa)} 2000w`
+                  : undefined}
+                sizes="(max-width: 780px) 100vw, 33vw"
+                alt={post.data.capaAlt}
+                loading="lazy"
+                decoding="async"
+              />
             </a>
             <div class="ultima__body">
               <div class="ultima__kicker">
@@ -242,6 +262,22 @@ import { ordenar, seloCurto } from '../lib/trofeus';
         )
       }
     </div>
+  </div>
+</section>
+
+<!-- ================= ATALHOS DO CADERNO ================= -->
+<section class="section section--tight">
+  <div class="wrap atalhos" data-reveal>
+    <a class="atalho" href={url("/lugares")}>
+      <span class="atalho__rotulo">Mapa de papel</span>
+      <span class="atalho__titulo">Onde a gente já esteve</span>
+      <span class="atalho__seta" aria-hidden="true">→</span>
+    </a>
+    <a class="atalho" href={url("/linha-do-tempo")}>
+      <span class="atalho__rotulo">Caderno de anos</span>
+      <span class="atalho__titulo">Linha do tempo</span>
+      <span class="atalho__seta" aria-hidden="true">→</span>
+    </a>
   </div>
 </section>
 
@@ -990,6 +1026,64 @@ import { ordenar, seloCurto } from '../lib/trofeus';
 
     .ultima {
       grid-template-columns: 1fr;
+    }
+  }
+
+  /* ---------- atalhos do caderno ---------- */
+
+  .atalhos {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-top: 3px double var(--line-strong);
+    border-bottom: 3px double var(--line-strong);
+  }
+
+  .atalho {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 0.3rem 1rem;
+    padding: clamp(1rem, 2.4vw, 1.6rem) clamp(0.6rem, 2vw, 1.4rem);
+  }
+
+  .atalho + .atalho {
+    border-left: 1px solid var(--line);
+  }
+
+  .atalho__rotulo {
+    grid-column: 1 / -1;
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .atalho__titulo {
+    font-family: var(--serif);
+    font-size: clamp(1.2rem, 2.4vw, 1.6rem);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+  }
+
+  .atalho__seta {
+    font-family: var(--sans);
+    font-size: 1.1rem;
+    color: var(--rust);
+  }
+
+  .atalho:hover .atalho__titulo {
+    color: var(--rust);
+  }
+
+  @media (max-width: 640px) {
+    .atalhos {
+      grid-template-columns: 1fr;
+    }
+
+    .atalho + .atalho {
+      border-left: 0;
+      border-top: 1px solid var(--line);
     }
   }
 </style>
