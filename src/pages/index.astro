@@ -12,9 +12,11 @@ const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho).sort(
 // Esconde rascunho e publicação agendada para o futuro.
 const posts = postsNoAr(await carregarPosts());
 const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
-const agenda = (await carregarEncontros()).sort(
-  (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
-);
+// A home é convite: encontro cancelado não entra na vitrine (na página de
+// encontros ele continua, com o motivo escrito).
+const agenda = (await carregarEncontros())
+  .filter((e) => !e.data.cancelado)
+  .sort((a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf());
 
 const manchete = posts[0];
 const ultimas = posts.slice(1, 4);

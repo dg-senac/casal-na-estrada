@@ -8,7 +8,11 @@ const todos = (await carregarEncontros()).sort(
 );
 
 const hoje = new Date();
+
+// A agenda mostra tudo o que vem pela frente — inclusive o que foi cancelado,
+// com o motivo escrito. Só a contagem regressiva ignora os cancelados.
 const futuros = todos.filter((e) => (e.data.fim ?? e.data.inicio) >= hoje);
+const confirmados = futuros.filter((e) => !e.data.cancelado);
 const passados = todos.filter((e) => (e.data.fim ?? e.data.inicio) < hoje).reverse();
 
 const dia = (d: Date) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit' }).format(d);
@@ -26,8 +30,8 @@ const completo = (d: Date) =>
   <header class="page-head">
     <div class="wrap">
       <p class="eyebrow">
-        Agenda · {futuros.length > 0
-          ? `${futuros.length} ${futuros.length === 1 ? 'encontro' : 'encontros'} pela frente`
+        Agenda · {confirmados.length > 0
+          ? `${confirmados.length} ${confirmados.length === 1 ? 'encontro' : 'encontros'} pela frente`
           : 'em preparação'}
       </p>
       <h1 class="display">Encontros</h1>
@@ -40,26 +44,26 @@ const completo = (d: Date) =>
           class="btn btn--solid"
           href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent('Vou em um encontro também! Vamos combinar?')}`}
           target="_blank"
-          rel="noopener">{futuros.length > 0 ? 'Combinar comboio' : 'Falar com a gente'}</a
+          rel="noopener">{confirmados.length > 0 ? 'Combinar comboio' : 'Falar com a gente'}</a
         >
       </div>
     </div>
   </header>
 
   {
-    futuros.length > 0 && (
+    confirmados.length > 0 && (
       <section class="section section--tight" aria-label="Contagem regressiva">
         <div class="wrap">
           <div
             class="contagem"
             data-contagem
-            data-alvo={futuros[0].data.inicio.toISOString()}
+            data-alvo={confirmados[0].data.inicio.toISOString()}
           >
             <div>
               <p class="eyebrow">Contagem regressiva</p>
-              <p class="contagem__nome">{futuros[0].data.nome}</p>
+              <p class="contagem__nome">{confirmados[0].data.nome}</p>
               <p class="contagem__local">
-                {futuros[0].data.cidade} — {futuros[0].data.uf} · {completo(futuros[0].data.inicio)}
+                {confirmados[0].data.cidade} — {confirmados[0].data.uf} · {completo(confirmados[0].data.inicio)}
               </p>
             </div>
             <div class="contagem__nums">
@@ -79,7 +83,11 @@ const completo = (d: Date) =>
       <div class="lista">
         {
           futuros.map((e, i) => (
-            <article class="evento" data-reveal style={`--reveal-delay:${i * 60}ms`}>
+            <article
+              class:list={['evento', { 'evento--cancelado': e.data.cancelado }]}
+              data-reveal
+              style={`--reveal-delay:${i * 60}ms`}
+            >
               <div class="evento__data">
                 <span class="evento__dia">{dia(e.data.inicio)}</span>
                 <span class="evento__mes">{mes(e.data.inicio)}</span>
@@ -89,7 +97,10 @@ const completo = (d: Date) =>
               <div class="evento__corpo">
                 <div class="evento__topo">
                   <h3 class="evento__nome">{e.data.nome}</h3>
-                  {!e.data.confirmado && <span class="evento__aviso">a confirmar</span>}
+                  {e.data.cancelado && <span class="evento__cancelado">Cancelado</span>}
+                  {!e.data.cancelado && !e.data.confirmado && (
+                    <span class="evento__aviso">a confirmar</span>
+                  )}
                 </div>
                 <p class="evento__local">
                   {e.data.cidade} — {e.data.uf}
@@ -100,13 +111,28 @@ const completo = (d: Date) =>
                     De {completo(e.data.inicio)} a {completo(e.data.fim)}
                   </p>
                 )}
-                {e.data.observacao && <p class="evento__obs">{e.data.observacao}</p>}
+                {e.data.observacao && !e.data.cancelado && (
+                  <p class="evento__obs">{e.data.observacao}</p>
+                )}
+                {e.data.cancelado && (
+                  <p class="evento__motivo">
+                    <strong>Por que cancelou:</strong>{' '}
+                    {e.data.motivoCancelamento ?? 'o encontro não vai mais acontecer.'}
+                  </p>
+                )}
               </div>
 
               <div class="evento__acao">
-                <a class="link-arrow" href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener">
-                  Vou também →
-                </a>
+                {!e.data.cancelado && (
+                  <a
+                    class="link-arrow"
+                    href={`https://wa.me/${site.whatsapp}`}
+                    target="_blank"
+                    rel="noopener"
+                  >
+                    Vou também →
+                  </a>
+                )}
               </div>
             </article>
           ))
@@ -363,6 +389,61 @@ const completo = (d: Date) =>
     color: var(--ink-mute);
     border: 1px dashed var(--line-strong);
     padding: 0.1rem 0.4rem;
+  }
+
+  /* ---------- encontro cancelado ---------- */
+
+  .evento--cancelado {
+    background: repeating-linear-gradient(
+      -45deg,
+      transparent 0 14px,
+      rgba(236, 228, 211, 0.028) 14px 28px
+    );
+  }
+
+  .evento--cancelado .evento__nome {
+    color: var(--ink-soft);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+    text-decoration-color: var(--rust);
+  }
+
+  .evento--cancelado .evento__dia,
+  .evento--cancelado .evento__mes,
+  .evento--cancelado .evento__ano {
+    color: var(--ink-mute);
+    text-decoration: line-through;
+    text-decoration-color: var(--rust);
+  }
+
+  .evento__cancelado {
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--rust-text);
+    border: 1px solid currentColor;
+    padding: 0.1rem 0.42rem 0.06rem;
+  }
+
+  .evento__motivo {
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--rust);
+    padding-left: 0.75rem;
+    margin: 0.55rem 0 0;
+  }
+
+  .evento__motivo strong {
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 0.68rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--rust-text);
+    display: block;
+    margin-bottom: 0.15rem;
   }
 
   .evento__local {

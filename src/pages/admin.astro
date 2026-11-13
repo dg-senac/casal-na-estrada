@@ -513,6 +513,73 @@ const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     color: var(--rust);
   }
 
+  .pn-selo--cancelado {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+    font-weight: 600;
+    letter-spacing: 0.16em;
+  }
+
+  .pn-item__motivo {
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--rust);
+    padding-left: 0.55rem;
+    margin: 0.15rem 0 0;
+  }
+
+  /* ---------- diálogo (cancelar encontro) ---------- */
+
+  .pn-dialogo {
+    position: fixed;
+    inset: 0;
+    z-index: 95;
+    background: rgba(12, 10, 8, 0.7);
+    display: grid;
+    place-items: center;
+    padding: 1rem;
+  }
+
+  .pn-dialogo__caixa {
+    width: min(460px, 100%);
+    background: var(--paper);
+    border: 1px solid var(--line-strong);
+    padding: clamp(1.1rem, 3vw, 1.6rem);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4);
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .pn-dialogo__caixa h2 {
+    font-family: var(--serif);
+    font-size: 1.5rem;
+    font-weight: 400;
+    margin: 0;
+    line-height: 1.1;
+  }
+
+  .pn-dialogo__sub {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: -0.4rem 0 0;
+  }
+
+  .pn-dialogo__texto {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+
+  .pn-dialogo__caixa textarea {
+    width: 100%;
+    min-height: 80px;
+    resize: vertical;
+  }
+
   @media (max-width: 620px) {
     .pn-item {
       grid-template-columns: 64px 1fr;
