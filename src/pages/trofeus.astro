@@ -70,7 +70,7 @@ const ultima = ordenar(trofeus)[0];
 
             <div class="grade">
               {grupo.pecas.map((t, i) => (
-                <article class="peca costura" data-reveal style={`--reveal-delay:${(i % 3) * 70}ms`}>
+                <article class="peca rebite" data-reveal style={`--reveal-delay:${(i % 3) * 70}ms`}>
                   <a class="peca__link" href={url(`/trofeus/${t.id}`)}>
                     <div class="peca__foto" data-foco={t.data.fotoFoco}>
                       {capa(t) ? (
