@@ -52,7 +52,7 @@ import { url } from '../../lib/url';
         {
           albuns.map((album, i) => (
             <article
-              class:list={['album', { 'album--wide': i % 3 === 0 }]}
+              class:list={['album', 'costura', { 'album--wide': i % 3 === 0 }]}
               data-reveal
               style={`--reveal-delay:${(i % 3) * 80}ms`}
             >
