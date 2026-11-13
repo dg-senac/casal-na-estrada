@@ -58,7 +58,7 @@ const fichaSite = {
     <title>{pageTitle}</title>
     <meta name="description" content={description} />
     <link rel="canonical" href={canonical.href} />
-    <meta name="theme-color" content="#ece5d6" />
+    <meta name="theme-color" content="#15120e" />
     {noindex && <meta name="robots" content="noindex" />}
 
     <meta property="og:type" content="website" />
@@ -70,7 +70,7 @@ const fichaSite = {
     <meta name="twitter:card" content="summary_large_image" />
 
     <link rel="icon" href={url("/favicon.svg")} type="image/svg+xml" />
-    <link rel="apple-touch-icon" href={url("/media/logo-144.png")} />
+    <link rel="apple-touch-icon" href={url("/media/icone-180.png")} />
     <link rel="manifest" href={url("/manifest.webmanifest")} />
     <link rel="alternate" type="application/rss+xml" title={`${site.nome} — Diário`} href={url("/rss.xml")} />
     <link rel="sitemap" href={url("/sitemap-index.xml")} />
@@ -259,7 +259,7 @@ const fichaSite = {
     top: clamp(0.8rem, 2vw, 1.6rem);
     right: clamp(0.8rem, 2vw, 1.6rem);
     background: rgba(20, 17, 12, 0.85);
-    color: var(--paper);
+    color: var(--ink);
     border: 1px solid rgba(236, 229, 214, 0.35);
     padding: 0.45rem 0.85rem;
     font-family: var(--sans);

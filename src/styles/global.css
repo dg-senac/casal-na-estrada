@@ -1,23 +1,28 @@
 /* ============================================================
    Casal na Estrada — folha de estilo única
    Estética: emblema de moto clube + jornal impresso.
-   Preto de tinta, papel envelhecido, um vermelho de brasão.
+   Noite de estrada: couro preto, texto em osso, vermelho de brasão.
    Sem gradientes, sem vidro, sem cantos arredondados.
    ============================================================ */
 
 :root {
-  --paper: #ece5d6;
-  --paper-2: #e2d9c6;
-  --paper-3: #d8ceb8;
-  --ink: #16130e;
-  --ink-2: #2a251c;
-  --ink-soft: #514a3d;
-  --ink-mute: #7c7361;
-  --rust: #a5331d;
-  --rust-soft: #c0573c;
-  --line: rgba(22, 19, 14, 0.18);
-  --line-strong: rgba(22, 19, 14, 0.42);
-  --paper-line: rgba(236, 229, 214, 0.22);
+  /* Noite de estrada: fundo de couro, texto em osso, vermelho de brasão. */
+  --paper: #15120e;
+  --paper-2: #1b1712;
+  --paper-3: #221d17;
+  --ink: #ece4d3;
+  --ink-2: #ded5c2;
+  --ink-soft: #b7ae9b;
+  --ink-mute: #8a8170;
+  --rust: #c0341c;
+  --rust-soft: #e0684a;
+  /* Vermelho de texto: mais claro, para ler em fundo escuro (5,5:1). */
+  --rust-text: #e0684a;
+  /* Preto de couro: barras, rodapé e faixas — mais fundo que o fundo. */
+  --couro: #0d0b08;
+  --line: rgba(236, 228, 211, 0.16);
+  --line-strong: rgba(236, 228, 211, 0.42);
+  --paper-line: rgba(236, 228, 211, 0.22);
 
   --serif: 'Bodoni Moda', 'Times New Roman', serif;
   --sans: 'Barlow Condensed', 'Arial Narrow', sans-serif;
@@ -50,15 +55,16 @@ body {
   overflow-x: hidden;
 }
 
-/* Grão de papel por cima de tudo — o detalhe que mata a cara de template */
+/* Grão por cima de tudo — o detalhe que mata a cara de template.
+   Em fundo escuro, multiply sumiria; soft-light dá o mesmo papel granulado. */
 body::after {
   content: '';
   position: fixed;
   inset: 0;
   z-index: 9999;
   pointer-events: none;
-  opacity: 0.5;
-  mix-blend-mode: multiply;
+  opacity: 0.32;
+  mix-blend-mode: soft-light;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.28'/%3E%3C/svg%3E");
 }
 
@@ -89,8 +95,8 @@ p {
 }
 
 ::selection {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--couro);
+  color: var(--ink);
 }
 
 /* ---------- Tipografia utilitária ---------- */
@@ -184,14 +190,15 @@ em {
 
 .btn:hover,
 .btn:focus-visible {
-  background: var(--ink);
-  color: var(--paper);
-  border-color: var(--ink);
+  background: var(--rust);
+  color: #fff;
+  border-color: var(--rust);
 }
 
+/* Botão principal: osso preenchido, letra de couro. É o que mais chama. */
 .btn--solid {
   --btn-bg: var(--ink);
-  --btn-fg: var(--paper);
+  --btn-fg: var(--couro);
   --btn-line: var(--ink);
 }
 
@@ -203,15 +210,15 @@ em {
 }
 
 .btn--light {
-  --btn-fg: var(--paper);
+  --btn-fg: var(--ink);
   --btn-line: var(--paper-line);
 }
 
 .btn--light:hover,
 .btn--light:focus-visible {
-  background: var(--paper);
-  color: var(--ink);
-  border-color: var(--paper);
+  background: var(--ink);
+  color: var(--couro);
+  border-color: var(--ink);
 }
 
 .btn--rust {
@@ -224,6 +231,7 @@ em {
 .btn--rust:focus-visible {
   --btn-bg: var(--ink);
   --btn-line: var(--ink);
+  color: var(--couro);
 }
 
 .link-arrow {
@@ -242,7 +250,7 @@ em {
 
 .link-arrow:hover {
   gap: 0.95rem;
-  color: var(--rust);
+  color: var(--rust-text);
 }
 
 /* ---------- Seções ---------- */
@@ -261,8 +269,8 @@ em {
 }
 
 .section--ink {
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--couro);
+  color: var(--ink);
 }
 
 .section--ink .lead,
@@ -299,7 +307,7 @@ em {
 .photo {
   position: relative;
   overflow: hidden;
-  background: #1b1813;
+  background: var(--couro);
 }
 
 /*
@@ -393,8 +401,8 @@ a:hover .foto-proporcao img {
   position: absolute;
   left: -9999px;
   top: 0;
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--couro);
+  color: var(--ink);
   padding: 0.7rem 1rem;
   z-index: 10000;
   font-family: var(--sans);
@@ -516,6 +524,29 @@ a:hover .foto-proporcao img {
 
   .hero-post__title {
     font-size: 26pt;
+  }
+
+  /*
+   * No papel não existe noite: fundo escuro e letra clara viram tinta sobre
+   * papel branco. A crônica sai igual à revista de antes.
+   */
+  *,
+  *::before,
+  *::after {
+    background-color: transparent !important;
+    color: #000 !important;
+    box-shadow: none !important;
+  }
+
+  body,
+  html {
+    background: #fff !important;
+  }
+
+  .legenda,
+  .hero-post__edicao,
+  .eyebrow {
+    color: #444 !important;
   }
 
   .photo,
