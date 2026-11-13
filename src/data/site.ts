@@ -13,8 +13,8 @@ export const site = {
     'Diário de estrada de Cieri e Milla, um casal de Recife que roda o Brasil de moto atrás de encontros, moto casais e boas histórias.',
   email: 'contato@casalnaestrada.com.br',
   // WhatsApp em formato internacional, só dígitos (é o que o wa.me espera).
-  whatsapp: '5581984776800',
-  whatsappExibicao: '(81) 98477-6800',
+  whatsapp: '5581986941562',
+  whatsappExibicao: '(81) 98694-1562',
   whatsappTexto: 'Olá! Encontrei o site de vocês e queria trocar uma ideia.',
   instagram: 'https://instagram.com/casa_naestrada2.4',
   instagramUsuario: '@casa_naestrada2.4',
