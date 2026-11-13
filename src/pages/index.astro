@@ -4,7 +4,6 @@ import { carregarAlbuns, carregarEncontros, carregarPosts, carregarTrofeus, post
 import { kilometros, kmTexto } from '../lib/estrada';
 import Base from '../layouts/Base.astro';
 import Vazio from '../components/Vazio.astro';
-import Emblema from '../components/Emblema.astro';
 
 const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho).sort(
   (a, b) => b.data.data.valueOf() - a.data.data.valueOf()
@@ -66,11 +65,11 @@ import { ordenar, seloCurto } from '../lib/trofeus';
 
     <figure class="hero__media">
       <div class="hero__emblema">
-        <Emblema />
+        <img src={url("/media/emblema-motociclista.webp")} alt="Emblema Casal na Estrada, Recife — Pernambuco: caveira de capacete em selo marfim e vermelho" width="1200" height="1200" fetchpriority="high" decoding="async" />
       </div>
       <figcaption class="hero__caption">
         <span class="hero__caption-num">MC</span>
-        <span>O emblema do clube de dois. A foto grande da estrada entra aqui.</span>
+        <span>Casal na Estrada · Recife — Pernambuco.</span>
       </figcaption>
     </figure>
   </div>
@@ -448,11 +447,11 @@ import { ordenar, seloCurto } from '../lib/trofeus';
     background: var(--couro);
   }
 
-  .hero__emblema svg {
+  .hero__emblema img {
     width: 100%;
     height: 100%;
-    padding: clamp(0.6rem, 2vw, 1.2rem);
-    color: var(--ink);
+    display: block;
+    object-fit: contain;
   }
 
   .agenda-vazio {
