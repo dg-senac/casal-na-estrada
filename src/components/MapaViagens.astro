@@ -1,0 +1,124 @@
+---
+import type { Post, Trofeu } from '../lib/dados';
+import { coordenadas, normalizarLugar } from '../lib/mapa';
+import { lugares, separarCidade } from '../lib/estrada';
+import { url } from '../lib/url';
+const { posts, trofeus } = Astro.props as { posts: Post[]; trofeus: Trofeu[] };
+const destinos = lugares(posts, trofeus).flatMap(g => g.lugares.map(l => ({ ...l, coords: coordenadas(l.nome, l.uf) })));
+const pontos = destinos.filter(l => l.coords);
+const semPonto = destinos.length - pontos.length;
+---
+<section class="section section--tight" aria-labelledby="titulo-mapa">
+  <div class="wrap">
+    <p class="eyebrow">Bandeiras da estrada</p>
+    <h2 id="titulo-mapa">Cada ponto, uma história.</h2>
+    <p>Toque numa bandeira ou escolha uma cidade para ver os relatos e as peças de lá.</p>
+    <div class="mapa-layout">
+      <div>
+        <div id="mapa-viagens" aria-label="Mapa das cidades visitadas" hidden={pontos.length === 0} data-pontos={JSON.stringify(pontos.map((p,i) => ({ nome: p.nome, uf: p.uf, coords: p.coords, id: `destino-${i}` })))}></div>
+        <p class="nota">Os pontos indicam as cidades, não o trajeto percorrido. Mapa-base: © OpenStreetMap contributors.</p>
+        <noscript><p>Para mover o mapa, ative o JavaScript. Todos os destinos e conteúdos estão disponíveis abaixo.</p></noscript>
+        {semPonto > 0 && <p class="nota">{semPonto} {semPonto === 1 ? 'lugar segue' : 'lugares seguem'} apenas na lista: registros de estado ou cidades sem localização inequívoca.</p>}
+      </div>
+      <div>
+        <label for="cidade-mapa">Escolha um destino</label>
+        <select id="cidade-mapa">
+          <option value="">Todos os destinos do mapa</option>
+          {pontos.map((p,i) => <option value={`destino-${i}`}>{p.nome}{p.uf ? ` — ${p.uf}` : ''}</option>)}
+        </select>
+        <p id="mapa-status" role="status" aria-live="polite">{pontos.length} cidades localizadas. A lista funciona mesmo se o mapa não carregar.</p>
+      </div>
+    </div>
+    <div class="destinos-mapa">
+      {pontos.map((p,i) => {
+        const nome = normalizarLugar(separarCidade(p.nome).nome);
+        const relatos = posts.filter(post => normalizarLugar(separarCidade(post.data.local).nome) === nome && (!p.uf || (post.data.uf || separarCidade(post.data.local).uf) === p.uf));
+        const pecas = trofeus.filter(t => {
+          const cidade = separarCidade(t.data.cidade);
+          return normalizarLugar(cidade.nome) === nome && (!p.uf || cidade.uf === p.uf);
+        });
+        return <article class="destino" id={`destino-${i}`}>
+          <h3>{p.nome}{p.uf ? ` — ${p.uf}` : ''}</h3>
+          <ul>
+            {relatos.map(post => <li><span>Diário</span> <a href={url(`/diario/${post.slug}`)}>{post.data.titulo} →</a></li>)}
+            {pecas.map(t => <li><span>Peça</span> <a href={url(`/trofeus/${t.slug}`)}>{t.data.evento} →</a></li>)}
+          </ul>
+        </article>;
+      })}
+    </div>
+  </div>
+</section>
+
+<script>
+  import L from 'leaflet';
+  import 'leaflet/dist/leaflet.css';
+  const caixa = document.getElementById('mapa-viagens');
+  const escolha = document.getElementById('cidade-mapa') as HTMLSelectElement | null;
+  const status = document.getElementById('mapa-status');
+  const cards = [...document.querySelectorAll<HTMLElement>('.destino')];
+  type Ponto = { nome: string; uf?: string; coords: [number, number]; id: string };
+  const pontos: Ponto[] = JSON.parse(caixa?.dataset.pontos ?? '[]');
+  const selecionar = (id: string) => {
+    if (escolha) escolha.value = id;
+    cards.forEach(card => { card.hidden = Boolean(id) && card.id !== id; });
+    const ponto = pontos.find(p => p.id === id);
+    if (status) status.textContent = ponto ? `Conteúdos de ${ponto.nome}${ponto.uf ? ` — ${ponto.uf}` : ''} abaixo do mapa.` : `${pontos.length} cidades localizadas. Escolha uma bandeira ou cidade.`;
+  };
+  // A seleção de conteúdo independe do carregamento dos tiles.
+  escolha?.addEventListener('change', () => selecionar(escolha.value));
+  if (caixa && pontos.length) {
+    try {
+      const mapa = L.map(caixa, { scrollWheelZoom: false }).setView([-14, -50], 4);
+      const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 18,
+        attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(mapa);
+      tiles.on('tileerror', () => {
+        if (status) status.textContent = 'Não foi possível carregar parte do mapa. Escolha uma cidade na lista para ver os conteúdos.';
+      });
+      const marcadores = new Map<string, L.Marker>();
+      pontos.forEach(p => {
+        const marker = L.marker(p.coords, {
+          title: `${p.nome}${p.uf ? ` — ${p.uf}` : ''}: ver conteúdos`,
+          alt: `Destino: ${p.nome}`,
+          icon: L.divIcon({ className: 'bandeira-mapa', html: '<span aria-hidden="true">⚑</span>', iconSize: [36, 42], iconAnchor: [18, 40] }),
+        }).addTo(mapa);
+        const label = document.createElement('span');
+        label.textContent = `${p.nome}${p.uf ? ` — ${p.uf}` : ''}`;
+        marker.bindTooltip(label);
+        marker.on('click', () => selecionar(p.id));
+        marcadores.set(p.id, marker);
+      });
+      const limites = L.latLngBounds(pontos.map(p => p.coords));
+      mapa.fitBounds(limites, { padding: [35, 35], maxZoom: 10 });
+      escolha?.addEventListener('change', () => {
+        const p = pontos.find(p => p.id === escolha.value);
+        if (p) { mapa.setView(p.coords, 10); marcadores.get(p.id)?.openTooltip(); }
+        else mapa.fitBounds(limites, { padding: [35, 35], maxZoom: 10 });
+      });
+    } catch {
+      if (status) status.textContent = 'Mapa indisponível. Use a lista de cidades para acessar os conteúdos.';
+    }
+  }
+</script>
+
+<style>
+  h2 { font-family: var(--serif); font-size: clamp(1.6rem,3vw,2.3rem); }
+  .mapa-layout { display:grid; grid-template-columns:minmax(0,3fr) minmax(210px,1fr); gap:1.5rem; margin-top:1.4rem; }
+  #mapa-viagens { height:420px; background:var(--paper-2); border:1px solid var(--line-strong); z-index:0; }
+  #mapa-viagens[hidden] { display:none; }
+  .nota, #mapa-status { font-size:.85rem; color:var(--ink-soft); }
+  label { display:block; margin-bottom:.6rem; }
+  select { width:100%; padding:.7rem; background:var(--paper-2); color:var(--ink); border:1px solid var(--line-strong); }
+  .destinos-mapa { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:1rem; margin-top:1.5rem; }
+  .destino { padding:1rem; border:1px solid var(--line-strong); scroll-margin-top:120px; }
+  .destino[hidden] { display:none; }
+  .destino h3 { font-family:var(--serif); font-size:1.4rem; margin-bottom:.6rem; }
+  .destino ul { list-style:none; padding:0; }
+  .destino li { margin-top:.6rem; }
+  .destino li span { display:block; font-family:var(--sans); font-size:.65rem; text-transform:uppercase; letter-spacing:.15em; color:var(--ink-mute); }
+  .destino a:hover { color:var(--rust-text); }
+  :global(.bandeira-mapa) { color:#a5331d; background:#ece4d3; border:2px solid #a5331d; border-radius:50% 50% 50% 0; transform-origin:center; text-align:center; font-size:27px; box-shadow:0 2px 6px #0007; }
+  :global(.bandeira-mapa:focus-visible) { outline:3px solid #15120e; outline-offset:3px; }
+  @media(max-width:700px) { .mapa-layout { grid-template-columns:1fr; } #mapa-viagens { height:330px; } }
+</style>
