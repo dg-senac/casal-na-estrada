@@ -1,0 +1,36 @@
+import { readFileSync, existsSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
+import ts from 'typescript';
+const html = readFileSync('dist/index.html', 'utf8');
+const script = readFileSync('src/components/CarrosselHero.astro','utf8').split('<script>')[1].split('</script>')[0];
+function setup(reduced = false) {
+  const dom = new JSDOM(html, {runScripts:'outside-only'});
+  let tick;
+  dom.window.matchMedia = () => ({ matches:reduced, addEventListener() {} });
+  dom.window.setInterval = fn => { tick = fn; return 1; };
+  dom.window.clearInterval = () => { tick = undefined; };
+  Object.defineProperty(dom.window.document,'hidden',{ value:false, configurable:true });
+  dom.window.eval(ts.transpile(script));
+  const root = dom.window.document.querySelector('[data-carrossel]');
+  const current = () => [...root.querySelectorAll('[data-slide]')].findIndex(s => !s.hidden);
+  return {dom, root, current, timer:()=>tick};
+}
+const {root,current,dom,timer} = setup();
+assert.equal(current(),0);
+assert.equal(root.querySelector('[data-controles]').hidden,false);
+for (const img of root.querySelectorAll('img')) assert(existsSync('dist/media/'+img.src.split('/').pop()));
+assert(timer()); timer()(); assert.equal(current(),1);
+root.querySelector('[data-proxima]').click(); assert.equal(current(),2);
+root.querySelector('[data-proxima]').click(); assert.equal(current(),0);
+root.querySelector('[data-anterior]').click(); assert.equal(current(),2);
+root.querySelector('[data-ir="1"]').click(); assert.equal(current(),1);
+assert.equal(root.querySelector('[data-ir="1"]').getAttribute('aria-pressed'),'true');
+root.dispatchEvent(new dom.window.KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true})); assert.equal(current(),0);
+root.querySelector('[data-pausa]').click(); assert.equal(timer(),undefined);
+root.querySelector('[data-pausa]').click(); assert(timer());
+root.dispatchEvent(new dom.window.Event('mouseenter')); assert.equal(timer(),undefined);
+root.dispatchEvent(new dom.window.Event('mouseleave')); assert(timer());
+root.querySelector('button').focus(); assert.equal(timer(),undefined);
+assert.equal(setup(true).timer(),undefined);
+console.log('Carrossel: imagens, navegação circular, indicadores, teclado, pausa, hover, foco e movimento reduzido OK.');

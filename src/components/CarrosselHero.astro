@@ -1,0 +1,101 @@
+---
+import { url } from '../lib/url';
+const slides = [
+  { arquivo: 'estrada', titulo: 'O caminho também é destino.', alt: 'Cena ilustrativa de dois motociclistas numa moto em estrada sinuosa entre serras verdes.' },
+  { arquivo: 'moto', titulo: 'Cromado, couro e estrada.', alt: 'Cena ilustrativa de uma moto cruiser preta e cromada junto a um café ao anoitecer.' },
+  { arquivo: 'encontro', titulo: 'A estrada também reúne.', alt: 'Cena ilustrativa de motos estacionadas e motociclistas reunidos ao entardecer.' },
+];
+---
+<figure class="carrossel" aria-label="Motociclismo e vida na estrada" aria-roledescription="carrossel" data-carrossel>
+  <div class="carrossel__quadro">
+    {slides.map((slide, i) => (
+      <div class="carrossel__slide" data-slide hidden={i !== 0} role="group" aria-roledescription="slide" aria-label={`${i + 1} de ${slides.length}`}>
+        <img src={url(`/media/carrossel-${slide.arquivo}.webp`)} alt={slide.alt} width="1100" height="1100" loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} decoding="async" />
+        <p class="carrossel__titulo">{slide.titulo}</p>
+      </div>
+    ))}
+    <div class="carrossel__controles" data-controles hidden>
+      <button type="button" data-anterior aria-label="Foto anterior">←</button>
+      <div class="carrossel__pontos" role="group" aria-label="Escolher foto">
+        {slides.map((s,i) => <button type="button" data-ir={i} aria-label={`Ver foto ${i + 1}: ${s.titulo}`} aria-pressed={i === 0}><span /></button>)}
+      </div>
+      <button type="button" data-proxima aria-label="Próxima foto">→</button>
+      <button class="carrossel__pausa" type="button" data-pausa aria-label="Pausar troca automática">Pausar</button>
+    </div>
+  </div>
+  <figcaption><span class="carrossel__numero" data-numero>01 / 03</span><span>Espírito da estrada · imagens ilustrativas geradas por IA.</span></figcaption>
+  <span class="sr-only" data-status role="status" aria-live="polite" aria-atomic="true"></span>
+</figure>
+<script>
+  document.querySelectorAll<HTMLElement>('[data-carrossel]').forEach(root => {
+    const slides = [...root.querySelectorAll<HTMLElement>('[data-slide]')];
+    const dots = [...root.querySelectorAll<HTMLButtonElement>('[data-ir]')];
+    const pause = root.querySelector<HTMLButtonElement>('[data-pausa]')!;
+    const controls = root.querySelector<HTMLElement>('[data-controles]')!;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let index = 0;
+    let paused = reduced.matches;
+    let hovering = false;
+    let focused = false;
+    let timer: number | undefined;
+    const show = (next: number, announce = false) => {
+      index = (next + slides.length) % slides.length;
+      slides.forEach((slide,i) => { slide.hidden = i !== index; });
+      dots.forEach((dot,i) => dot.setAttribute('aria-pressed', String(i === index)));
+      root.querySelector('[data-numero]')!.textContent = `${String(index + 1).padStart(2,'0')} / ${String(slides.length).padStart(2,'0')}`;
+      if (announce) root.querySelector('[data-status]')!.textContent = `Foto ${index + 1} de ${slides.length}: ${slides[index].querySelector('img')!.alt}`;
+    };
+    const schedule = () => {
+      window.clearInterval(timer);
+      if (!paused && !hovering && !focused && !document.hidden) timer = window.setInterval(() => show(index + 1), 6000);
+    };
+    const updatePause = () => {
+      pause.textContent = paused ? 'Reproduzir' : 'Pausar';
+      pause.setAttribute('aria-label', paused ? 'Iniciar troca automática' : 'Pausar troca automática');
+      schedule();
+    };
+    const manual = (next: number) => { show(next, true); schedule(); };
+    root.querySelector('[data-anterior]')!.addEventListener('click', () => manual(index - 1));
+    root.querySelector('[data-proxima]')!.addEventListener('click', () => manual(index + 1));
+    dots.forEach((dot,i) => dot.addEventListener('click', () => manual(i)));
+    pause.addEventListener('click', () => { paused = !paused; updatePause(); });
+    root.addEventListener('mouseenter', () => { hovering = true; schedule(); });
+    root.addEventListener('mouseleave', () => { hovering = false; schedule(); });
+    root.addEventListener('focusin', () => { focused = true; schedule(); });
+    root.addEventListener('focusout', ev => { focused = root.contains(ev.relatedTarget as Node | null); schedule(); });
+    root.addEventListener('keydown', ev => {
+      if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') { ev.preventDefault(); manual(index + (ev.key === 'ArrowLeft' ? -1 : 1)); }
+    });
+    reduced.addEventListener('change', () => { if (reduced.matches) { paused = true; updatePause(); } });
+    document.addEventListener('visibilitychange', schedule);
+    window.addEventListener('pagehide', () => window.clearInterval(timer));
+    controls.hidden = false;
+    updatePause();
+  });
+</script>
+<style>
+  .carrossel { margin:0; min-width:0; }
+  .carrossel__quadro { position:relative; aspect-ratio:1; overflow:hidden; background:var(--couro); border:1px solid var(--line-strong); border-bottom:3px solid var(--rust); }
+  .carrossel__slide { position:absolute; inset:0; }
+  .carrossel__slide[hidden], .carrossel__controles[hidden] { display:none; }
+  img { width:100%; height:100%; display:block; object-fit:cover; }
+  .carrossel__slide::after { content:''; position:absolute; inset:35% 0 0; background:linear-gradient(transparent,rgba(13,11,8,.93)); pointer-events:none; }
+  .carrossel__titulo { position:absolute; z-index:1; left:clamp(1rem,3vw,2rem); right:1rem; bottom:4.2rem; font-family:var(--serif); font-size:clamp(1.3rem,2.5vw,2rem); line-height:1.15; color:#ece4d3; margin:0; }
+  .carrossel__controles { position:absolute; z-index:2; bottom:.75rem; left:.75rem; right:.75rem; display:flex; align-items:center; gap:.35rem; }
+  button { min-width:44px; min-height:44px; padding:.4rem; border:1px solid rgba(236,228,211,.35); background:#0d0b08d9; color:#ece4d3; cursor:pointer; }
+  button:hover { border-color:var(--rust-text); color:var(--rust-text); }
+  button:focus-visible { outline:2px solid #ece4d3; outline-offset:2px; }
+  .carrossel__pontos { display:flex; margin-right:auto; }
+  .carrossel__pontos button { border:0; min-width:36px; background:transparent; }
+  .carrossel__pontos span { display:block; width:8px; height:8px; margin:auto; border:1px solid #ece4d3; border-radius:50%; }
+  .carrossel__pontos [aria-pressed='true'] span { background:var(--rust-text); border-color:var(--rust-text); }
+  .carrossel__pausa { font:500 .65rem var(--sans); letter-spacing:.08em; text-transform:uppercase; padding:.5rem; }
+  figcaption { display:flex; align-items:baseline; gap:1rem; margin-top:.65rem; font-family:var(--sans); font-size:.65rem; letter-spacing:.08em; color:var(--ink-mute); }
+  .carrossel__numero { color:var(--rust-text); white-space:nowrap; }
+  @media (max-width:420px) {
+    .carrossel__pontos button { min-width:26px; }
+    .carrossel__controles { gap:.2rem; left:.5rem; right:.5rem; }
+    .carrossel__pausa { font-size:.6rem; padding:.35rem; }
+  }
+  .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+</style>

@@ -3,6 +3,7 @@ import { site } from '../data/site';
 import { carregarAlbuns, carregarEncontros, carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
 import { kilometros, kmTexto } from '../lib/estrada';
 import Base from '../layouts/Base.astro';
+import CarrosselHero from '../components/CarrosselHero.astro';
 import Vazio from '../components/Vazio.astro';
 
 const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho).sort(
@@ -63,15 +64,7 @@ import { ordenar, seloCurto } from '../lib/trofeus';
       </div>
     </div>
 
-    <figure class="hero__media">
-      <div class="hero__emblema">
-        <img src={url("/media/emblema-motociclista.webp")} alt="Emblema Casal na Estrada, Recife — Pernambuco: caveira de capacete em selo marfim e vermelho" width="1200" height="1200" fetchpriority="high" decoding="async" />
-      </div>
-      <figcaption class="hero__caption">
-        <span class="hero__caption-num">MC</span>
-        <span>Casal na Estrada · Recife — Pernambuco.</span>
-      </figcaption>
-    </figure>
+    <CarrosselHero />
   </div>
 
   <div class="hero__strip">
@@ -434,24 +427,6 @@ import { ordenar, seloCurto } from '../lib/trofeus';
     flex-wrap: wrap;
     gap: 0.7rem;
     margin-top: 1.6rem;
-  }
-
-  .hero__media {
-    margin: 0;
-  }
-
-  .hero__emblema {
-    aspect-ratio: 1 / 1;
-    overflow: hidden;
-    border: 1px solid var(--line-strong);
-    background: var(--couro);
-  }
-
-  .hero__emblema img {
-    width: 100%;
-    height: 100%;
-    display: block;
-    object-fit: contain;
   }
 
   .agenda-vazio {
