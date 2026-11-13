@@ -54,6 +54,27 @@ const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 </html>
 
 <style is:global>
+  /*
+   * O painel é ferramenta de trabalho: continua no papel claro, mesmo com o
+   * site de noite. Só aqui os tons antigos voltam a valer.
+   */
+  :root {
+    --paper: #ece5d6;
+    --paper-2: #e2d9c6;
+    --paper-3: #d8ceb8;
+    --ink: #16130e;
+    --ink-2: #2a251c;
+    --ink-soft: #514a3d;
+    --ink-mute: #7c7361;
+    --rust: #a5331d;
+    --rust-soft: #c0573c;
+    --rust-text: #a5331d;
+    --couro: #16130e;
+    --line: rgba(22, 19, 14, 0.18);
+    --line-strong: rgba(22, 19, 14, 0.42);
+    --paper-line: rgba(22, 19, 14, 0.22);
+  }
+
   /* ============================================================
      Painel — mesma paleta do site, tipografia de jornal.
      Todas as classes começam com "pn-" para não brigar com o site.
