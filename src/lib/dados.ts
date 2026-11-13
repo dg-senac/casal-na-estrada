@@ -101,6 +101,9 @@ export type Encontro = {
     local?: string;
     confirmado: boolean;
     observacao?: string;
+    /** Encontro cancelado: continua na agenda, mas com o motivo à mostra. */
+    cancelado: boolean;
+    motivoCancelamento?: string;
   };
 };
 
@@ -282,6 +285,8 @@ export function carregarEncontros(): Promise<Encontro[]> {
         local: texto(l.local),
         confirmado: l.confirmado !== false,
         observacao: texto(l.observacao),
+        cancelado: l.cancelado === true,
+        motivoCancelamento: texto(l.motivo_cancelamento),
       },
     }));
   });

@@ -613,14 +613,140 @@ async function lista() {
     .forEach((botao) => {
       botao.addEventListener('click', () => excluir(botao.dataset.excluir, botao.dataset.nome));
     });
+
+  area()
+    .querySelectorAll('[data-cancelar]')
+    .forEach((botao) => {
+      botao.addEventListener('click', () => {
+        const registro = itens.find((r) => String(r.id) === botao.dataset.cancelar);
+        if (registro) cancelarEncontro(registro);
+      });
+    });
+}
+
+/**
+ * Cancelar (ou reativar) um encontro.
+ *
+ * Cancelado não é apagado: o encontro continua na agenda do site, com o motivo
+ * escrito embaixo do nome — quem ia se deslocar precisa saber por quê.
+ */
+function cancelarEncontro(registro) {
+  const reativando = Boolean(registro.cancelado);
+  const tela = document.createElement('div');
+  tela.className = 'pn-dialogo';
+  tela.innerHTML = `
+    <form class="pn-dialogo__caixa" novalidate>
+      <h2>${reativando ? 'Reativar encontro' : 'Cancelar encontro'}</h2>
+      <p class="pn-dialogo__sub">
+        ${esc(registro.nome)} · ${dataBR(registro.inicio)} · ${esc(registro.cidade ?? '')}${
+          registro.uf ? '/' + esc(registro.uf) : ''
+        }
+      </p>
+      ${
+        reativando
+          ? `<p class="pn-dialogo__texto">
+               Ele volta para a agenda do site como se nada tivesse acontecido. O motivo
+               escrito é apagado.
+             </p>`
+          : `<label class="pn-campo">
+               <span>Por que está cancelando? <em>*</em></span>
+               <textarea name="motivo" rows="3" maxlength="240"
+                 placeholder="Ex.: o clube adiou para novembro por causa da chuva."></textarea>
+               <small class="pn-dica">Esse texto aparece no site, embaixo do nome do encontro.</small>
+             </label>`
+      }
+      <div class="pn-acoes">
+        <button class="pn-btn ${reativando ? '' : 'pn-btn--perigo'}" type="submit" ${
+          reativando ? '' : 'disabled'
+        }>${reativando ? 'Reativar encontro' : 'Cancelar o encontro'}</button>
+        <button class="pn-btn pn-btn--claro" type="button" data-fechar>Voltar</button>
+      </div>
+    </form>
+  `;
+
+  const caixa = tela.querySelector('form');
+  const campo = tela.querySelector('[name="motivo"]');
+  const confirmar = tela.querySelector('button[type="submit"]');
+
+  const fechar = () => tela.remove();
+  tela.querySelector('[data-fechar]').addEventListener('click', fechar);
+  tela.addEventListener('click', (ev) => {
+    if (ev.target === tela) fechar();
+  });
+  document.addEventListener(
+    'keydown',
+    (ev) => {
+      if (ev.key === 'Escape') fechar();
+    },
+    { once: true }
+  );
+
+  if (campo) {
+    campo.addEventListener('input', () => {
+      confirmar.disabled = campo.value.trim().length < 4;
+    });
+    setTimeout(() => campo.focus(), 60);
+  }
+
+  caixa.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const motivo = campo?.value.trim() ?? '';
+    if (!reativando && motivo.length < 4) {
+      avisar('Escreva o motivo do cancelamento — ele aparece no site.', 'erro');
+      campo?.focus();
+      return;
+    }
+
+    confirmar.disabled = true;
+    confirmar.textContent = 'Salvando…';
+
+    const mudanca = reativando
+      ? { cancelado: false, motivo_cancelamento: null, cancelado_em: null }
+      : {
+          cancelado: true,
+          motivo_cancelamento: motivo,
+          cancelado_em: new Date().toISOString(),
+        };
+
+    const { error } = await supabase.from('encontros').update(mudanca).eq('id', registro.id);
+
+    if (error) {
+      confirmar.disabled = false;
+      confirmar.textContent = reativando ? 'Reativar encontro' : 'Cancelar o encontro';
+      avisar(`Não consegui salvar: ${error.message}`, 'erro');
+      return;
+    }
+
+    fechar();
+    avisar(
+      reativando
+        ? 'Encontro reativado. O site publica sozinho em cerca de 1 minuto.'
+        : 'Encontro cancelado. O site mostra o motivo em cerca de 1 minuto.'
+    );
+    lista();
+  });
+
+  document.body.appendChild(tela);
 }
 
 function itemHTML(registro) {
   const cfgSecao = SECOES[secaoAtual];
   const info = cfgSecao.resumo(registro);
-  const selo = registro.publicado
-    ? ''
-    : '<span class="pn-selo pn-selo--rascunho">Fora do ar</span>';
+
+  const selos = [
+    registro.publicado ? '' : '<span class="pn-selo pn-selo--rascunho">Fora do ar</span>',
+    registro.cancelado ? '<span class="pn-selo pn-selo--cancelado">Cancelado</span>' : '',
+  ].join('');
+  const selo = selos;
+
+  // Botão que só existe na aba de encontros: cancelar (ou reativar) o evento.
+  const botaoCancelar =
+    secaoAtual === 'encontros'
+      ? `<button class="pn-btn ${registro.cancelado ? 'pn-btn--claro' : 'pn-btn--perigo'}"
+           type="button" data-cancelar="${esc(registro.id)}">
+           ${registro.cancelado ? 'Reativar' : 'Cancelar encontro'}
+         </button>`
+      : '';
   const link = info.link
     ? `<a class="pn-btn--texto" href="${esc(info.link)}" target="_blank" rel="noopener">ver no site ↗</a>`
     : '';
@@ -635,8 +761,14 @@ function itemHTML(registro) {
       <div class="pn-item__texto">
         <h3>${esc(info.titulo)}${selo}</h3>
         <p>${esc(info.meta)} ${link}</p>
+        ${
+          registro.cancelado
+            ? `<p class="pn-item__motivo">Motivo: ${esc(registro.motivo_cancelamento || 'não informado')}</p>`
+            : ''
+        }
       </div>
       <div class="pn-item__acoes">
+        ${botaoCancelar}
         <button class="pn-btn pn-btn--claro" type="button" data-editar="${esc(registro.id)}">Editar</button>
         <button class="pn-btn pn-btn--claro pn-btn--perigo" type="button"
           data-excluir="${esc(registro.id)}" data-nome="${esc(info.titulo)}">Excluir</button>
