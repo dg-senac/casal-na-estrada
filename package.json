@@ -7,7 +7,8 @@
     "dev": "astro dev --host 0.0.0.0 --port 4321",
     "start": "astro dev --host 0.0.0.0 --port 4321",
     "build": "astro build",
-    "preview": "astro preview --host 0.0.0.0 --port 4321"
+    "preview": "astro preview --host 0.0.0.0 --port 4321",
+    "test:seguranca": "node tests/seguranca.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -15,14 +16,20 @@
     "@fontsource/barlow-condensed": "^5.3.0",
     "@fontsource/bodoni-moda": "^5.3.0",
     "@supabase/supabase-js": "^2.119.0",
-    "astro": "^5.18.2",
+    "astro": "^7.4.1",
+    "dompurify": "^3.4.17",
     "leaflet": "^1.9.4",
-    "marked": "^18.2.0"
+    "marked": "^18.2.0",
+    "sanitize-html": "^2.18.2"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
     "@types/leaflet": "^1.9.22",
+    "@types/sanitize-html": "^2.16.2",
     "jsdom": "^31.0.0",
     "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=22.22.0"
   }
 }
