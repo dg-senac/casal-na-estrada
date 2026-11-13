@@ -20,6 +20,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "jsdom": "^31.0.0",
     "typescript": "^5.9.3"
   }
 }
