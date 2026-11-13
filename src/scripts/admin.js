@@ -10,6 +10,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { marked } from 'marked';
+import { sanitizarPrevia } from '../lib/previa-segura.js';
 
 // ---------------------------------------------------------------- configuração
 
@@ -1004,9 +1005,10 @@ function formulario(registro) {
 
 /** Reduz a foto no navegador antes de enviar: 1600 px no maior lado, WebP 82%. */
 async function comprimir(arquivo, maxLado = 1600, qualidade = 0.82) {
-  if (!arquivo.type.startsWith('image/')) {
+  if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(arquivo.type)) {
     throw new Error('O arquivo precisa ser uma foto (JPG, PNG, WEBP).');
   }
+  if (arquivo.size > 10 * 1024 * 1024) throw new Error('A foto deve ter no máximo 10 MB.');
   let bitmap;
   try {
     bitmap = await createImageBitmap(arquivo);
@@ -1022,6 +1024,7 @@ async function comprimir(arquivo, maxLado = 1600, qualidade = 0.82) {
   tela.width = largura;
   tela.height = altura;
   tela.getContext('2d').drawImage(bitmap, 0, 0, largura, altura);
+  bitmap.close();
 
   // WebP pesa bem menos; navegador antigo cai no JPEG sozinho.
   const blob =
@@ -1179,7 +1182,7 @@ function mostrarPrevia() {
   const local = [pegar('local'), pegar('cidade'), pegar('uf')].filter(Boolean).join(' — ');
   const tipo = pegar('tipo') || secaoAtual;
 
-  const html = corpo ? marked.parse(corpo, { async: false }) : '';
+  const html = corpo ? sanitizarPrevia(marked.parse(corpo, { async: false })) : '';
 
   const tela = document.createElement('div');
   tela.className = 'pn-visor';

@@ -23,6 +23,12 @@ jobs:
       - name: Instalar dependências
         run: npm ci
 
+      - name: Auditar dependências (alto/crítico)
+        run: npm audit --audit-level=high
+
+      - name: Testar sanitização e JSON-LD
+        run: npm run test:seguranca
+
       - name: Conferir tipos
         run: npx astro check
         env:
