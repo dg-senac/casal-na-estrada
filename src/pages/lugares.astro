@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import MapaViagens from '../components/MapaViagens.astro';
 import { carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
 import { lugares } from '../lib/estrada';
 import { url } from '../lib/url';
@@ -23,13 +24,15 @@ const totalEstados = grupos.filter((g) => g.uf).length;
       <div class="page-head__bottom">
         <p>
           Tudo o que está aqui saiu do nosso próprio caderno: cada viagem tem uma cidade, cada
-          troféu tem uma origem. É o mapa que a gente consegue desenhar sem internet — só com
+          troféu tem uma origem. No mapa e na lista abaixo, dá para abrir as histórias de cada destino — só com
           o que a estrada deixou.
         </p>
         <span class="small-caps">Por estado, do mais visitado ao menos</span>
       </div>
     </div>
   </header>
+
+  <MapaViagens posts={posts} trofeus={trofeus} />
 
   <section class="section section--tight">
     <div class="wrap">
