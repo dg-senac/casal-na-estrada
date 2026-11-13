@@ -1,0 +1,51 @@
+import { readFileSync } from 'node:fs';
+import assert from 'node:assert/strict';
+import ts from 'typescript';
+import { JSDOM } from 'jsdom';
+const exports = {};
+new Function('exports',ts.transpile(readFileSync('src/lib/tempo-encontros.ts','utf8'),{module:ts.ModuleKind.CommonJS}))(exports);
+const { limitesEncontro, estadoEncontro, tempoRestante } = exports;
+const lim = limitesEncontro(new Date(2026,10,13,12),new Date(2026,10,15,12));
+assert.equal(lim.inicio,Date.parse('2026-11-13T03:00:00Z'));
+assert.equal(lim.fim,Date.parse('2026-11-16T03:00:00Z'));
+assert.equal(estadoEncontro(lim.inicio,lim.fim,lim.inicio-1),'futuro');
+assert.equal(estadoEncontro(lim.inicio,lim.fim,lim.inicio),'andamento');
+assert.equal(estadoEncontro(lim.inicio,lim.fim,lim.fim-1),'andamento');
+assert.equal(estadoEncontro(lim.inicio,lim.fim,lim.fim),'passado');
+assert.equal(limitesEncontro(new Date(2026,10,13,12)).fim-lim.inicio,86400000);
+assert.equal(tempoRestante(lim.fim,lim.fim).segundos,'00');
+const dom = new JSDOM(readFileSync('dist/encontros/index.html','utf8'),{runScripts:'outside-only'});
+const doc = dom.window.document;
+const caixa = doc.querySelector('[data-contagem]');
+const cards = [...doc.querySelectorAll('[data-evento]')];
+assert(cards.length);
+// Três eventos, um cancelado, dois simultâneos.
+const original = cards[0];
+for (const card of cards.slice(1)) card.remove();
+original.dataset.inicio = lim.inicio; original.dataset.fim = lim.fim; original.dataset.cancelado = 'false';
+for (const cancelado of [false,true]) {
+ const clone = original.cloneNode(true); clone.dataset.cancelado = String(cancelado);
+ if(cancelado) { clone.querySelector('[data-relogio]')?.remove(); clone.querySelector('[data-estado]')?.remove(); }
+ original.parentElement.append(clone);
+}
+caixa.dataset.eventos = JSON.stringify([{...lim,nome:'Evento teste',local:'Recife — PE'}]);
+let now = lim.inicio - 1000;
+dom.window.Date.now = () => now;
+let tick;
+dom.window.setInterval = fn => { tick=fn; return 1; };
+dom.window.helpers = exports;
+let script = readFileSync('src/pages/encontros.astro','utf8').split('<script>')[1].split('</script>')[0];
+script=script.replace(/import .*from .*;/,'const { estadoEncontro, tempoRestante } = window.helpers;');
+dom.window.eval(ts.transpile(script));
+assert.equal(doc.querySelectorAll('[data-grupo="futuro"] [data-evento]').length,3);
+now=lim.inicio; tick();
+assert.equal(doc.querySelectorAll('[data-grupo="andamento"] [data-evento]').length,2);
+assert.equal(doc.querySelectorAll('[data-grupo="futuro"] [data-evento]').length,1);
+assert(caixa.textContent.includes('Já começou'));
+assert.equal(doc.querySelector('[data-relogio]').hidden,false);
+now=lim.fim-1000;tick();assert.equal(caixa.querySelector('[data-seg]').textContent,'01');
+now=lim.fim;tick();
+assert.equal(doc.querySelectorAll('[data-grupo="passado"] [data-evento]').length,3);
+assert.equal(doc.querySelector('[data-secao-contagem]').hidden,true);
+assert.equal(doc.querySelector('[data-grupo="andamento"]').hidden,true);
+console.log('Encontros: fuso Recife, dia único, limites, simultâneos, cancelamento, início e encerramento sem reload OK.');
