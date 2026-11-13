@@ -21,6 +21,7 @@ import { url } from '../lib/url';
         <a href={url("/galeria")}>Galeria</a>
         <a href={url("/trofeus")}>Sala de troféus</a>
         <a href={url("/encontros")}>Encontros</a>
+        <a href={url("/buscar")}>Buscar no site</a>
         <a href={url("/lugares")}>Onde já estivemos</a>
         <a href={url("/linha-do-tempo")}>Linha do tempo</a>
       </div>
@@ -36,7 +37,7 @@ import { url } from '../lib/url';
         <p class="foot__head">Onde nos achar</p>
         <p class="foot__addr">Recife — Pernambuco<br />Brasil</p>
         <div class="foot__links">
-          <a href={site.instagram} target="_blank" rel="noopener">Instagram ↗</a>
+          <a href={site.instagram} target="_blank" rel="noopener">Instagram {site.instagramUsuario} ↗</a>
           <a href={`https://wa.me/${site.whatsapp}`} target="_blank" rel="noopener">WhatsApp ↗</a>
           <a href={`mailto:${site.email}`}>E-mail ↗</a>
         </div>

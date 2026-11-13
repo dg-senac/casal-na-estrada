@@ -1,0 +1,505 @@
+---
+/**
+ * /buscar — a busca do site inteiro.
+ *
+ * Tudo é montado no build: cada publicação, álbum, peça e encontro entra numa
+ * lista com o texto já normalizado (sem acento, minúsculo). A filtragem roda no
+ * navegador, sem servidor — e sem JS a página continua listando tudo.
+ */
+import Base from '../layouts/Base.astro';
+import {
+  carregarAlbuns,
+  carregarEncontros,
+  carregarPosts,
+  carregarTrofeus,
+  postsNoAr,
+} from '../lib/dados';
+import { CATEGORIAS, categoriaDe } from '../lib/trofeus';
+import { url } from '../lib/url';
+
+const posts = postsNoAr(await carregarPosts());
+const albuns = (await carregarAlbuns()).filter((a) => !a.data.rascunho);
+const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
+const encontros = await carregarEncontros();
+
+const limpar = (texto: string) =>
+  texto
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+
+type Tipo = 'diário' | 'álbum' | 'peça' | 'encontro';
+
+type Item = {
+  tipo: Tipo;
+  titulo: string;
+  meta: string;
+  resumo: string;
+  href: string;
+  tags: string[];
+  busca: string;
+};
+
+const itens: Item[] = [
+  ...posts.map((p) => {
+    const tags = [...p.data.tags, p.data.tipo];
+    const meta = [p.data.local, p.data.uf].filter(Boolean).join(' — ');
+    return {
+      tipo: 'diário' as Tipo,
+      titulo: p.data.titulo,
+      meta,
+      resumo: p.data.resumo,
+      href: url(`/diario/${p.id}`),
+      tags,
+      busca: limpar([p.data.titulo, p.data.resumo, p.body, meta, tags.join(' ')].join(' ')),
+    };
+  }),
+  ...albuns.map((a) => {
+    const meta = [a.data.local].filter(Boolean).join(' — ');
+    return {
+      tipo: 'álbum' as Tipo,
+      titulo: a.data.titulo,
+      meta,
+      resumo: a.data.descricao ?? '',
+      href: url(`/galeria/${a.id}`),
+      tags: ['álbum'],
+      busca: limpar([a.data.titulo, a.data.descricao, meta, 'album'].join(' ')),
+    };
+  }),
+  ...trofeus.map((t) => {
+    const categoriaId = categoriaDe(t);
+    const categoria = CATEGORIAS.find((c) => c.id === categoriaId)?.titulo ?? 'Peça';
+    const meta = [t.data.cidade].filter(Boolean).join(' — ');
+    const tags = [categoria];
+    return {
+      tipo: 'peça' as Tipo,
+      titulo: t.data.evento,
+      meta,
+      resumo: t.data.historia ?? '',
+      href: url(`/trofeus/${t.id}`),
+      tags,
+      busca: limpar(
+        [t.data.evento, t.data.historia, t.data.nota, meta, categoria, 'trofeu peca'].join(' ')
+      ),
+    };
+  }),
+  ...encontros.map((e) => {
+    const meta = `${e.data.cidade} — ${e.data.uf}`;
+    return {
+      tipo: 'encontro' as Tipo,
+      titulo: e.data.nome,
+      meta,
+      resumo: e.data.cancelado
+        ? `Cancelado: ${e.data.motivoCancelamento ?? 'não vai mais acontecer.'}`
+        : (e.data.observacao ?? ''),
+      href: url('/encontros'),
+      tags: ['encontro', ...(e.data.cancelado ? ['cancelado'] : [])],
+      busca: limpar([e.data.nome, meta, e.data.local, 'encontro agenda'].join(' ')),
+    };
+  }),
+];
+
+// Marcadores: as tags do diário, as categorias das peças e o tipo de conteúdo.
+const contagem = new Map<string, number>();
+for (const item of itens) {
+  for (const tag of new Set(item.tags)) {
+    contagem.set(tag, (contagem.get(tag) ?? 0) + 1);
+  }
+}
+const marcadores = [...contagem.entries()]
+  .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR'))
+  .map(([nome, total]) => ({ nome, total }));
+
+const tipos = [...new Set(itens.map((i) => i.tipo))];
+
+const plural = (n: number, um: string, muitos: string) => (n === 1 ? um : muitos);
+---
+
+<Base
+  title="Buscar"
+  description="Procure no diário, na galeria, na sala de troféus e na agenda por palavra, cidade ou marcador."
+>
+  <header class="page-head">
+    <div class="wrap">
+      <p class="eyebrow">Busca · {itens.length} registros no caderno</p>
+      <h1 class="display">Procurar no <em>caderno</em></h1>
+      <div class="page-head__bottom">
+        <p>
+          Digite uma cidade, um encontro, um assunto — ou toque num marcador. A busca olha
+          dentro do diário, das fotos, das peças da prateleira e da agenda de uma vez.
+        </p>
+        <span class="small-caps">Sem pressa, do jeito que se folheia</span>
+      </div>
+    </div>
+  </header>
+
+  <section class="section section--tight">
+    <div class="wrap">
+      <div class="busca">
+        <label class="busca__campo" for="campo-busca">
+          <span class="busca__rotulo">Buscar</span>
+          <input
+            id="campo-busca"
+            type="search"
+            autocomplete="off"
+            placeholder="Gravatá, café na serra, placa, Natal…"
+          />
+        </label>
+        <div class="busca__tipos" role="group" aria-label="Filtrar por tipo">
+          <button class="tipo" type="button" data-tipo="" aria-pressed="true">Tudo</button>
+          {
+            tipos.map((tipo) => (
+              <button class="tipo" type="button" data-tipo={limpar(tipo)} aria-pressed="false">
+                {tipo}
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      {
+        marcadores.length > 0 && (
+          <div class="marcadores" aria-label="Marcadores">
+            <span class="marcadores__rotulo">Marcadores</span>
+            {marcadores.map((m) => (
+              <button
+                class="marcador"
+                type="button"
+                data-marcador={limpar(m.nome)}
+                aria-pressed="false"
+              >
+                {m.nome}
+                <span class="marcador__n">{m.total}</span>
+              </button>
+            ))}
+          </div>
+        )
+      }
+
+      <p class="resultado__contagem" id="contagem" role="status" aria-live="polite">
+        {itens.length} {plural(itens.length, 'registro', 'registros')}
+      </p>
+
+      <div class="resultados" id="resultados">
+        {
+          itens.map((item) => (
+            <a
+              class="resultado"
+              href={item.href}
+              data-busca={item.busca}
+              data-tags={item.tags.map((t) => limpar(t)).join('|')}
+              data-tipo={limpar(item.tipo)}
+            >
+              <span class="resultado__tipo">{item.tipo}</span>
+              <span class="resultado__texto">
+                <span class="resultado__titulo">{item.titulo}</span>
+                {item.meta && <span class="resultado__meta">{item.meta}</span>}
+                {item.resumo && <span class="resultado__resumo">{item.resumo}</span>}
+              </span>
+              <span class="resultado__seta" aria-hidden="true">→</span>
+            </a>
+          ))
+        }
+      </div>
+
+      <p class="resultado__vazio" id="vazio" hidden>
+        Nada encontrado com isso. Tente o nome de uma cidade, um encontro ou um marcador.
+      </p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  // Filtro da busca: tudo roda aqui no navegador, em cima da lista já montada.
+  const campo = document.getElementById('campo-busca') as HTMLInputElement | null;
+  const contagem = document.getElementById('contagem');
+  const vazio = document.getElementById('vazio');
+  const resultados = Array.from(
+    document.querySelectorAll<HTMLElement>('.resultado')
+  );
+  const chips = Array.from(document.querySelectorAll<HTMLButtonElement>('[data-marcador]'));
+  const tipos = Array.from(document.querySelectorAll<HTMLButtonElement>('button[data-tipo]'));
+
+  const normalizar = (texto: string) =>
+    texto
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim();
+
+  let marcadorAtivo = '';
+  let tipoAtivo = '';
+
+  const aplicar = () => {
+    const termos = normalizar(campo?.value ?? '')
+      .split(/\s+/)
+      .filter(Boolean);
+
+    let achados = 0;
+
+    for (const item of resultados) {
+      const texto = item.dataset.busca ?? '';
+      const tags = (item.dataset.tags ?? '').split('|');
+      const tipo = item.dataset.tipo ?? '';
+
+      const casaTexto = termos.every((t) => texto.includes(t));
+      const casaMarcador = marcadorAtivo === '' || tags.includes(marcadorAtivo);
+      const casaTipo = tipoAtivo === '' || tipo === tipoAtivo;
+
+      const dentro = casaTexto && casaMarcador && casaTipo;
+      item.hidden = !dentro;
+      if (dentro) achados += 1;
+    }
+
+    if (contagem) {
+      const filtrado = termos.length > 0 || marcadorAtivo !== '' || tipoAtivo !== '';
+      contagem.textContent = filtrado
+        ? `${achados} ${achados === 1 ? 'registro encontrado' : 'registros encontrados'}`
+        : `${resultados.length} registros`;
+    }
+    if (vazio) vazio.hidden = achados > 0;
+
+    const endereco = new URL(location.href);
+    if (campo?.value) endereco.searchParams.set('q', campo.value);
+    else endereco.searchParams.delete('q');
+    if (marcadorAtivo) endereco.searchParams.set('tag', marcadorAtivo);
+    else endereco.searchParams.delete('tag');
+    if (tipoAtivo) endereco.searchParams.set('tipo', tipoAtivo);
+    else endereco.searchParams.delete('tipo');
+    history.replaceState(null, '', endereco);
+  };
+
+  const marcarChips = () => {
+    for (const chip of chips) {
+      chip.setAttribute('aria-pressed', String(chip.dataset.marcador === marcadorAtivo));
+    }
+    for (const botao of tipos) {
+      botao.setAttribute('aria-pressed', String((botao.dataset.tipo ?? '') === tipoAtivo));
+    }
+  };
+
+  chips.forEach((chip) => {
+    chip.addEventListener('click', () => {
+      marcadorAtivo = marcadorAtivo === chip.dataset.marcador ? '' : (chip.dataset.marcador ?? '');
+      marcarChips();
+      aplicar();
+    });
+  });
+
+  tipos.forEach((botao) => {
+    botao.addEventListener('click', () => {
+      tipoAtivo = botao.dataset.tipo ?? '';
+      marcarChips();
+      aplicar();
+    });
+  });
+
+  campo?.addEventListener('input', aplicar);
+
+  // Chegando de um link com ?q=, ?tag= ou ?tipo=
+  const parametros = new URLSearchParams(location.search);
+  const q = parametros.get('q') ?? '';
+  const tag = normalizar(parametros.get('tag') ?? '');
+  const tipo = normalizar(parametros.get('tipo') ?? '');
+
+  if (campo && q) campo.value = q;
+  if (tag && chips.some((c) => c.dataset.marcador === tag)) marcadorAtivo = tag;
+  if (tipo && tipos.some((b) => (b.dataset.tipo ?? '') === tipo)) tipoAtivo = tipo;
+
+  marcarChips();
+  aplicar();
+</script>
+
+<style>
+  .busca {
+    display: grid;
+    gap: 1rem;
+    padding-bottom: 1.4rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .busca__campo {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    border-bottom: 2px solid var(--line-strong);
+    padding-bottom: 0.4rem;
+  }
+
+  .busca__campo:focus-within {
+    border-bottom-color: var(--rust);
+  }
+
+  .busca__rotulo {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .busca__campo input {
+    flex: 1;
+    min-width: 0;
+    background: transparent;
+    border: 0;
+    font-family: var(--serif);
+    font-size: clamp(1.15rem, 2.4vw, 1.6rem);
+    color: var(--ink);
+    padding: 0.2rem 0;
+  }
+
+  .busca__campo input:focus {
+    outline: none;
+  }
+
+  .busca__campo input::placeholder {
+    color: var(--ink-mute);
+    opacity: 0.7;
+  }
+
+  .busca__tipos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tipo,
+  .marcador {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    padding: 0.3rem 0.6rem 0.26rem;
+    cursor: pointer;
+    transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  }
+
+  .tipo:hover,
+  .marcador:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+
+  .tipo[aria-pressed='true'],
+  .marcador[aria-pressed='true'] {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: #fff;
+  }
+
+  .marcadores {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 1.1rem;
+  }
+
+  .marcadores__rotulo {
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-right: 0.3rem;
+  }
+
+  .marcador__n {
+    font-size: 0.62rem;
+    opacity: 0.6;
+    margin-left: 0.25rem;
+  }
+
+  .resultado__contagem {
+    font-family: var(--sans);
+    font-size: 0.7rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin: 1.6rem 0 0.6rem;
+  }
+
+  .resultados {
+    display: grid;
+  }
+
+  .resultado {
+    display: grid;
+    grid-template-columns: 6.4rem minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 0.4rem 1.1rem;
+    padding-block: 0.85rem;
+    border-bottom: 1px dotted var(--line-strong);
+  }
+
+  .resultado[hidden] {
+    display: none;
+  }
+
+  .resultado:hover .resultado__titulo {
+    color: var(--rust-text);
+  }
+
+  .resultado__tipo {
+    font-family: var(--sans);
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+  }
+
+  .resultado__texto {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .resultado__titulo {
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    line-height: 1.25;
+  }
+
+  .resultado__meta {
+    font-family: var(--sans);
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--rust-text);
+  }
+
+  .resultado__resumo {
+    font-size: 0.9rem;
+    color: var(--ink-soft);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .resultado__seta {
+    font-family: var(--sans);
+    color: var(--ink-mute);
+  }
+
+  .resultado__vazio {
+    margin-top: 1.6rem;
+    font-family: var(--serif);
+    font-size: 1.1rem;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 640px) {
+    .resultado {
+      grid-template-columns: 1fr auto;
+    }
+
+    .resultado__tipo {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
