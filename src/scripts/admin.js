@@ -10,6 +10,7 @@
  */
 import { createClient } from '@supabase/supabase-js';
 import { criarControleAcesso } from '../lib/controle-acesso.js';
+import { criarTelaMfa } from '../lib/mfa-painel.js';
 import { marked } from 'marked';
 import { sanitizarPrevia } from '../lib/previa-segura.js';
 
@@ -398,6 +399,8 @@ const SECOES = {
 const ABAS = ['diario', 'galeria', 'trofeus', 'encontros'];
 
 let usuario = null;
+let mfaAtivo = false;
+let abrirSeguranca = () => {};
 let secaoAtual = 'diario';
 let editando = null; // registro em edição (ou null para novo)
 
@@ -475,6 +478,7 @@ function telaPainel() {
         <button id="pn-publicar" type="button" title="Manda o site para o ar agora">Publicar agora</button>
         <button id="pn-backup" type="button" title="Baixa um arquivo com todo o conteúdo">Backup</button>
         <a href="${BASE}">Ver o site</a>
+        <button id="pn-seguranca" type="button">${mfaAtivo ? '2FA ativo' : 'Ativar 2FA'}</button>
         <button id="pn-sair" type="button">Sair</button>
       </div>
     </header>
@@ -496,6 +500,11 @@ function telaPainel() {
     publicarSite().finally(() => {
       botao.disabled = false;
     });
+  });
+
+  document.getElementById('pn-seguranca').addEventListener('click', () => {
+    if (document.getElementById('pn-form') && !window.confirm('Abrir a segurança pode descartar alterações não salvas. Continuar?')) return;
+    abrirSeguranca();
   });
 
   document.getElementById('pn-sair').addEventListener('click', async () => {
@@ -1466,12 +1475,38 @@ if (!supabase) {
   </div></div>`;
 } else {
   const limparDados = () => {
+    telaMfa.limpar();
     usuario = null;
+    mfaAtivo = false;
     editando = null;
     publicacaoLigada = null;
     document.querySelectorAll('.pn-dialogo, .pn-visor, .pn-toast').forEach(el => el.remove());
   };
-  const verificar = () => supabase.rpc('e_administrador');
+  const verificar = async () => {
+    const { data, error } = await supabase.rpc('estado_acesso_painel');
+    if (error) return { data: false, error };
+    return {
+      data: data?.autorizado === true && data?.mfa_necessario === false,
+      mfa: data?.autorizado === true && data?.mfa_necessario === true,
+      mfaAtivo: data?.mfa_ativo === true,
+    };
+  };
+  const retomar = async () => {
+    const { data, error } = await supabase.auth.getSession();
+    if (error) { semAcesso('conexao'); return; }
+    controle.atualizar(data.session);
+  };
+  const telaMfa = criarTelaMfa({
+    app, client: supabase, voltar: retomar,
+    concluido: () => retomar(),
+    sair: () => supabase.auth.signOut(),
+  });
+  abrirSeguranca = () => {
+    controle.invalidar();
+    const ativo = mfaAtivo;
+    limparDados();
+    telaMfa.configurar(ativo);
+  };
   const semAcesso = (motivo) => {
     limparDados();
     app.innerHTML = `<div class="pn-entrada"><div class="pn-entrada__caixa">
@@ -1498,9 +1533,16 @@ if (!supabase) {
       limparDados();
       app.innerHTML = '<p class="pn-carregando">Conferindo autorização…</p>';
     },
-    permitido: (conta) => {
+    permitido: (conta, resultado) => {
+      telaMfa.limpar();
       usuario = conta;
+      mfaAtivo = resultado.mfaAtivo;
       if (!document.querySelector('.pn-topo')) telaPainel();
+      else document.getElementById('pn-seguranca').textContent = mfaAtivo ? '2FA ativo' : 'Ativar 2FA';
+    },
+    segundoFator: () => {
+      limparDados();
+      telaMfa.desafio();
     },
     negado: semAcesso,
     saiu: () => {
@@ -1512,6 +1554,7 @@ if (!supabase) {
   // O Supabase emite INITIAL_SESSION. Não chamar RPC dentro do callback
   // síncrono do Auth: isso pode disputar o lock de refresh da sessão.
   supabase.auth.onAuthStateChange((_evento, sessao) => {
+    if (_evento === 'TOKEN_REFRESHED' && document.querySelector('.pn-mfa')) return;
     controle.invalidar();
     const rodada = ++eventoAtual;
     if (!sessao) { controle.atualizar(null); return; }

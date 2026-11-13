@@ -1,5 +1,5 @@
 /** A interface só abre após confirmação do banco. RLS/RPCs são a barreira real. */
-export function criarControleAcesso({ verificar, aguardando, permitido, negado, saiu }) {
+export function criarControleAcesso({ verificar, aguardando, permitido, negado, saiu, segundoFator }) {
   let versao = 0;
   return {
     invalidar() { versao += 1; },
@@ -9,11 +9,17 @@ export function criarControleAcesso({ verificar, aguardando, permitido, negado, 
       if (!conta) { saiu(); return; }
       aguardando(conta);
       try {
-        const { data, error } = await verificar();
+        const resultado = await verificar();
+        const { data, error } = resultado;
         if (rodada !== versao) return; // logout/troca de conta durante a requisição
         if (error) { negado('conexao'); return; }
+        if (resultado.mfa === true) {
+          if (segundoFator) segundoFator(conta);
+          else negado('permissao');
+          return;
+        }
         if (data !== true) { negado('permissao'); return; }
-        permitido(conta);
+        permitido(conta, resultado);
       } catch {
         if (rodada === versao) negado('conexao');
       }
