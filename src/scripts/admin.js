@@ -9,6 +9,7 @@
  * escrito são as políticas RLS do banco: só usuário autenticado grava.
  */
 import { createClient } from '@supabase/supabase-js';
+import { criarControleAcesso } from '../lib/controle-acesso.js';
 import { marked } from 'marked';
 import { sanitizarPrevia } from '../lib/previa-segura.js';
 
@@ -408,7 +409,7 @@ function telaEntrada(mensagem = '') {
       <div class="pn-entrada__caixa">
         <p class="pn-marca">Casal na Estrada<span>Painel do casal</span></p>
         <p class="pn-sub">Entre com o e-mail e a senha de vocês para publicar no site.</p>
-        ${mensagem ? `<p class="pn-aviso">${mensagem}</p>` : ''}
+        ${mensagem ? `<p class="pn-aviso">${esc(mensagem)}</p>` : ''}
         <form id="pn-login">
           <label class="pn-campo">
             <span>E-mail</span>
@@ -532,6 +533,7 @@ function carregando(texto = 'Carregando…') {
 
 async function lista() {
   const cfgSecao = SECOES[secaoAtual];
+  const contaConsulta = usuario?.id;
   carregando();
 
   const consulta = supabase
@@ -540,6 +542,7 @@ async function lista() {
     .order(cfgSecao.ordem.coluna, { ascending: cfgSecao.ordem.asc });
 
   const { data, error } = await consulta;
+  if (!usuario || usuario.id !== contaConsulta || !area()) return;
   if (error) {
     area().innerHTML = `<p class="pn-aviso">Não consegui carregar a lista: ${esc(
       error.message
@@ -1462,23 +1465,70 @@ if (!supabase) {
     <a class="pn-btn" href="${BASE}">Voltar para o site</a>
   </div></div>`;
 } else {
-  supabase.auth.getSession().then(({ data }) => {
-    usuario = data.session?.user ?? null;
-    if (usuario) {
-      telaPainel();
-    } else {
-      telaEntrada();
-    }
-  });
-
-  supabase.auth.onAuthStateChange((_evento, sessao) => {
-    const antes = Boolean(usuario);
-    usuario = sessao?.user ?? null;
-    if (usuario) {
+  const limparDados = () => {
+    usuario = null;
+    editando = null;
+    publicacaoLigada = null;
+    document.querySelectorAll('.pn-dialogo, .pn-visor, .pn-toast').forEach(el => el.remove());
+  };
+  const verificar = () => supabase.rpc('e_administrador');
+  const semAcesso = (motivo) => {
+    limparDados();
+    app.innerHTML = `<div class="pn-entrada"><div class="pn-entrada__caixa">
+      <p class="pn-marca">Casal na Estrada<span>Painel do casal</span></p>
+      <p class="pn-aviso">${motivo === 'permissao'
+        ? 'Esta conta não tem autorização para administrar o site. Use a conta administradora combinada.'
+        : 'Não consegui confirmar sua autorização. Confira a conexão e tente novamente. O painel permanece bloqueado.'}</p>
+      <div class="pn-acoes">
+        <button class="pn-btn" type="button" data-rever-acesso>Tentar novamente</button>
+        <button class="pn-btn pn-btn--claro" type="button" data-trocar-conta>Sair / trocar conta</button>
+      </div>
+    </div></div>`;
+    app.querySelector('[data-rever-acesso]').addEventListener('click', async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) { semAcesso('conexao'); return; }
+      controle.atualizar(data.session);
+    });
+    app.querySelector('[data-trocar-conta]').addEventListener('click', () => supabase.auth.signOut());
+  };
+  const controle = criarControleAcesso({
+    verificar,
+    aguardando: (conta) => {
+      if (usuario?.id === conta.id && document.querySelector('.pn-topo')) return;
+      limparDados();
+      app.innerHTML = '<p class="pn-carregando">Conferindo autorização…</p>';
+    },
+    permitido: (conta) => {
+      usuario = conta;
       if (!document.querySelector('.pn-topo')) telaPainel();
-    } else {
-      if (antes) telaEntrada('Você saiu do painel.');
-      else if (!document.querySelector('.pn-entrada')) telaEntrada();
-    }
+    },
+    negado: semAcesso,
+    saiu: () => {
+      limparDados();
+      telaEntrada('Entre com uma conta administradora autorizada.');
+    },
   });
+  let eventoAtual = 0;
+  // O Supabase emite INITIAL_SESSION. Não chamar RPC dentro do callback
+  // síncrono do Auth: isso pode disputar o lock de refresh da sessão.
+  supabase.auth.onAuthStateChange((_evento, sessao) => {
+    controle.invalidar();
+    const rodada = ++eventoAtual;
+    if (!sessao) { controle.atualizar(null); return; }
+    setTimeout(() => {
+      if (rodada === eventoAtual) controle.atualizar(sessao);
+    }, 0);
+  });
+  // Revalidar ao voltar à aba e periodicamente: uma revogação também deve
+  // retirar a interface, além do bloqueio imediato já imposto pelo banco.
+  const reverAcesso = async () => {
+    if (document.hidden || !usuario) return;
+    const rodada = eventoAtual;
+    const { data, error } = await supabase.auth.getSession();
+    if (rodada !== eventoAtual) return;
+    if (error) { controle.invalidar(); semAcesso('conexao'); return; }
+    controle.atualizar(data.session);
+  };
+  document.addEventListener('visibilitychange', reverAcesso);
+  window.setInterval(reverAcesso, 5 * 60 * 1000);
 }

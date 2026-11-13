@@ -1,7 +1,7 @@
 # Revisão de segurança — escopo e resultados
 
 Revisão pontual, não certificação nem garantia de ausência de vulnerabilidades.
-Não houve brute force, teste de carga, escrita de payloads em produção ou alteração de contas/políticas reais.
+Na revisão inicial não houve brute force, teste de carga, escrita de payloads em produção ou alteração de contas/políticas reais. Na etapa seguinte, autorizada pelo proprietário, a migração de administradores abaixo foi aplicada e verificada.
 
 ## Corrigido nesta revisão
 
@@ -23,7 +23,7 @@ Não houve brute force, teste de carga, escrita de payloads em produção ou alt
 - `anon` não tem EXECUTE em `publicar_agora()`, `status_publicacao()` e `definir_token_github(text)`.
 - EXPLAIN (sem ANALYZE, sem executar UPDATE) de alteração de posts como `anon`: plano com filtro constante `false`, nenhuma linha elegível. Inspeção das políticas também não encontrou INSERT/UPDATE/DELETE públicos nas tabelas de conteúdo ou no bucket.
 - Cadastro público e usuários anônimos de autenticação desativados. Rotação de refresh tokens habilitada.
-- Bucket `midia`: público por intenção, limite de 10 MB e tipos JPEG/PNG/WebP/AVIF; escrita restrita ao papel autenticado.
+- Bucket `midia`: público por intenção, limite de 10 MB e tipos JPEG/PNG/WebP/AVIF; escrita inicialmente restrita ao papel autenticado; na etapa seguinte foi limitada aos administradores autorizados.
 - API do GitHub Pages informa `https_enforced=true`.
 - Busca heurística nos arquivos versionados atuais não encontrou padrões de tokens privados GitHub/Supabase nem chaves privadas PEM. Não foi feita varredura completa de histórico nem de todos os formatos de segredo. A chave anon/publicável não é um segredo e depende da RLS.
 
@@ -35,7 +35,7 @@ Build com fixture, `astro check` sem diagnósticos, testes de mapa, pesquisa, ca
 
 ## Pendências / limites importantes
 
-1. **Autenticado não deveria significar administrador automaticamente.** As políticas atuais permitem que qualquer conta autenticada leia/escreva conteúdo e altere mídia; RPCs administrativas também são concedidas ao papel autenticado. Como o cadastro está fechado, não foi demonstrado acesso indevido por visitante. Ainda assim, antes de convidar qualquer usuário, implementar lista explícita de administradores e aplicar a autorização às tabelas, Storage e RPCs. Não alteramos produção para evitar bloqueio de acesso.
+1. **Resolvido na etapa de administradores autorizados:** autenticação não concede mais administração automaticamente. Lista privada por UID, 28 políticas de conteúdo + 3 de Storage e 3 RPCs verificam a autorização. A conta existente foi preservada. Consulte `docs/ADMINISTRADORES.md`.
 2. **2FA no painel ainda não implementado.** Ativar 2FA nas contas GitHub/Supabase e planejar fluxo MFA no `/admin`; habilitar a opção no provedor sem implementar o desafio do painel não resolve o fluxo inteiro.
 3. Política atual permite senha mínima de 6 caracteres; usar senha única e longa (16+), preferencialmente com gerenciador. CAPTCHA e bloqueio de senhas vazadas não estão habilitados. Não testamos força bruta nem a efetividade dos limites do provedor.
 4. Arquivos no bucket público são públicos mesmo se o registro ficar em rascunho. Não armazenar documentos ou fotos privadas nesse bucket.
