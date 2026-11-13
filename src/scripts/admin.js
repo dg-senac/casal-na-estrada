@@ -11,6 +11,8 @@
 import { createClient } from '@supabase/supabase-js';
 import { criarControleAcesso } from '../lib/controle-acesso.js';
 import { criarTelaMfa } from '../lib/mfa-painel.js';
+import { criarRelogioInatividade, identificadorSessao } from '../lib/inatividade.js';
+import { criarAvisoInatividade } from '../lib/aviso-inatividade.js';
 import { marked } from 'marked';
 import { sanitizarPrevia } from '../lib/previa-segura.js';
 
@@ -1492,7 +1494,10 @@ if (!supabase) {
     };
   };
   const retomar = async () => {
+    if (inatividade.expirada) return;
+    const rodada = eventoAtual;
     const { data, error } = await supabase.auth.getSession();
+    if (rodada !== eventoAtual || inatividade.expirada) return;
     if (error) { semAcesso('conexao'); return; }
     controle.atualizar(data.session);
   };
@@ -1519,11 +1524,7 @@ if (!supabase) {
         <button class="pn-btn pn-btn--claro" type="button" data-trocar-conta>Sair / trocar conta</button>
       </div>
     </div></div>`;
-    app.querySelector('[data-rever-acesso]').addEventListener('click', async () => {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) { semAcesso('conexao'); return; }
-      controle.atualizar(data.session);
-    });
+    app.querySelector('[data-rever-acesso]').addEventListener('click', retomar);
     app.querySelector('[data-trocar-conta]').addEventListener('click', () => supabase.auth.signOut());
   };
   const controle = criarControleAcesso({
@@ -1534,6 +1535,7 @@ if (!supabase) {
       app.innerHTML = '<p class="pn-carregando">Conferindo autorização…</p>';
     },
     permitido: (conta, resultado) => {
+      if (!inatividade.verificar()) return;
       telaMfa.limpar();
       usuario = conta;
       mfaAtivo = resultado.mfaAtivo;
@@ -1541,23 +1543,96 @@ if (!supabase) {
       else document.getElementById('pn-seguranca').textContent = mfaAtivo ? '2FA ativo' : 'Ativar 2FA';
     },
     segundoFator: () => {
+      if (!inatividade.verificar()) return;
       limparDados();
       telaMfa.desafio();
     },
     negado: semAcesso,
     saiu: () => {
       limparDados();
-      telaEntrada('Entre com uma conta administradora autorizada.');
+      telaEntrada(saidaPorInatividade
+        ? 'Sua sessão foi encerrada por inatividade. Entre novamente para continuar.'
+        : 'Entre com uma conta administradora autorizada.');
     },
   });
   let eventoAtual = 0;
+  let saidaPorInatividade = false;
+  let encerrando = false;
+  const encerrarPorInatividade = async () => {
+    if (encerrando) return;
+    saidaPorInatividade = true;
+    controle.invalidar(); eventoAtual += 1;
+    limparDados();
+    app.innerHTML = `<div class="pn-entrada"><div class="pn-entrada__caixa">
+      <p class="pn-marca">Casal na Estrada<span>Painel bloqueado</span></p>
+      <p class="pn-aviso" data-saida-status>Seu painel foi bloqueado por inatividade. Encerrando a sessão…</p>
+      <button class="pn-btn" type="button" data-repetir-saida disabled>Tentar encerrar sessão</button>
+    </div></div>`;
+    const repetir = app.querySelector('[data-repetir-saida]');
+    repetir.addEventListener('click', encerrarPorInatividade);
+    encerrando = true;
+    try {
+      // Revoga a sessão deste navegador, não desconecta todos os dispositivos.
+      const { error } = await supabase.auth.signOut({ scope: 'local' });
+      if (error) throw error;
+      // O evento SIGNED_OUT limpa as outras abas e mostra a entrada.
+    } catch {
+      if (inatividade.expirada && repetir.isConnected) {
+        app.querySelector('[data-saida-status]').textContent = 'O painel está bloqueado. Não consegui concluir a saída no servidor. Conecte-se à internet e tente novamente.';
+        repetir.disabled = false;
+        if (!document.hidden) repetir.focus();
+      }
+    } finally { encerrando = false; }
+  };
+  let armazenamento = null;
+  try { armazenamento = window.localStorage; } catch { /* Modo restrito: relógio em memória. */ }
+  const avisoInatividade = criarAvisoInatividade({
+    continuar: () => inatividade.atividade(true),
+    sair: () => inatividade.encerrar(),
+  });
+  const inatividade = criarRelogioInatividade({
+    armazenamento,
+    avisar: restante => avisoInatividade.mostrar(restante),
+    ocultarAviso: () => avisoInatividade.ocultar(),
+    expirar: encerrarPorInatividade,
+  });
+  const atividadeHumana = ev => {
+    // Conferir o prazo antes da ação: timers podem atrasar com a aba suspensa.
+    inatividade.verificar();
+    if (inatividade.expirada) {
+      // Permitir somente a tentativa explícita de concluir o logout.
+      if (ev.target instanceof Element && ev.target.closest('[data-repetir-saida]')) return;
+      if (ev.cancelable) ev.preventDefault();
+      ev.stopImmediatePropagation(); return;
+    }
+    if (!ev.isTrusted || document.hidden) return;
+    if (ev.target instanceof Element && ev.target.closest('[data-aviso-inatividade]')) return;
+    if (inatividade.emAviso) {
+      if (ev.cancelable) ev.preventDefault();
+      ev.stopImmediatePropagation(); return;
+    }
+    inatividade.atividade();
+  };
+  for (const tipo of ['pointerdown', 'keydown', 'scroll', 'touchstart']) {
+    document.addEventListener(tipo, atividadeHumana, { capture: true });
+  }
+  const conferirPrazo = () => inatividade.verificar();
+  document.addEventListener('visibilitychange', conferirPrazo);
+  window.addEventListener('focus', conferirPrazo);
+  window.addEventListener('pageshow', conferirPrazo);
+  window.addEventListener('storage', ev => { if (ev.key === inatividade.chave) inatividade.verificar(); });
+  window.addEventListener('online', () => { if (inatividade.expirada) encerrarPorInatividade(); });
+  window.setInterval(conferirPrazo, 1000);
+
   // O Supabase emite INITIAL_SESSION. Não chamar RPC dentro do callback
   // síncrono do Auth: isso pode disputar o lock de refresh da sessão.
   supabase.auth.onAuthStateChange((_evento, sessao) => {
-    if (_evento === 'TOKEN_REFRESHED' && document.querySelector('.pn-mfa')) return;
+    if (_evento === 'TOKEN_REFRESHED' && document.querySelector('.pn-mfa')) { inatividade.verificar(); return; }
     controle.invalidar();
     const rodada = ++eventoAtual;
-    if (!sessao) { controle.atualizar(null); return; }
+    if (!sessao) { inatividade.parar(); controle.atualizar(null); return; }
+    if (!inatividade.iniciar(identificadorSessao(sessao))) return;
+    saidaPorInatividade = false;
     setTimeout(() => {
       if (rodada === eventoAtual) controle.atualizar(sessao);
     }, 0);
@@ -1565,7 +1640,7 @@ if (!supabase) {
   // Revalidar ao voltar à aba e periodicamente: uma revogação também deve
   // retirar a interface, além do bloqueio imediato já imposto pelo banco.
   const reverAcesso = async () => {
-    if (document.hidden || !usuario) return;
+    if (!inatividade.verificar() || document.hidden || !usuario) return;
     const rodada = eventoAtual;
     const { data, error } = await supabase.auth.getSession();
     if (rodada !== eventoAtual) return;

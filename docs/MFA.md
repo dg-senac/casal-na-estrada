@@ -41,4 +41,4 @@ O fluxo usa `enroll`, `listFactors` e `challengeAndVerify` do SDK Supabase. O c�
 - Controlador testa que pedido de MFA nunca libera o editor, inclusive com resposta contraditória.
 - Produção: somente leitura do estado confirmou conta atual autorizada e ainda sem MFA. Nenhum fator, código, senha ou segredo real foi usado nos testes. Isso não substitui o teste final de cadastro e login no celular do proprietário nem é teste end-to-end do provedor.
 
-Ativar 2FA neste painel não ativa 2FA na conta de gerenciamento do Supabase, no GitHub ou no e-mail. Expiração por inatividade ainda não foi implementada.
+Ativar 2FA neste painel não ativa 2FA na conta de gerenciamento do Supabase, no GitHub ou no e-mail. O painel agora bloqueia por inatividade no navegador; veja `docs/INATIVIDADE.md` para o funcionamento e os limites.
