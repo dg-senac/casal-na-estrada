@@ -34,4 +34,4 @@ Para revogar, definir `ativo=false` nesse registro. A autorização no servidor 
 
 ## Próximas etapas
 
-MFA no painel e expiração por inatividade ainda não foram implementados. Cadastro do autenticador precisa de participação do proprietário. Senhas e configurações de Auth não foram alteradas nesta etapa, para evitar perda de acesso. As limitações restantes da revisão seguem em `docs/SEGURANCA.md`.
+MFA no painel foi implementado na etapa seguinte, conforme `docs/MFA.md`. A função `e_administrador()` agora exige AAL2 quando existe fator confirmado; os testes SQL históricos deste documento pressupõem conta sem MFA. O cadastro do autenticador depende do proprietário. Expiração por inatividade continua pendente. Senhas não foram alteradas. As limitações restantes seguem em `docs/SEGURANCA.md`.

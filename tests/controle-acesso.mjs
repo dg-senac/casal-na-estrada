@@ -33,3 +33,12 @@ assert.deepEqual(eventos,['aguardando']);
 verificar = async () => ({data:'true',error:null});eventos.length=0;
 await controle.atualizar({user:{id:'conta-teste'}});assert.deepEqual(eventos,['aguardando','permissao']);
 console.log('Acesso: autorização, negativa, erro de rede, logout concorrente e resposta obsoleta OK.');
+// Mesmo com data=true, indicação de segundo fator nunca libera o painel.
+const mfaEventos=[];
+const mfaControle=criarControleAcesso({
+ verificar:async()=>({data:true,mfa:true}), aguardando:()=>{}, permitido:()=>mfaEventos.push('liberou'),
+ negado:()=>mfaEventos.push('negou'), saiu:()=>{}, segundoFator:()=>mfaEventos.push('desafio'),
+});
+await mfaControle.atualizar({user:{id:'conta-teste'}});
+assert.deepEqual(mfaEventos,['desafio']);
+console.log('Acesso: segundo fator encaminha ao desafio sem liberar o editor.');

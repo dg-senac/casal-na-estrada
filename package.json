@@ -8,7 +8,7 @@
     "start": "astro dev --host 0.0.0.0 --port 4321",
     "build": "astro build",
     "preview": "astro preview --host 0.0.0.0 --port 4321",
-    "test:seguranca": "node tests/seguranca.mjs && node tests/controle-acesso.mjs"
+    "test:seguranca": "node tests/seguranca.mjs && node tests/controle-acesso.mjs && node tests/mfa-painel.mjs && node tests/mfa-banco.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@electric-sql/pglite": "^0.5.16",
     "@types/leaflet": "^1.9.22",
     "@types/sanitize-html": "^2.16.2",
     "jsdom": "^31.0.0",
