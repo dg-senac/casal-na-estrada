@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import { carregarEncontros } from '../lib/dados';
 import { site } from '../data/site';
+import { limitesEncontro, estadoEncontro } from '../lib/tempo-encontros';
 
 const todos = (await carregarEncontros()).sort(
   (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
@@ -9,11 +10,22 @@ const todos = (await carregarEncontros()).sort(
 
 const hoje = new Date();
 
-// A agenda mostra tudo o que vem pela frente — inclusive o que foi cancelado,
-// com o motivo escrito. Só a contagem regressiva ignora os cancelados.
-const futuros = todos.filter((e) => (e.data.fim ?? e.data.inicio) >= hoje);
-const confirmados = futuros.filter((e) => !e.data.cancelado);
-const passados = todos.filter((e) => (e.data.fim ?? e.data.inicio) < hoje).reverse();
+// Agrupamento inicial no build; o navegador atualiza sem depender de novo deploy.
+const estado = (e: typeof todos[number]) => {
+  const t = limitesEncontro(e.data.inicio, e.data.fim);
+  return estadoEncontro(t.inicio, t.fim, hoje.valueOf());
+};
+const confirmados = todos.filter(e => !e.data.cancelado && estado(e) !== 'passado');
+const destaque = confirmados[0];
+const grupos = [
+  { id: 'andamento', titulo: 'Acontecendo agora', itens: todos.filter(e => estado(e) === 'andamento' && !e.data.cancelado) },
+  { id: 'futuro', titulo: 'Próximos', itens: todos.filter(e => estado(e) === 'futuro' || (estado(e) === 'andamento' && e.data.cancelado)) },
+  { id: 'passado', titulo: 'Já passou', itens: todos.filter(e => estado(e) === 'passado').reverse() },
+];
+const dadosContagem = todos.filter(e => !e.data.cancelado).map(e => ({
+  ...limitesEncontro(e.data.inicio, e.data.fim), nome: e.data.nome,
+  local: `${e.data.cidade} — ${e.data.uf}`,
+}));
 
 const dia = (d: Date) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit' }).format(d);
 const mes = (d: Date) =>
@@ -30,9 +42,9 @@ const completo = (d: Date) =>
   <header class="page-head">
     <div class="wrap">
       <p class="eyebrow">
-        Agenda · {confirmados.length > 0
+        <span data-agenda-resumo>Agenda · {confirmados.length > 0
           ? `${confirmados.length} ${confirmados.length === 1 ? 'encontro' : 'encontros'} pela frente`
-          : 'em preparação'}
+          : 'em preparação'}</span>
       </p>
       <h1 class="display">Encontros</h1>
       <div class="page-head__bottom">
@@ -51,25 +63,26 @@ const completo = (d: Date) =>
   </header>
 
   {
-    confirmados.length > 0 && (
-      <section class="section section--tight" aria-label="Contagem regressiva">
+    dadosContagem.length > 0 && (
+      <section class="section section--tight" aria-label="Contagem regressiva" data-secao-contagem hidden={!destaque}>
         <div class="wrap">
           <div
             class="contagem"
             data-contagem
-            data-alvo={confirmados[0].data.inicio.toISOString()}
+            data-eventos={JSON.stringify(dadosContagem)}
           >
             <div>
-              <p class="eyebrow">Contagem regressiva</p>
-              <p class="contagem__nome">{confirmados[0].data.nome}</p>
+              <p class="eyebrow" data-contagem-titulo>{destaque && estado(destaque) === 'andamento' ? 'Já começou! Contagem para o término' : 'Contagem para o início'}</p>
+              <p class="contagem__nome">{destaque?.data.nome ?? 'Agenda de encontros'}</p>
               <p class="contagem__local">
-                {confirmados[0].data.cidade} — {confirmados[0].data.uf} · {completo(confirmados[0].data.inicio)}
+                {destaque ? `${destaque.data.cidade} — ${destaque.data.uf}` : ''}
               </p>
             </div>
             <div class="contagem__nums">
               <span><strong data-dias>—</strong><em>dias</em></span>
               <span><strong data-horas>—</strong><em>horas</em></span>
               <span><strong data-min>—</strong><em>min</em></span>
+              <span><strong data-seg>—</strong><em>seg</em></span>
             </div>
           </div>
         </div>
@@ -77,15 +90,19 @@ const completo = (d: Date) =>
     )
   }
 
-  <section class="section section--tight">
+  {grupos.map(grupo => (
+  <section class="section section--tight" data-grupo={grupo.id} hidden={grupo.itens.length === 0}>
     <div class="wrap">
-      <h2 class="sr-title">Próximos</h2>
+      <h2 class="sr-title">{grupo.titulo}</h2>
       <div class="lista">
         {
-          futuros.map((e, i) => (
+          grupo.itens.map((e, i) => (
             <article
               class:list={['evento', { 'evento--cancelado': e.data.cancelado }]}
-              data-reveal
+              data-evento
+              data-inicio={limitesEncontro(e.data.inicio, e.data.fim).inicio}
+              data-fim={limitesEncontro(e.data.inicio, e.data.fim).fim}
+              data-cancelado={String(e.data.cancelado)}
               style={`--reveal-delay:${i * 60}ms`}
             >
               <div class="evento__data">
@@ -97,6 +114,7 @@ const completo = (d: Date) =>
               <div class="evento__corpo">
                 <div class="evento__topo">
                   <h3 class="evento__nome">{e.data.nome}</h3>
+                  {!e.data.cancelado && <span class="evento__estado" data-estado>{estado(e) === 'andamento' ? 'Acontecendo agora' : estado(e) === 'passado' ? 'Encerrado' : 'Em breve'}</span>}
                   {e.data.cancelado && <span class="evento__cancelado">Cancelado</span>}
                   {!e.data.cancelado && !e.data.confirmado && (
                     <span class="evento__aviso">a confirmar</span>
@@ -111,6 +129,7 @@ const completo = (d: Date) =>
                     De {completo(e.data.inicio)} a {completo(e.data.fim)}
                   </p>
                 )}
+                {!e.data.cancelado && <p class="evento__relogio" data-relogio hidden>Já começou! Termina em <strong data-restante />.</p>}
                 {e.data.observacao && !e.data.cancelado && (
                   <p class="evento__obs">{e.data.observacao}</p>
                 )}
@@ -137,56 +156,13 @@ const completo = (d: Date) =>
             </article>
           ))
         }
-        {
-          futuros.length === 0 && (
-            <div class="aviso-agenda" data-reveal>
-              <p class="eyebrow">Em breve</p>
-              <p class="aviso-agenda__titulo">A agenda nova está sendo montada.</p>
-              <p class="aviso-agenda__texto">
-                Ainda não temos encontro confirmado. Assim que o calendário fechar, cada um
-                entra aqui com data, cidade e uma contagem regressiva que some sozinha quando
-                o dia chega.
-              </p>
-              <div class="aviso-agenda__acoes">
-                <a
-                  class="btn btn--solid"
-                  href={`https://wa.me/${site.whatsapp}?text=${encodeURIComponent('Me avisa quando a agenda de encontros sair?')}`}
-                  target="_blank"
-                  rel="noopener">Quero saber primeiro</a
-                >
-                <a class="link-arrow" href={`mailto:${site.email}?subject=Indica%C3%A7%C3%A3o%20de%20encontro`}>
-                  Indicar um encontro
-                </a>
-              </div>
-            </div>
-          )
-        }
       </div>
     </div>
   </section>
-
-  {
-    passados.length > 0 && (
-      <section class="section section--tight arquivo">
-        <div class="wrap">
-          <p class="eyebrow">Já passou</p>
-          <div class="arquivo__lista">
-            {passados.map((e) => (
-              <div class="passado">
-                <span class="passado__data">
-                  {dia(e.data.inicio)}/{mes(e.data.inicio)}/{ano(e.data.inicio)}
-                </span>
-                <span class="passado__nome">{e.data.nome}</span>
-                <span class="passado__local">
-                  {e.data.cidade} — {e.data.uf}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-    )
-  }
+  ))}
+  <div class="wrap aviso-agenda" data-agenda-vazia hidden={todos.length > 0}>
+    <p>A agenda nova está sendo montada. Assim que tivermos encontros cadastrados, eles aparecem aqui.</p>
+  </div>
 
   <section class="section section--paper2 section--tight">
     <div class="wrap info">
@@ -208,33 +184,68 @@ const completo = (d: Date) =>
 </Base>
 
 <script>
-  // A contagem some sozinha quando a data do encontro chega.
+  import { estadoEncontro, tempoRestante } from '../lib/tempo-encontros';
   const caixa = document.querySelector<HTMLElement>('[data-contagem]');
-  if (caixa?.dataset.alvo) {
-    const alvo = new Date(caixa.dataset.alvo).getTime();
-    const dias = caixa.querySelector<HTMLElement>('[data-dias]');
-    const horas = caixa.querySelector<HTMLElement>('[data-horas]');
-    const mins = caixa.querySelector<HTMLElement>('[data-min]');
-
-    const tique = () => {
-      const resta = alvo - Date.now();
-      if (resta <= 0) {
-        caixa.hidden = true;
-        window.clearInterval(relogio);
-        return;
+  const secao = document.querySelector<HTMLElement>('[data-secao-contagem]');
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-evento]')];
+  type Evento = { inicio: number; fim: number; nome: string; local: string };
+  const eventos: Evento[] = JSON.parse(caixa?.dataset.eventos ?? '[]');
+  const grupos = [...document.querySelectorAll<HTMLElement>('[data-grupo]')];
+  const tique = () => {
+    const agora = Date.now();
+    cards.forEach(card => {
+      const estado = estadoEncontro(Number(card.dataset.inicio), Number(card.dataset.fim), agora);
+      const cancelado = card.dataset.cancelado === 'true';
+      const grupo = cancelado && estado === 'andamento' ? 'futuro' : estado;
+      const lista = document.querySelector(`[data-grupo="${grupo}"] .lista`);
+      if (lista && card.parentElement !== lista) {
+        lista.append(card);
+        [...lista.children].sort((a,b) => grupo === 'passado'
+          ? Number((b as HTMLElement).dataset.inicio) - Number((a as HTMLElement).dataset.inicio)
+          : Number((a as HTMLElement).dataset.inicio) - Number((b as HTMLElement).dataset.inicio))
+          .forEach(el => lista.append(el));
       }
-      const totalMin = Math.floor(resta / 60000);
-      if (dias) dias.textContent = String(Math.floor(totalMin / 1440));
-      if (horas) horas.textContent = String(Math.floor((totalMin % 1440) / 60)).padStart(2, '0');
-      if (mins) mins.textContent = String(totalMin % 60).padStart(2, '0');
-    };
-
-    tique();
-    const relogio = window.setInterval(tique, 30000);
-  }
+      const selo = card.querySelector('[data-estado]');
+      if (selo) selo.textContent = estado === 'andamento' ? 'Acontecendo agora' : estado === 'passado' ? 'Encerrado' : 'Em breve';
+      card.classList.toggle('evento--andamento', estado === 'andamento' && !cancelado);
+      const relogio = card.querySelector<HTMLElement>('[data-relogio]');
+      if (relogio) {
+        relogio.hidden = estado !== 'andamento';
+        const t = tempoRestante(Number(card.dataset.fim), agora);
+        relogio.querySelector('[data-restante]')!.textContent = `${t.dias}d ${t.horas}h ${t.minutos}min ${t.segundos}s`;
+      }
+      const acao = card.querySelector<HTMLElement>('.evento__acao');
+      if (acao) acao.hidden = estado === 'passado';
+    });
+    grupos.forEach(g => { g.hidden = !g.querySelector('[data-evento]'); });
+    const ativos = eventos.filter(e => agora < e.fim).length;
+    const resumo = document.querySelector('[data-agenda-resumo]');
+    if (resumo) resumo.textContent = ativos ? `Agenda · ${ativos} ${ativos === 1 ? 'encontro na agenda' : 'encontros na agenda'}` : 'Agenda · sem novos encontros';
+    const proximo = eventos.find(e => e.inicio <= agora && agora < e.fim) ?? eventos.find(e => e.inicio > agora);
+    if (secao) secao.hidden = !proximo;
+    if (!caixa || !proximo) return;
+    const acontecendo = agora >= proximo.inicio;
+    caixa.querySelector('[data-contagem-titulo]')!.textContent = acontecendo ? 'Já começou! Contagem para o término' : 'Contagem para o início';
+    caixa.querySelector('.contagem__nome')!.textContent = proximo.nome;
+    caixa.querySelector('.contagem__local')!.textContent = `${proximo.local} · horário de Recife · término ao final do último dia`;
+    const t = tempoRestante(acontecendo ? proximo.fim : proximo.inicio, agora);
+    for (const [attr, valor] of [['dias', t.dias], ['horas', t.horas], ['min', t.minutos], ['seg', t.segundos]]) {
+      caixa.querySelector(`[data-${attr}]`)!.textContent = valor;
+    }
+  };
+  tique();
+  const relogio = window.setInterval(tique, 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) tique(); });
+  window.addEventListener('pagehide', () => window.clearInterval(relogio));
 </script>
 
 <style>
+  [data-grupo][hidden], [data-secao-contagem][hidden], [data-relogio][hidden], .evento__acao[hidden] { display: none; }
+  .evento__estado { font: 600 .66rem var(--sans); text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
+  .evento--andamento .evento__estado, .evento__relogio strong { color: var(--rust-text); }
+  .evento--andamento { border-left: 2px solid var(--rust); padding-left: 1rem; }
+  .evento__relogio { font-size: .9rem; margin-top: .5rem; }
+
   .contagem {
     display: flex;
     flex-wrap: wrap;
@@ -264,6 +275,7 @@ const completo = (d: Date) =>
 
   .contagem__nums {
     display: flex;
+    flex-wrap: wrap;
     gap: clamp(1rem, 2.5vw, 2rem);
   }
 
@@ -271,7 +283,7 @@ const completo = (d: Date) =>
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 62px;
+    min-width: 42px;
   }
 
   .contagem__nums strong {
