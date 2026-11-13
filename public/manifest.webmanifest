@@ -10,8 +10,8 @@
   "theme_color": "#0d0b08",
   "icons": [
     {
-      "src": "media/icone-180.png",
-      "sizes": "180x180",
+      "src": "media/icone-192.png",
+      "sizes": "192x192",
       "type": "image/png",
       "purpose": "any"
     },
@@ -19,12 +19,6 @@
       "src": "media/icone-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]
