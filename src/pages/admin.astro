@@ -55,6 +55,12 @@ const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 </html>
 
 <style is:global>
+  .pn-inatividade { position:fixed; inset:0; z-index:2000; display:grid; place-items:center; padding:1rem; background:rgba(12,10,8,.8); }
+  .pn-inatividade section { width:min(480px,100%); max-height:90vh; overflow:auto; background:var(--paper); color:var(--ink); padding:clamp(1.2rem,3vw,2rem); border:1px solid var(--line-strong); box-shadow:0 20px 60px #0005; }
+  .pn-inatividade h2 { font:400 1.6rem var(--serif); margin-bottom:1rem; }
+  .pn-inatividade p { margin-bottom:1.1rem; }
+  .pn-inatividade strong { color:var(--rust); font-variant-numeric:tabular-nums; white-space:nowrap; }
+
   .pn-mfa h1 { font: 400 1.5rem var(--serif); margin-block: .8rem; }
   .pn-mfa img { display:block; width:min(220px,100%); height:auto; margin:1rem auto; background:white; padding:.5rem; }
   .pn-mfa code { display:block; overflow-wrap:anywhere; margin-block:.7rem; }
