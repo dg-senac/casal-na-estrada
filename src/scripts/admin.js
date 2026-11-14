@@ -1,3 +1,4 @@
+import { BUCKET_RASCUNHOS, urlFotoPrivada, criarPreviaPrivada } from '../lib/midia-privada.js';
 /**
  * Painel do casal (/admin).
  *
@@ -1049,18 +1050,17 @@ async function comprimir(arquivo, maxLado = 1600, qualidade = 0.82) {
 }
 
 async function enviarFoto(arquivo, pasta, opcoes = {}) {
-  const { maxLado = 1600, qualidade = 0.82, sufixo = '' } = opcoes;
+  const { maxLado = 1600, qualidade = 0.82 } = opcoes;
   const blob = await comprimir(arquivo, maxLado, qualidade);
   const extensao = blob.type === 'image/webp' ? 'webp' : 'jpg';
-  const nome = `${pasta}/${Date.now()}-${Math.random().toString(36).slice(2, 7)}${sufixo}.${extensao}`;
-  const { error } = await supabase.storage.from('midia').upload(nome, blob, {
+  const nome = `v1/${crypto.randomUUID()}.${extensao}`;
+  const { error } = await supabase.storage.from(BUCKET_RASCUNHOS).upload(nome, blob, {
     contentType: blob.type || 'image/jpeg',
-    cacheControl: '31536000',
+    cacheControl: '0',
     upsert: false,
   });
   if (error) throw new Error(`Falha ao enviar a foto: ${error.message}`);
-  const { data } = supabase.storage.from('midia').getPublicUrl(nome);
-  return data.publicUrl;
+  return urlFotoPrivada(ENDERECO, nome);
 }
 
 const nomeDaPasta = () => {
@@ -1111,7 +1111,7 @@ function prepararUploads() {
         previa.innerHTML = `<img src="${esc(url)}" alt="" />`;
         if (remover) remover.hidden = false;
         montarAreaDeFoco(bloco, url);
-        avisar('Foto enviada.');
+        avisar('Foto enviada ao espaço privado. Ela só ficará pública quando vinculada a um registro publicado.');
       } catch (erro) {
         avisar(erro.message, 'erro');
       } finally {
@@ -1476,7 +1476,9 @@ if (!supabase) {
     <a class="pn-btn" href="${BASE}">Voltar para o site</a>
   </div></div>`;
 } else {
+  const previasPrivadas = criarPreviaPrivada({ client: supabase, base: ENDERECO });
   const limparDados = () => {
+    previasPrivadas.limpar();
     telaMfa.limpar();
     usuario = null;
     mfaAtivo = false;
@@ -1538,6 +1540,7 @@ if (!supabase) {
       if (!inatividade.verificar()) return;
       telaMfa.limpar();
       usuario = conta;
+      previasPrivadas.ativar();
       mfaAtivo = resultado.mfaAtivo;
       if (!document.querySelector('.pn-topo')) telaPainel();
       else document.getElementById('pn-seguranca').textContent = mfaAtivo ? '2FA ativo' : 'Ativar 2FA';

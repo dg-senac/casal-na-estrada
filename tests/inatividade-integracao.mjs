@@ -1,3 +1,4 @@
+import { BUCKET_RASCUNHOS, urlFotoPrivada, criarPreviaPrivada } from '../src/lib/midia-privada.js';
 // Executa o script real do painel em DOM, com Auth simulado e relógio acelerado.
 import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
@@ -31,6 +32,7 @@ win.setTimeout=(fn,ms=0)=>{if(ms===0)timeouts.push(fn);return 1;};
 win.setInterval=(fn,ms)=>{intervals.push({fn,ms});return intervals.length;};
 win.Date.now=()=>now;
 win.deps={
+ BUCKET_RASCUNHOS, urlFotoPrivada, criarPreviaPrivada:opts=>criarPreviaPrivada({...opts,documento:doc}),
  createClient:()=>client,marked,sanitizarPrevia,criarControleAcesso,identificadorSessao,
  criarTelaMfa:opts=>criarTelaMfa({...opts,documento:doc}),
  criarRelogioInatividade:opts=>criarRelogioInatividade({...opts,agora:()=>now}),
