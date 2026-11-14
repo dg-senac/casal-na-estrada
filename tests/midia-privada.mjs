@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
+import { responderFoto } from '../supabase/functions/foto-publicada/index.js';
+import { caminhoFotoPrivada,urlFotoPrivada,criarPreviaPrivada } from '../src/lib/midia-privada.js';
+const base='https://fixture.invalid',caminho='v1/12345678-1234-1234-1234-123456789abc.webp',url=urlFotoPrivada(base,caminho);
+assert.equal(caminhoFotoPrivada(base,url),caminho);assert.equal(caminhoFotoPrivada(base,url+'?x'),null);assert.equal(caminhoFotoPrivada(base,'https://outro.invalid'+new URL(url).pathname),null);
+let chamadas=0;
+const deps={base,chave:'anon-fixture',buscar:async (destino,opts)=>{chamadas++;assert(destino.includes('/object/authenticated/midia-rascunhos/'));assert.equal(opts.headers.Authorization,'Bearer anon-fixture');return new Response('foto',{headers:{'content-type':'image/webp'}});}};
+let r=await responderFoto(new Request(url),deps);assert.equal(r.status,200);assert.equal(r.headers.get('cache-control'),'no-store');assert.equal(await r.text(),'foto');
+assert.equal((await responderFoto(new Request(url,{method:'POST'}),deps)).status,405);
+assert.equal((await responderFoto(new Request(url+'?x'),{...deps,buscar:async()=>new Response(null,{status:403})})).status,404);
+assert.equal((await responderFoto(new Request(base+'/functions/v1/foto-publicada/invalido'),deps)).status,404);assert.equal(chamadas,1);
+assert.equal((await responderFoto(new Request(url),{...deps,buscar:async()=>new Response('<svg>',{headers:{'content-type':'image/svg+xml'}})})).status,404);
+assert.equal((await responderFoto(new Request(url),{...deps,buscar:async()=>{throw Error('offline');}})).status,503);
+const dom=new JSDOM(`<body><input value="${url}"><img src="${url}"></body>`);
+let concluir;let downloads=0;
+const client={storage:{from:bucket=>{assert.equal(bucket,'midia-rascunhos');return {download:async()=>{downloads++;return new Promise(ok=>concluir=ok);}};}}};
+const previa=criarPreviaPrivada({client,base,documento:dom.window.document});
+previa.ativar();assert.equal(downloads,1);previa.limpar();concluir({data:new Blob(['foto']),error:null});await new Promise(r=>setImmediate(r));
+assert.equal(dom.window.document.querySelector('img').getAttribute('src'),url); // logout descarta resposta tardia
+previa.ativar();concluir({data:new Blob(['foto']),error:null});await new Promise(r=>setImmediate(r));
+assert(dom.window.document.querySelector('img').src.startsWith('blob:'));assert.equal(dom.window.document.querySelector('input').value,url);
+previa.limpar();dom.window.close();console.log('Mídia: endpoint sem privilégio/service_role, falha fechada, cache, formatos, prévia blob, logout e referência estável OK.');

@@ -1,0 +1,2 @@
+[functions.foto-publicada]
+verify_jwt = false
