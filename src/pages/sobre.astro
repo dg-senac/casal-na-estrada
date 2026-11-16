@@ -104,48 +104,67 @@ const foto = '/media/casal-cieri-milla.jpg';
   </section>
 
   <section class="section section--paper2" id="moto">
-    <div class="wrap moto">
-      <div data-reveal>
-        <p class="eyebrow">A companheira de viagem</p>
-        <h2 class="display">A moto</h2>
-        <p class="lead" style="margin-top:1.2rem">
-          A fiel companheira dessa estreia foi a versátil e valente Yamaha Lander 250. Ágil e
-          pronta para qualquer terreno, ela provou que o tamanho da cilindrada nunca limitou a
-          grandeza da aventura.
-        </p>
-        <p class="moto__txt">
-          Foi nela que a primeira grande viagem oficial saiu do Recife rumo à Bahia, em 2023:
-          bagagem ajustada no meio do caminho, imprevisto mecânico resolvido na beira da
-          rodovia e a chegada a Salvador como recompensa.
-        </p>
+    <div class="wrap">
+      <div class="moto" data-reveal>
+        <div>
+          <p class="eyebrow">A companheira dos próximos destinos</p>
+          <h2 class="display">A moto</h2>
+          <h3 class="moto__nome">Bajaj Dominar 400</h3>
+          <p class="lead">
+            A Dominar 400 verde chegou há algum tempo para escrever um novo capítulo com a
+            gente. Hoje, ela é a principal companheira das viagens do Casal na Estrada.
+          </p>
+          <p class="moto__txt">
+            Os destinos mudam, as histórias se renovam e a vontade de rodar juntos continua a
+            mesma. É com ela que seguimos levando na bagagem a parceria e o amor pela estrada.
+          </p>
+          <div class="moto__ficha">
+            <div class="ficha-linha">
+              <span class="ficha-linha__k">Modelo atual</span>
+              <span class="ficha-linha__v">Bajaj Dominar 400 · verde</span>
+            </div>
+            <div class="ficha-linha">
+              <span class="ficha-linha__k">Na nossa história</span>
+              <span class="ficha-linha__v">Principal moto das viagens</span>
+            </div>
+          </div>
+        </div>
+        <figure class="moto__foto">
+          <img src={url('/media/dominar-400-verde.webp')}
+            alt="Bajaj Dominar 400 verde vista em ângulo de três quartos pela traseira, mostrando o tanque, o motor e as rodas"
+            width="600" height="400" loading="lazy" decoding="async" />
+          <figcaption>
+            Imagem ilustrativa do modelo, não da moto do casal.
+            <a href="https://www.motorede.com.br/bajaj-dominar-400-no-brasil-preco-e-cores/bajaj-dominar-400-001/" target="_blank" rel="noopener noreferrer">Fonte: MotoRede</a>.
+          </figcaption>
+        </figure>
       </div>
 
-      <div class="moto__ficha" data-reveal style="--reveal-delay:100ms">
-        <div class="ficha-linha">
-          <span class="ficha-linha__k">Modelo</span>
-          <span class="ficha-linha__v">Yamaha Lander 250</span>
+      <article class="moto moto--honra" aria-labelledby="lander-titulo" data-reveal>
+        <figure class="moto__foto moto__foto--lander">
+          <img src={url('/media/lander-250-areia.webp')}
+            alt="Yamaha Lander 250 em tom bege areia, vista em ângulo de três quartos pela traseira, com a moto inteira sobre fundo branco"
+            width="1000" height="667" loading="lazy" decoding="async" />
+          <figcaption>
+            Imagem ilustrativa em tom bege/areia, como referência à primeira moto do casal.
+            <a href="https://motonewsbrasil.com/yamaha-lander-250-abs-2023-ganha-novas-cores-e-grafismos-confira-detalhes-e-preco" target="_blank" rel="noopener noreferrer">Fonte: MotoNews Brasil</a>.
+          </figcaption>
+        </figure>
+        <div>
+          <p class="eyebrow">Menção honrosa · onde tudo começou</p>
+          <h3 class="moto__nome" id="lander-titulo">Yamaha Lander 250</h3>
+          <p class="lead">
+            Antes dos próximos destinos, houve o primeiro passo. Foi a Lander que deu início
+            ao Casal na Estrada — a primeira de todas e dona de um lugar especial na nossa história.
+          </p>
+          <p class="moto__txt">
+            Foi com ela que a primeira grande viagem oficial saiu do Recife rumo à Bahia,
+            em 2023. Entre os desafios do caminho e a chegada a Salvador, a Lander mostrou
+            que a grandeza de uma aventura não se mede pela cilindrada.
+          </p>
+          <p class="moto__legado">A Dominar segue viagem com a gente. A Lander segue fazendo parte de quem somos.</p>
         </div>
-        <div class="ficha-linha">
-          <span class="ficha-linha__k">Cilindrada</span>
-          <span class="ficha-linha__v">250 cc</span>
-        </div>
-        <div class="ficha-linha">
-          <span class="ficha-linha__k">Estreia na estrada</span>
-          <span class="ficha-linha__v">{site.desde}</span>
-        </div>
-        <div class="ficha-linha">
-          <span class="ficha-linha__k">Primeira grande viagem</span>
-          <span class="ficha-linha__v">Recife → Salvador</span>
-        </div>
-        <div class="ficha-linha">
-          <span class="ficha-linha__k">Estilo</span>
-          <span class="ficha-linha__v">mototurismo de longa distância</span>
-        </div>
-        <div class="ficha-linha">
-          <span class="ficha-linha__k">Lema</span>
-          <span class="ficha-linha__v">o pinta pede rudo</span>
-        </div>
-      </div>
+      </article>
     </div>
   </section>
 
@@ -277,6 +296,44 @@ const foto = '/media/casal-cieri-milla.jpg';
     align-items: center;
   }
 
+  .moto__nome {
+    font-family: var(--serif);
+    font-size: clamp(1.65rem, 3vw, 2.4rem);
+    font-weight: 500;
+    line-height: 1.2;
+    margin: 1rem 0;
+  }
+
+  .moto__foto { margin: 0; min-width: 0; }
+  .moto__foto img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 3 / 2;
+    object-fit: contain;
+    background: #626262;
+  }
+  .moto__foto--lander img { background: #fff; }
+  .moto__foto figcaption {
+    margin-top: 0.7rem;
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+  .moto__foto a { text-decoration: underline; text-underline-offset: 3px; }
+  .moto--honra {
+    margin-top: clamp(2.5rem, 6vw, 5rem);
+    padding-top: clamp(2rem, 4vw, 3.5rem);
+    border-top: 1px solid var(--line-strong);
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  }
+  .moto__legado {
+    border-left: 2px solid var(--rust);
+    padding-left: 1rem;
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink);
+  }
+
   .moto__txt {
     color: var(--ink-soft);
     font-size: 0.94rem;
@@ -362,6 +419,8 @@ const foto = '/media/casal-cieri-milla.jpg';
     .contato {
       grid-template-columns: 1fr;
     }
+
+    .moto__foto--lander { order: 1; }
 
     .sobre__foto {
       position: static;
