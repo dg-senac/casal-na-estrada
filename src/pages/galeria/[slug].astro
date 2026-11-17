@@ -248,7 +248,7 @@ import { url } from '../../lib/url';
     color: var(--ink-mute);
   }
 
-  /* Miniaturas uniformes; o lightbox mantém a foto original inteira. */
+  /* Mosaico com larguras variadas e uma altura comum, sem depender da orientação. */
   .grade {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -258,13 +258,16 @@ import { url } from '../../lib/url';
 
   .foto { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
+  /* Cada ciclo ocupa duas linhas completas: 2+1, depois 1+1+1. */
+  .foto:nth-child(5n + 1) { grid-column: span 2; }
+
   .foto__btn {
     display: block;
     width: 100%;
     padding: 0;
     border: 0;
     background: var(--couro);
-    aspect-ratio: 4 / 3;
+    height: clamp(180px, 24vw, 300px);
     cursor: zoom-in;
     overflow: hidden;
   }
@@ -275,8 +278,8 @@ import { url } from '../../lib/url';
     display: block;
     width: 100%;
     height: 100%;
-    aspect-ratio: 4 / 3;
-    object-fit: contain;
+    object-fit: cover;
+    object-position: 50% 32%;
     transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
@@ -398,8 +401,12 @@ import { url } from '../../lib/url';
 
   @media (max-width: 760px) {
     .grade {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
+
+    .foto:nth-child(5n + 1) { grid-column: span 1; }
+    .foto:nth-child(3n + 1) { grid-column: span 2; }
+    .foto__btn { height: clamp(170px, 40vw, 280px); }
 
     .lightbox__nav {
       top: auto;
