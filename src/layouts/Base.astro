@@ -128,7 +128,10 @@ const fichaSite = {
           if (!w || !h) return;
           const real = w / h;
           const proporcao = Math.min(PROPORCAO_MAXIMA, Math.max(PROPORCAO_MINIMA, real));
-          moldura.style.aspectRatio = String(proporcao);
+          // Grades de álbuns têm molduras uniformes; ainda respeitam o foco do painel.
+          if (!moldura.hasAttribute('data-proporcao-fixa')) {
+            moldura.style.aspectRatio = String(proporcao);
+          }
           moldura.classList.add('foto-proporcao');
 
           // Ponto focal escolhido no painel manda em tudo.

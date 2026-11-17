@@ -52,16 +52,16 @@ import { url } from '../../lib/url';
         {
           albuns.map((album, i) => (
             <article
-              class:list={['album', 'rebite', { 'album--wide': i % 3 === 0 }]}
+              class="album rebite"
               data-reveal
               style={`--reveal-delay:${(i % 3) * 80}ms`}
             >
               <a class="album__link" href={url(`/galeria/${album.id}`)}>
-                <div class="photo album__photo" data-foco={album.data.capaFoco}>
+                <div class="photo album__photo" data-proporcao-fixa data-foco={album.data.capaFoco}>
                   <img
                     src={url(album.data.capaMini ?? album.data.capa)}
                     srcset={album.data.capaMini ? `${url(album.data.capaMini)} 900w, ${url(album.data.capa)} 2000w` : undefined}
-                    sizes={album.data.capaMini ? '(max-width: 780px) 100vw, 50vw' : undefined}
+                    sizes={album.data.capaMini ? '(max-width: 600px) 100vw, (max-width: 1000px) 50vw, 33vw' : undefined}
                     alt={album.data.capaAlt}
                     loading="lazy"
                     decoding="async"
@@ -105,25 +105,27 @@ import { url } from '../../lib/url';
 <style>
   .albuns {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
     gap: clamp(1.6rem, 3vw, 2.8rem);
   }
 
+  .album { min-width: 0; }
+
   .album__link {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+
+  .album__link:focus-visible {
+    outline: 2px solid var(--rust-text);
+    outline-offset: 5px;
   }
 
   .album__photo {
     position: relative;
     aspect-ratio: 4 / 3;
-  }
-
-  .album--wide {
-    grid-column: span 2;
-  }
-
-  .album--wide .album__photo {
-    aspect-ratio: 16 / 9;
   }
 
   .album__count {
@@ -142,11 +144,18 @@ import { url } from '../../lib/url';
 
   .album__body {
     padding-top: 0.9rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    overflow-wrap: anywhere;
   }
+
+  .album__body .link-arrow { margin-top: auto; padding-top: 0.3rem; }
 
   .album__meta {
     display: flex;
     gap: 0.4rem;
+    flex-wrap: wrap;
     font-family: var(--sans);
     font-size: 0.71rem;
     letter-spacing: 0.16em;
@@ -173,6 +182,10 @@ import { url } from '../../lib/url';
     color: var(--ink-soft);
     max-width: 52ch;
     margin-bottom: 0.8rem;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
   }
 
   .aviso {
@@ -191,15 +204,12 @@ import { url } from '../../lib/url';
     font-size: 0.94rem;
   }
 
-  @media (max-width: 780px) {
-    .album--wide {
-      grid-column: span 1;
-    }
-    .album--wide .album__photo {
-      aspect-ratio: 4 / 3;
-    }
-    .aviso {
-      grid-template-columns: 1fr;
-    }
+  @media (max-width: 1000px) {
+    .albuns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  @media (max-width: 600px) {
+    .albuns { grid-template-columns: minmax(0, 1fr); }
+    .aviso { grid-template-columns: 1fr; }
   }
 </style>

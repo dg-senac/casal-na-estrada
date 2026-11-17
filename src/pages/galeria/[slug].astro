@@ -102,10 +102,11 @@ import { url } from '../../lib/url';
       <div class="grade" id="grade">
         {
           data.fotos.map((foto, i) => (
-            <figure class:list={['foto', { 'foto--vertical': foto.vertical }]} data-reveal>
+            <figure class="foto" data-reveal>
               <button
                 type="button"
                 class="foto__btn"
+                data-proporcao-fixa
                 data-lightbox
                 data-src={url(foto.src)}
                 data-legenda={foto.legenda ?? ''}
@@ -200,7 +201,7 @@ import { url } from '../../lib/url';
 
   .videos__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
     gap: 1.6rem;
   }
 
@@ -247,59 +248,38 @@ import { url } from '../../lib/url';
     color: var(--ink-mute);
   }
 
-  /* ---------- Grade de fotos (ritmo irregular, tipo caderno) ---------- */
+  /* Miniaturas uniformes; o lightbox mantém a foto original inteira. */
   .grade {
     display: grid;
-    grid-template-columns: repeat(12, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: clamp(0.7rem, 1.6vw, 1.3rem);
+    align-items: start;
   }
 
-  .foto {
-    grid-column: span 4;
-    margin: 0;
-  }
-
-  .foto:nth-child(5n + 1) {
-    grid-column: span 8;
-  }
-
-  .foto:nth-child(5n + 2) {
-    grid-column: span 4;
-  }
-
-  .foto:nth-child(5n + 3) {
-    grid-column: span 4;
-  }
-
-  .foto:nth-child(5n + 4) {
-    grid-column: span 5;
-  }
-
-  .foto:nth-child(5n + 5) {
-    grid-column: span 7;
-  }
+  .foto { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 
   .foto__btn {
     display: block;
     width: 100%;
     padding: 0;
     border: 0;
-    background: none;
+    background: var(--couro);
+    aspect-ratio: 4 / 3;
     cursor: zoom-in;
     overflow: hidden;
   }
 
+  .foto__btn:focus-visible { outline: 2px solid var(--rust-text); outline-offset: 4px; }
+
   .foto__btn img {
+    display: block;
     width: 100%;
     height: 100%;
     aspect-ratio: 4 / 3;
-    object-fit: cover;
+    object-fit: contain;
     transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
   }
 
-  .foto:nth-child(5n + 1) .foto__btn img {
-    aspect-ratio: 16 / 9;
-  }
 
   .foto__btn:hover img,
   .foto__btn:focus-visible img {
@@ -419,19 +399,6 @@ import { url } from '../../lib/url';
   @media (max-width: 760px) {
     .grade {
       grid-template-columns: repeat(2, 1fr);
-    }
-
-    .foto,
-    .foto:nth-child(5n + 1),
-    .foto:nth-child(5n + 2),
-    .foto:nth-child(5n + 3),
-    .foto:nth-child(5n + 4),
-    .foto:nth-child(5n + 5) {
-      grid-column: span 1;
-    }
-
-    .foto:nth-child(5n + 1) .foto__btn img {
-      aspect-ratio: 4 / 3;
     }
 
     .lightbox__nav {
