@@ -3,6 +3,7 @@ import Base from '../layouts/Base.astro';
 import { carregarEncontros } from '../lib/dados';
 import { site } from '../data/site';
 import { limitesEncontro, estadoEncontro } from '../lib/tempo-encontros';
+import { categoriaEncontro } from '../lib/categorias-encontros.js';
 
 const todos = (await carregarEncontros()).sort(
   (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
@@ -15,14 +16,20 @@ const estado = (e: typeof todos[number]) => {
   const t = limitesEncontro(e.data.inicio, e.data.fim);
   return estadoEncontro(t.inicio, t.fim, hoje.valueOf());
 };
-const confirmados = todos.filter(e => !e.data.cancelado && estado(e) !== 'passado');
+const categoria = (e: typeof todos[number]) => categoriaEncontro(estado(e), e.data.cancelado, e.data.confirmado);
+const confirmados = todos.filter(e => e.data.confirmado && !e.data.cancelado && estado(e) !== 'passado');
 const destaque = confirmados[0];
 const grupos = [
-  { id: 'andamento', titulo: 'Acontecendo agora', itens: todos.filter(e => estado(e) === 'andamento' && !e.data.cancelado) },
-  { id: 'futuro', titulo: 'Próximos', itens: todos.filter(e => estado(e) === 'futuro' || (estado(e) === 'andamento' && e.data.cancelado)) },
-  { id: 'passado', titulo: 'Já passou', itens: todos.filter(e => estado(e) === 'passado').reverse() },
-];
-const dadosContagem = todos.filter(e => !e.data.cancelado).map(e => ({
+  { id: 'andamento', titulo: 'Ocorrendo agora' },
+  { id: 'futuro', titulo: 'Próximos' },
+  { id: 'confirmar', titulo: 'A confirmar' },
+  { id: 'passado', titulo: 'Encerrados' },
+  { id: 'cancelado', titulo: 'Cancelados' },
+].map(grupo => ({ ...grupo, itens: todos.filter(e => categoria(e) === grupo.id)
+  .sort((a, b) => grupo.id === 'passado'
+    ? b.data.inicio.valueOf() - a.data.inicio.valueOf()
+    : a.data.inicio.valueOf() - b.data.inicio.valueOf()) }));
+const dadosContagem = todos.filter(e => e.data.confirmado && !e.data.cancelado).map(e => ({
   ...limitesEncontro(e.data.inicio, e.data.fim), nome: e.data.nome,
   local: `${e.data.cidade} — ${e.data.uf}`,
 }));
@@ -90,10 +97,19 @@ const completo = (d: Date) =>
     )
   }
 
+  <nav class="wrap categorias" aria-label="Categorias de encontros" data-categorias hidden>
+    {grupos.map(grupo => (
+      <button type="button" class="categoria" data-filtro={grupo.id} aria-pressed={grupo.id === 'andamento'}>
+        {grupo.titulo} <span data-total={grupo.id}>{grupo.itens.length}</span>
+      </button>
+    ))}
+  </nav>
+  <p class="wrap categoria-vazia" data-categoria-vazia role="status" hidden></p>
+
   {grupos.map(grupo => (
   <section class="section section--tight" data-grupo={grupo.id} hidden={grupo.itens.length === 0}>
     <div class="wrap">
-      <h2 class="sr-title">{grupo.titulo}</h2>
+      <h2 class="grupo-titulo">{grupo.titulo}</h2>
       <div class="lista">
         {
           grupo.itens.map((e, i) => (
@@ -103,6 +119,7 @@ const completo = (d: Date) =>
               data-inicio={limitesEncontro(e.data.inicio, e.data.fim).inicio}
               data-fim={limitesEncontro(e.data.inicio, e.data.fim).fim}
               data-cancelado={String(e.data.cancelado)}
+              data-confirmado={String(e.data.confirmado)}
               style={`--reveal-delay:${i * 60}ms`}
             >
               <div class="evento__data">
@@ -114,9 +131,9 @@ const completo = (d: Date) =>
               <div class="evento__corpo">
                 <div class="evento__topo">
                   <h3 class="evento__nome">{e.data.nome}</h3>
-                  {!e.data.cancelado && <span class="evento__estado" data-estado>{estado(e) === 'andamento' ? 'Acontecendo agora' : estado(e) === 'passado' ? 'Encerrado' : 'Em breve'}</span>}
+                  {!e.data.cancelado && <span class="evento__estado" data-estado>{estado(e) === 'passado' ? 'Encerrado' : !e.data.confirmado ? 'A confirmar' : estado(e) === 'andamento' ? 'Ocorrendo agora' : 'Em breve'}</span>}
                   {e.data.cancelado && <span class="evento__cancelado">Cancelado</span>}
-                  {!e.data.cancelado && !e.data.confirmado && (
+                  {!e.data.cancelado && !e.data.confirmado && estado(e) === 'passado' && (
                     <span class="evento__aviso">a confirmar</span>
                   )}
                 </div>
@@ -184,6 +201,7 @@ const completo = (d: Date) =>
 </Base>
 
 <script>
+  import { categoriaEncontro } from '../lib/categorias-encontros.js';
   import { estadoEncontro, tempoRestante } from '../lib/tempo-encontros';
   const caixa = document.querySelector<HTMLElement>('[data-contagem]');
   const secao = document.querySelector<HTMLElement>('[data-secao-contagem]');
@@ -191,12 +209,42 @@ const completo = (d: Date) =>
   type Evento = { inicio: number; fim: number; nome: string; local: string };
   const eventos: Evento[] = JSON.parse(caixa?.dataset.eventos ?? '[]');
   const grupos = [...document.querySelectorAll<HTMLElement>('[data-grupo]')];
+  let selecionada = 'andamento';
+  const filtros = [...document.querySelectorAll<HTMLButtonElement>('[data-filtro]')];
+  const vazio = document.querySelector<HTMLElement>('[data-categoria-vazia]');
+  document.querySelector<HTMLElement>('[data-categorias]')!.hidden = false;
+  const filtrar = () => {
+    grupos.forEach(g => {
+      const total = g.querySelectorAll('[data-evento]').length;
+      g.hidden = g.dataset.grupo !== selecionada || total === 0;
+      const contador = document.querySelector(`[data-total="${g.dataset.grupo}"]`);
+      if (contador) contador.textContent = String(total);
+    });
+    filtros.forEach(f => f.setAttribute('aria-pressed', String(f.dataset.filtro === selecionada)));
+    if (vazio) {
+      vazio.hidden = grupos.some(g => !g.hidden);
+      const mensagens: Record<string, string> = {
+        andamento: 'Nenhum encontro ocorrendo agora. Confira os próximos encontros nas outras categorias.',
+        futuro: 'Nenhum próximo encontro confirmado no momento.',
+        confirmar: 'Nenhum encontro aguardando confirmação.',
+        passado: 'Nenhum encontro encerrado na agenda.',
+        cancelado: 'Nenhum encontro cancelado na agenda.',
+      };
+      const mensagem = mensagens[selecionada];
+      if (vazio.textContent !== mensagem) vazio.textContent = mensagem;
+    }
+  };
+  filtros.forEach(f => f.addEventListener('click', () => {
+    selecionada = f.dataset.filtro!;
+    filtrar();
+  }));
   const tique = () => {
     const agora = Date.now();
     cards.forEach(card => {
       const estado = estadoEncontro(Number(card.dataset.inicio), Number(card.dataset.fim), agora);
       const cancelado = card.dataset.cancelado === 'true';
-      const grupo = cancelado && estado === 'andamento' ? 'futuro' : estado;
+      const confirmado = card.dataset.confirmado === 'true';
+      const grupo = categoriaEncontro(estado, cancelado, confirmado);
       const lista = document.querySelector(`[data-grupo="${grupo}"] .lista`);
       if (lista && card.parentElement !== lista) {
         lista.append(card);
@@ -206,18 +254,18 @@ const completo = (d: Date) =>
           .forEach(el => lista.append(el));
       }
       const selo = card.querySelector('[data-estado]');
-      if (selo) selo.textContent = estado === 'andamento' ? 'Acontecendo agora' : estado === 'passado' ? 'Encerrado' : 'Em breve';
-      card.classList.toggle('evento--andamento', estado === 'andamento' && !cancelado);
+      if (selo) selo.textContent = estado === 'passado' ? 'Encerrado' : !confirmado ? 'A confirmar' : estado === 'andamento' ? 'Ocorrendo agora' : 'Em breve';
+      card.classList.toggle('evento--andamento', estado === 'andamento' && !cancelado && confirmado);
       const relogio = card.querySelector<HTMLElement>('[data-relogio]');
       if (relogio) {
-        relogio.hidden = estado !== 'andamento';
+        relogio.hidden = estado !== 'andamento' || !confirmado;
         const t = tempoRestante(Number(card.dataset.fim), agora);
         relogio.querySelector('[data-restante]')!.textContent = `${t.dias}d ${t.horas}h ${t.minutos}min ${t.segundos}s`;
       }
       const acao = card.querySelector<HTMLElement>('.evento__acao');
-      if (acao) acao.hidden = estado === 'passado';
+      if (acao) acao.hidden = estado === 'passado' || !confirmado;
     });
-    grupos.forEach(g => { g.hidden = !g.querySelector('[data-evento]'); });
+    filtrar();
     const ativos = eventos.filter(e => agora < e.fim).length;
     const resumo = document.querySelector('[data-agenda-resumo]');
     if (resumo) resumo.textContent = ativos ? `Agenda · ${ativos} ${ativos === 1 ? 'encontro na agenda' : 'encontros na agenda'}` : 'Agenda · sem novos encontros';
@@ -240,6 +288,26 @@ const completo = (d: Date) =>
 </script>
 
 <style>
+  .categorias { display: flex; flex-wrap: wrap; gap: 0.65rem; padding-block: 1.5rem; }
+  .categorias[hidden], .categoria-vazia[hidden] { display: none; }
+  .categoria {
+    font: 600 0.85rem var(--sans);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid var(--line-strong);
+    background: transparent;
+    color: var(--ink);
+    padding: 0.8rem 1rem;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  .categoria[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .categoria:hover { border-color: var(--rust-text); }
+  .categoria:focus-visible { outline: 2px solid var(--rust-text); outline-offset: 4px; }
+  .categoria span { margin-left: 0.5rem; font-variant-numeric: tabular-nums; }
+  .categoria-vazia { padding-block: 1.5rem 3rem; color: var(--ink-soft); }
+  .grupo-titulo { font-family: var(--serif); font-size: 1.7rem; margin-bottom: 1rem; }
+
   [data-grupo][hidden], [data-secao-contagem][hidden], [data-relogio][hidden], .evento__acao[hidden] { display: none; }
   .evento__estado { font: 600 .66rem var(--sans); text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
   .evento--andamento .evento__estado, .evento__relogio strong { color: var(--rust-text); }
