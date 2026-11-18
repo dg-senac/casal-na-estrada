@@ -43,3 +43,22 @@ Não foram criados cadastros novos, nem alterados nomes, datas ou histórias par
 - Casinha Eu amo Gravatá.
 
 “Sem nova imagem” significa ausente deste envio, não ausente da sala: as imagens anteriores foram preservadas.
+
+## Complemento — inclusão das nove peças autorizada
+
+Após a conferência, o usuário enviou as 11 imagens no chat e autorizou incluir as nove peças/edições ausentes, preservando as antigas. A identificação legível corrige dois nomes do levantamento inicial: **Anjos do Asfalto**, não Amigos do Asfalto, e **Mulheres no Asfalto — Olinda**, edição comemorativa de 15 anos.
+
+- As nove imagens foram copiadas dos anexos enviados no chat para `public/media/trofeus/`, sem reprocessamento.
+- `scripts/trofeus-recebidos.json` relaciona cada anexo ao novo arquivo e slug.
+- `scripts/cadastrar-trofeus-recebidos.sql` contém os nove cadastros autorizados. Anos e datas não comprovados ficam nulos. Os textos descrevem apenas o que aparece nas peças, sem inventar experiências pessoais.
+- Toritama 2025 e Gravatá 2025 já haviam sido substituídos e não são duplicados.
+- Os 14 cadastros existentes e suas imagens são preservados; após a inclusão, a sala deve totalizar 23 peças, se nenhum outro cadastro tiver sido feito no intervalo.
+
+### Ordem de publicação
+
+1. Integrar o PR e aguardar o deploy bem-sucedido das nove imagens.
+2. Executar o SQL de cadastro no projeto do site. Não executar antes do deploy, para evitar referências públicas a imagens inexistentes.
+3. Aguardar o próximo build da agenda automática do site (ou iniciar o workflow de publicação) para incorporar os novos registros.
+4. Conferir as nove páginas e a contagem na sala de troféus.
+
+O SQL usa transação e `ON CONFLICT (slug) DO NOTHING`: uma nova execução não duplica slugs nem sobrescreve alterações no painel. **O cadastro no banco ainda não foi executado nesta preparação.**
