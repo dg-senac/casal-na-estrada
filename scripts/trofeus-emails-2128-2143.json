@@ -1,0 +1,107 @@
+[
+  {
+    "anexo": "image_2d6dcdab_091316.jpg",
+    "slug": "2023-afogados-encontro-23",
+    "foto": "/media/trofeus/2023-afogados-encontro-23.jpg",
+    "acao": "adicionar",
+    "sha256": "09fa8bb2213a4da3dc8ae695317f3d21cacbbf48e05ec2e6b370e96b7aad468e"
+  },
+  {
+    "anexo": "image_30aa7d0e_091604.jpg",
+    "slug": "sem-ano-joao-alfredo-moto-rock",
+    "foto": "/media/trofeus/sem-ano-joao-alfredo-moto-rock.jpg",
+    "acao": "adicionar",
+    "sha256": "4371cdaaa14de7a0b767ae427da9dbdda09adbfe1f50c73cf0692576778ab212"
+  },
+  {
+    "anexo": "image_596d82f_091419.jpg",
+    "slug": "2026-tribo-camarra-moto-culto",
+    "foto": "/media/trofeus/2026-tribo-camarra-moto-culto.jpg",
+    "acao": "adicionar",
+    "sha256": "2b4f59e6f20847974cc0084e7fa11888c443ed19e6f40cba2f5b67d0a34a3010"
+  },
+  {
+    "anexo": "image_5f215741_091144.jpg",
+    "slug": "2025-cha-grande-motofest-1",
+    "foto": "/media/trofeus/2025-cha-grande-motofest-1.jpg",
+    "acao": "adicionar",
+    "sha256": "788c1218c4d3d736ed7e09143d57fb4fadcb3143237ba23674e7927783f32fd4"
+  },
+  {
+    "anexo": "image_6153205e_091447.jpg",
+    "slug": "2026-bate-e-volta-joao-alfredo",
+    "foto": "/media/trofeus/2026-bate-e-volta-joao-alfredo.jpg",
+    "acao": "adicionar",
+    "sha256": "73f8cbe101008f66e2534a300491d9df08be6b8ec7434d3602240379c85e5d3a"
+  },
+  {
+    "anexo": "image_65d8dc76_091713.jpg",
+    "slug": "2025-caruaru-motofest",
+    "foto": "/media/trofeus/2025-caruaru-motofest.jpg",
+    "acao": "adicionar",
+    "sha256": "8188782b2e35ee2c14c28c59537be666457bf7a304977e4c8f4d71d1f4537826"
+  },
+  {
+    "anexo": "image_6a3795c0_091249.jpg",
+    "slug": "2026-orobo-motofest-2",
+    "foto": "/media/trofeus/2026-orobo-motofest-2.jpg",
+    "acao": "adicionar",
+    "sha256": "1cee1392d3802b82e6511fe6aa9e647fd2d650ec51f50b906352cde8c7464cba"
+  },
+  {
+    "anexo": "image_6c3879f5_091218.jpg",
+    "slug": "2025-itabaiana-motofest-4",
+    "foto": "/media/trofeus/2025-itabaiana-motofest-4.jpg",
+    "acao": "adicionar",
+    "sha256": "ab0f1f9a6a7944b135db0c0c6c3db7692cd3413806fe884ef6c3e7ac654aa1bd"
+  },
+  {
+    "anexo": "image_80d3338e_091204.jpg",
+    "slug": "2026-cha-grande-motofest-2",
+    "foto": "/media/trofeus/2026-cha-grande-motofest-2.jpg",
+    "acao": "adicionar",
+    "sha256": "586bf872f3abc2895193665c889ca226aa9d27211fc2f428ef6458318e3391db"
+  },
+  {
+    "anexo": "image_c1a26d3e_092215.jpg",
+    "slug": "2025-leoes-mata-norte-bate-fica-1",
+    "foto": "/media/trofeus/2025-leoes-mata-norte-bate-fica-1.jpg",
+    "acao": "adicionar",
+    "sha256": "6e3367f057a1b6a504b0035b251c649ceaf1469557d2ddef2874e322ebc6e361"
+  },
+  {
+    "anexo": "image_c355a568_091235.jpg",
+    "slug": "2025-motoconfraria-natal-14",
+    "foto": "/media/trofeus/2025-motoconfraria-natal-14.jpg",
+    "acao": "adicionar",
+    "sha256": "404e702cfd09f8bf2c59b495c41e79c1a90668b6f10273ac30c4f2235f852d8e"
+  },
+  {
+    "anexo": "image_de762f8c_091357.jpg",
+    "slug": "2026-paulista-motofest-1",
+    "foto": "/media/trofeus/2026-paulista-motofest-1.jpg",
+    "acao": "adicionar",
+    "sha256": "6de798f99ff1b6d8392d15bc4cf00961e387364bf5cf30597a017801b08cd0e7"
+  },
+  {
+    "anexo": "image_f74f6ae2_091336.jpg",
+    "slug": "2026-fora-eixo-belo-jardim",
+    "foto": "/media/trofeus/2026-fora-eixo-belo-jardim.jpg",
+    "acao": "adicionar",
+    "sha256": "15d605aadc9885d7910e748338c97be0b4e0dab77d03d9e44f492c42b156f4dc"
+  },
+  {
+    "anexo": "image_f6748e3d_094210.jpg",
+    "slug": "sem-ano-cabedelo-motofest",
+    "foto": "/media/trofeus/sem-ano-cabedelo-motofest.jpg",
+    "acao": "adicionar",
+    "sha256": "0406e1e9d1fcb792fc7e479f60cabc663ded6bd1d3fddad714c331c9331650ab"
+  },
+  {
+    "anexo": "image_fa4e07c7_092538.jpg",
+    "slug": "2026-11-estradeiros-do-rei",
+    "foto": "/media/trofeus/estradeiros-do-rei-2026.jpg",
+    "acao": "substituir",
+    "sha256": "b7009d03092350b29a3a039fa62ca75a9e0a78f9b50745fade3af9e98b154810"
+  }
+]
