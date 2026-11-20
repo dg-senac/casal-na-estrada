@@ -29,6 +29,9 @@ jobs:
       - name: Testar sanitização e JSON-LD
         run: npm run test:seguranca
 
+      - name: Conferir seleção dos troféus recebidos em 20/11
+        run: node tests/trofeus-email-2026-11-20.mjs
+
       - name: Conferir tipos
         run: npx astro check
         env:
