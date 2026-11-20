@@ -16,6 +16,7 @@ import { criarRelogioInatividade, identificadorSessao } from '../lib/inatividade
 import { criarAvisoInatividade } from '../lib/aviso-inatividade.js';
 import { marked } from 'marked';
 import { sanitizarPrevia } from '../lib/previa-segura.js';
+import { url as urlSegura } from '../lib/url';
 
 // ---------------------------------------------------------------- configuração
 
@@ -764,7 +765,7 @@ function itemHTML(registro) {
          </button>`
       : '';
   const link = info.link
-    ? `<a class="pn-btn--texto" href="${esc(info.link)}" target="_blank" rel="noopener">ver no site ↗</a>`
+    ? `<a class="pn-btn--texto" href="${esc(urlSegura(info.link))}" target="_blank" rel="noopener">ver no site ↗</a>`
     : '';
 
   return `

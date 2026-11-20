@@ -54,3 +54,9 @@ for (const u of ['javascript:alert(1)', 'java\nscript:alert(1)', 'data:text/html
 assert.equal(urls.url('/diario'),'/casal-na-estrada/diario');
 assert.equal(urls.url('https://example.com/foto.webp'),'https://example.com/foto.webp');
 console.log('URLs: protocolos executáveis bloqueados, links internos e HTTPS preservados.');
+
+for (const valor of ['\\\\evil.example/foto', '/\\evil.example/foto']) {
+ const html = sanitizarPrevia(`<img src="${valor}"><a href="${valor}">x</a>`,purificador);
+ const doc = new JSDOM(html).window.document;
+ assert(!doc.querySelector('[src], [href]'));
+}

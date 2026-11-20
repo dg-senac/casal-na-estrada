@@ -176,7 +176,9 @@ export function carregarPosts(): Promise<Post[]> {
  */
 export function publicavel(p: Post, hoje = new Date()): boolean {
   if (p.data.rascunho) return false;
-  const dia = (d: Date) => d.toISOString().slice(0, 10);
+  const dia = (d: Date) => new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Recife', year: 'numeric', month: '2-digit', day: '2-digit',
+  }).format(d);
   return dia(p.data.data) <= dia(hoje);
 }
 

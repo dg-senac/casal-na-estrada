@@ -21,7 +21,7 @@ export function sanitizarPrevia(html, purificador = DOMPurify) {
       const limpo = valor.replace(/[\u0000-\u0020\u007f-\u009f]/g, '');
       const esquema = limpo.match(/^([a-z][a-z0-9+.-]*):/i)?.[1]?.toLowerCase();
       const permitidos = attr === 'src' ? ['http', 'https'] : ['http', 'https', 'mailto', 'tel'];
-      if (limpo.startsWith('//') || (esquema && !permitidos.includes(esquema))) el.removeAttribute(attr);
+      if (limpo.includes('\\') || limpo.startsWith('//') || (esquema && !permitidos.includes(esquema))) el.removeAttribute(attr);
     }
   }
   return corpo.innerHTML;
