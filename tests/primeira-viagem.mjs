@@ -28,3 +28,21 @@ assert.match(doc.querySelector('#uf-BA').textContent,/Salvador/);
 const sobre=new JSDOM(readFileSync('dist/sobre/index.html','utf8')).window.document;
 assert.ok(sobre.getElementById('primeira-viagem'));
 console.log('Primeira viagem: Salvador no mapa/lista, homenagem, link de origem e contagens sem posts fictícios OK.');
+
+// Regressão do contraste: bloco claro não pode herdar tinta clara do tema.
+const fonte = readFileSync('src/pages/lugares.astro','utf8');
+const regras = fonte.match(/\.primeira-estrada \{([^}]+)\}/)[1];
+assert.match(regras, /color: var\(--ink\)/);
+assert.ok(!regras.includes('--paper2'));
+const fundo = regras.match(/background: (#[a-f0-9]{6})/i)[1];
+const luminancia = hex => {
+ const rgb = hex.slice(1).match(/../g).map(n => parseInt(n,16)/255).map(n => n <= .04045 ? n/12.92 : ((n+.055)/1.055)**2.4);
+ return rgb[0]*.2126 + rgb[1]*.7152 + rgb[2]*.0722;
+};
+for (const token of ['ink','ink-2','ink-soft','ink-mute','rust-text']) {
+ const tinta = regras.match(new RegExp(`--${token}: (#[a-f0-9]{6})`, 'i'))[1];
+ const a=luminancia(fundo), b=luminancia(tinta);
+ const contraste=(Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+ assert.ok(contraste >= 4.5, `${token}: contraste ${contraste.toFixed(2)} abaixo de 4.5:1`);
+}
+console.log('Contraste da homenagem: texto, selo, subtítulo e link/hover >= 4.5:1.');
