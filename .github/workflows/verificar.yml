@@ -43,7 +43,7 @@ jobs:
         run: npm run build
 
       - name: Conferir homenagem à primeira viagem
-        run: node tests/primeira-viagem.mjs
+        run: node tests/primeira-viagem.mjs && node tests/visitas-confirmadas.mjs
 
       - name: Conferir endpoint de fotos (somente leitura)
         env:

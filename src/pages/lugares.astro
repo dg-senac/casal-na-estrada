@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import visitasConfirmadas from '../data/visitas-confirmadas.json';
 import { marcosEstrada, primeiraViagem } from '../data/marcos-estrada';
 import MapaViagens from '../components/MapaViagens.astro';
 import { carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
@@ -8,7 +9,7 @@ import { url } from '../lib/url';
 
 const posts = postsNoAr(await carregarPosts());
 const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
-const grupos = lugares(posts, trofeus, marcosEstrada);
+const grupos = lugares(posts, trofeus, marcosEstrada, visitasConfirmadas);
 
 const totalLugares = new Set(grupos.flatMap((g) => g.lugares.map((l) => `${l.uf ?? ''}|${l.nome.toLowerCase()}`))).size;
 const totalEstados = grupos.filter((g) => g.uf).length;
@@ -25,8 +26,8 @@ const totalEstados = grupos.filter((g) => g.uf).length;
       <div class="page-head__bottom">
         <p>
           Tudo o que está aqui saiu do nosso próprio caderno: cada viagem tem uma cidade, cada
-          troféu tem uma origem. No mapa e na lista abaixo, dá para abrir as histórias de cada destino — só com
-          o que a estrada deixou.
+          troféu tem uma origem. Também guardamos os destinos confirmados pelo casal, mesmo quando
+          a história da visita ainda não foi publicada. No mapa e na lista abaixo, cada lugar tem seu espaço.
         </p>
         <span class="small-caps">Por estado, do mais visitado ao menos</span>
       </div>
@@ -56,7 +57,7 @@ const totalEstados = grupos.filter((g) => g.uf).length;
     </div>
   </section>
 
-  <MapaViagens posts={posts} trofeus={trofeus} marcos={marcosEstrada} />
+  <MapaViagens posts={posts} trofeus={trofeus} marcos={marcosEstrada} visitas={visitasConfirmadas} />
 
   <section class="section section--tight">
     <div class="wrap">
@@ -69,6 +70,7 @@ const totalEstados = grupos.filter((g) => g.uf).length;
                 {grupo.publicacoes > 0 && `${grupo.publicacoes} ${grupo.publicacoes === 1 ? 'publicação' : 'publicações'}`}
                 {grupo.publicacoes > 0 && grupo.pecas > 0 && ' · '}
                 {grupo.pecas > 0 && `${grupo.pecas} ${grupo.pecas === 1 ? 'peça' : 'peças'}`}
+                {grupo.lugares.some(l => l.visita) && `${grupo.publicacoes + grupo.pecas > 0 ? ' · ' : ''}${grupo.lugares.filter(l => l.visita).length} visitas confirmadas`}
                 {grupo.lugares.some(l => l.marcos?.length) && `${grupo.publicacoes + grupo.pecas > 0 ? ' · ' : ''}Marco da nossa história`}
               </span>
               <span class="estado__linha" aria-hidden="true" />
@@ -76,11 +78,14 @@ const totalEstados = grupos.filter((g) => g.uf).length;
 
             <ul class="lugares">
               {grupo.lugares.map((lugar) => (
-                <li class="lugar">
-                  <a class="lugar__nome" href={url(lugar.marcos?.[0]?.href ?? `/diario?lugar=${encodeURIComponent(lugar.nome)}`)}>
-                    {lugar.nome}
-                  </a>
+                <li class:list={['lugar', { 'lugar--visita': Boolean(lugar.visita) }]} >
+                  {lugar.visita ? <span class="lugar__nome">{lugar.nome}</span> : (
+                    <a class="lugar__nome" href={url(lugar.marcos?.[0]?.href ?? `/diario?lugar=${encodeURIComponent(lugar.nome)}`)}>
+                      {lugar.nome}
+                    </a>
+                  )}
                   <span class="lugar__nums">
+                    {lugar.visita && <span>{lugar.visita.observacao ?? 'Visita confirmada'}</span>}
                     {lugar.marcos?.map(m => <span>Primeira grande viagem · {m.ano}</span>)}
                     {lugar.publicacoes > 0 && (
                       <span>{lugar.publicacoes} {lugar.publicacoes === 1 ? 'publicação' : 'publicações'}</span>
@@ -236,6 +241,11 @@ const totalEstados = grupos.filter((g) => g.uf).length;
     color: var(--ink-mute);
     white-space: nowrap;
   }
+
+  .lugar--visita { flex-direction: column; gap: .25rem; }
+  .lugar--visita .lugar__nums { white-space: normal; }
+  .estado__head { flex-wrap: wrap; }
+  .estado__qtd { white-space: normal; }
 
   .lugar__ponto {
     opacity: 0.5;
