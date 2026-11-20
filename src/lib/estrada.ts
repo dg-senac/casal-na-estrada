@@ -102,11 +102,20 @@ export function separarCidade(valor?: string): { nome: string; uf?: string } {
   return { nome: bruto };
 }
 
+/** Destinos explícitos substituem o texto livre; vazio mantém o modo legado. */
+export function destinosRegistro(data: { destinos?: { nome: string; uf: string; lat?: number; lng?: number }[]; local?: string; uf?: string; cidade?: string }) {
+  if (Array.isArray(data.destinos) && data.destinos.length) return data.destinos;
+  const local = separarCidade(data.local || data.cidade);
+  return local.nome ? [{ nome: local.nome, uf: data.uf || local.uf }] :
+    local.uf ? [{ nome: nomeDaUf(local.uf), uf: local.uf }] : [];
+}
+
 export type Lugar = {
   nome: string;
   uf?: string;
   publicacoes: number;
   pecas: number;
+  coords?: [number, number];
 };
 
 export type GrupoDeLugar = {
@@ -125,21 +134,24 @@ export type GrupoDeLugar = {
 export function lugares(posts: Post[], trofeus: Trofeu[]): GrupoDeLugar[] {
   const mapa = new Map<string, Lugar>();
 
-  const registrar = (nome: string, uf: string | undefined, campo: 'publicacoes' | 'pecas') => {
+  const registrar = (nome: string, uf: string | undefined, campo: 'publicacoes' | 'pecas', lat?: number, lng?: number) => {
     const chave = `${uf ?? ''}|${nome.toLowerCase()}`;
     if (!mapa.has(chave)) mapa.set(chave, { nome, uf, publicacoes: 0, pecas: 0 });
-    mapa.get(chave)![campo] += 1;
+    const lugar = mapa.get(chave)!;
+    if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat!) <= 90 && Math.abs(lng!) <= 180 && !lugar.coords) lugar.coords = [lat!, lng!];
+    lugar[campo] += 1;
   };
 
-  for (const p of posts) {
-    const local = p.data.local?.trim();
-    if (local) registrar(local, p.data.uf, 'publicacoes');
-  }
-
-  for (const t of trofeus) {
-    const { nome, uf } = separarCidade(t.data.cidade);
-    if (nome) registrar(nome, uf, 'pecas');
-    else if (uf) registrar(nomeDaUf(uf), uf, 'pecas');
+  for (const [registros, campo] of [[posts, 'publicacoes'], [trofeus, 'pecas']] as const) {
+    for (const registro of registros) {
+      const vistos = new Set<string>();
+      for (const d of destinosRegistro(registro.data)) {
+        const chave = `${d.uf}|${d.nome.toLocaleLowerCase('pt-BR')}`;
+        if (vistos.has(chave)) continue;
+        vistos.add(chave);
+        registrar(d.nome, d.uf, campo, 'lat' in d ? d.lat : undefined, 'lng' in d ? d.lng : undefined);
+      }
+    }
   }
 
   const grupos = new Map<string, GrupoDeLugar>();

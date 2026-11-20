@@ -688,3 +688,13 @@ a:hover .foto-proporcao img {
     font-size: 3.4em;
   }
 }
+
+/* Editor de destinos: somente painel claro; não altera a página pública. */
+.pn-destinos-mapa { margin: 1.5rem 0; padding: 1rem; border: 1px solid #d8d2c7; background: #fffdf8; color: #29251f; }
+.pn-destinos-mapa > p { margin: .6rem 0 1rem; }
+.pn-destino-mapa { border-top: 1px solid #d8d2c7; padding: 1rem 0; }
+.pn-destino-mapa > strong { display: block; margin-bottom: .7rem; }
+.pn-destinos-mapa label { display: block; margin: .5rem 0; }
+.pn-destinos-mapa input { width: 100%; max-width: 34rem; }
+.pn-destinos-mapa button { margin: .35rem .6rem .35rem 0; }
+.pn-destinos-mapa .leaflet-container { max-width: 100%; isolation: isolate; }

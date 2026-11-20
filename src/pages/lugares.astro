@@ -9,7 +9,7 @@ const posts = postsNoAr(await carregarPosts());
 const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
 const grupos = lugares(posts, trofeus);
 
-const totalLugares = new Set(grupos.flatMap((g) => g.lugares.map((l) => l.nome.toLowerCase()))).size;
+const totalLugares = new Set(grupos.flatMap((g) => g.lugares.map((l) => `${l.uf ?? ''}|${l.nome.toLowerCase()}`))).size;
 const totalEstados = grupos.filter((g) => g.uf).length;
 ---
 
@@ -87,8 +87,8 @@ const totalEstados = grupos.filter((g) => g.uf).length;
       </div>
       <div>
         <p>
-          Este índice é montado sozinho: quando vocês cadastram uma publicação com a cidade e a
-          UF, ela entra aqui no dia seguinte — e cada peça da sala de troféus já traz o lugar
+          Este índice é montado sozinho: quando vocês publicam uma história com cidade e
+          UF ou selecionam os destinos no painel, ela entra aqui na próxima atualização — e cada peça da sala de troféus já traz o lugar
           de onde veio.
         </p>
         <a class="link-arrow" href={url('/linha-do-tempo')} style="color:var(--ink)">Ver a linha do tempo →</a>

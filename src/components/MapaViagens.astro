@@ -1,10 +1,10 @@
 ---
 import type { Post, Trofeu } from '../lib/dados';
 import { coordenadas, normalizarLugar } from '../lib/mapa';
-import { lugares, separarCidade } from '../lib/estrada';
+import { lugares, separarCidade, destinosRegistro } from '../lib/estrada';
 import { url } from '../lib/url';
 const { posts, trofeus } = Astro.props as { posts: Post[]; trofeus: Trofeu[] };
-const destinos = lugares(posts, trofeus).flatMap(g => g.lugares.map(l => ({ ...l, coords: coordenadas(l.nome, l.uf) })));
+const destinos = lugares(posts, trofeus).flatMap(g => g.lugares.map(l => ({ ...l, coords: l.coords ?? coordenadas(l.nome, l.uf) })));
 const pontos = destinos.filter(l => l.coords);
 const semPonto = destinos.length - pontos.length;
 ---
@@ -32,11 +32,9 @@ const semPonto = destinos.length - pontos.length;
     <div class="destinos-mapa">
       {pontos.map((p,i) => {
         const nome = normalizarLugar(separarCidade(p.nome).nome);
-        const relatos = posts.filter(post => normalizarLugar(separarCidade(post.data.local).nome) === nome && (!p.uf || (post.data.uf || separarCidade(post.data.local).uf) === p.uf));
-        const pecas = trofeus.filter(t => {
-          const cidade = separarCidade(t.data.cidade);
-          return normalizarLugar(cidade.nome) === nome && (!p.uf || cidade.uf === p.uf);
-        });
+        const corresponde = (data: Post['data'] | Trofeu['data']) => destinosRegistro(data).some(d => normalizarLugar(d.nome) === nome && (!p.uf || d.uf === p.uf));
+        const relatos = posts.filter(post => corresponde(post.data));
+        const pecas = trofeus.filter(t => corresponde(t.data));
         return <article class="destino" id={`destino-${i}`}>
           <h3>{p.nome}{p.uf ? ` — ${p.uf}` : ''}</h3>
           <ul>
