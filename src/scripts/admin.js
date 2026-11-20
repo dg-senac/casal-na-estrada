@@ -15,6 +15,7 @@ import { criarTelaMfa } from '../lib/mfa-painel.js';
 import { criarRelogioInatividade, identificadorSessao } from '../lib/inatividade.js';
 import { criarAvisoInatividade } from '../lib/aviso-inatividade.js';
 import { marked } from 'marked';
+import { montarEditorDestinos } from '../lib/editor-destinos.js';
 import { sanitizarPrevia } from '../lib/previa-segura.js';
 import { url as urlSegura } from '../lib/url';
 
@@ -980,6 +981,7 @@ function formulario(registro) {
       <div class="pn-grade">
         ${cfgSecao.campos.map((c) => campoHTML(c, valores[c.n], registro)).join('')}
       </div>
+      ${['posts', 'trofeus'].includes(cfgSecao.tabela) ? '<section id="pn-destinos-mapa" class="pn-destinos-mapa"></section>' : ''}
       <div class="pn-rodape-form">
         <button class="pn-btn" type="submit">Salvar</button>
         <button class="pn-btn pn-btn--claro" type="button" id="pn-previa">Prévia</button>
@@ -1007,6 +1009,9 @@ function formulario(registro) {
     formulario(copia);
     avisar('Cópia aberta. Ajuste o que quiser e salve — ela entra fora do ar.');
   });
+
+  const destinosMapa = document.getElementById('pn-destinos-mapa');
+  if (destinosMapa) montarEditorDestinos(destinosMapa, registro?.destinos_mapa ?? []);
 
   prepararUploads();
   prepararFilhos(registro);
@@ -1338,6 +1343,11 @@ async function salvar(form) {
   const cfgSecao = SECOES[secaoAtual];
   const botao = form.querySelector('button[type="submit"]');
   const dados = {};
+  const editorMapa = form.querySelector('#pn-destinos-mapa');
+  if (editorMapa) {
+    try { dados.destinos_mapa = editorMapa.lerDestinos(); }
+    catch (erro) { avisar(erro.message, 'erro'); return; }
+  }
 
   for (const campo of cfgSecao.campos) {
     if (campo.t === 'fotos' || campo.t === 'videos') continue;
@@ -1411,7 +1421,9 @@ async function salvar(form) {
     avisar(
       erro.code === '23505'
         ? 'Já existe um item com esse endereço (slug). Mude o título.'
-        : `Não consegui salvar: ${erro.message}`,
+        : String(erro.message).includes('destinos_mapa')
+          ? 'O cadastro dos destinos precisa ser ativado no banco de dados pelo responsável. As alterações não foram salvas.'
+          : `Não consegui salvar: ${erro.message}`,
       'erro'
     );
     return;

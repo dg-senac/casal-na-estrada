@@ -38,6 +38,7 @@ export type Post = {
     distancia?: string;
     tags: string[];
     destaque: boolean;
+    destinos?: { nome: string; uf: string; lat?: number; lng?: number }[];
     rascunho: boolean;
     /** Link do YouTube, quando a publicação tem vídeo. */
     video?: string;
@@ -85,6 +86,7 @@ export type Trofeu = {
     fotoMini?: string;
     fotos: Foto[];
     destaque: boolean;
+    destinos?: { nome: string; uf: string; lat?: number; lng?: number }[];
     rascunho: boolean;
   };
 };
@@ -160,6 +162,7 @@ export function carregarPosts(): Promise<Post[]> {
           distancia: texto(l.distancia),
           tags: lista<string>(l.tags),
           destaque: Boolean(l.destaque),
+          destinos: lista(l.destinos_mapa),
           rascunho: l.publicado === false,
           video: texto(l.video_youtube),
         },
@@ -262,6 +265,7 @@ export function carregarTrofeus(): Promise<Trofeu[]> {
           .sort(porOrdem)
           .map((f) => ({ src: (f.url ?? '') as string, legenda: texto(f.legenda) })),
         destaque: Boolean(l.destaque),
+        destinos: lista(l.destinos_mapa),
         rascunho: l.publicado === false,
       },
     }));

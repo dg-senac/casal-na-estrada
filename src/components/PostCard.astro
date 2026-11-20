@@ -13,7 +13,7 @@ const { post, variante = 'row', delay = 0 } = Astro.props;
 const { data } = post;
 
 /** Texto usado pela busca do diário (sem acento, minúsculo). */
-const busca = [data.titulo, data.local, data.uf, data.tipo, data.resumo, ...data.tags]
+const busca = [data.titulo, data.local, data.uf, data.tipo, data.resumo, ...data.tags, ...(data.destinos ?? []).flatMap((d: { nome: string; uf: string }) => [d.nome, d.uf])]
   .filter(Boolean)
   .join(' ')
   .normalize('NFD')
