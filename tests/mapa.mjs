@@ -21,7 +21,7 @@ assert(pontos.length > 0);
 for (const p of pontos) {
  assert(p.coords.every(Number.isFinite));
  const card = doc.getElementById(p.id);
- assert(card && card.querySelector('a'));
+ assert(card && (card.querySelector('a') || card.querySelector('[data-visita-confirmada]')));
  for (const a of card.querySelectorAll('a')) assert(!a.href.includes('undefined'));
 }
 const script = readFileSync('src/components/MapaViagens.astro','utf8').split('<script>')[1].split('</script>')[0].replace(/^\s*import .*;$/gm,'');

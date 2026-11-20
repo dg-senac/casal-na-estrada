@@ -111,6 +111,10 @@ export function destinosRegistro(data: { destinos?: { nome: string; uf: string; 
     local.uf ? [{ nome: nomeDaUf(local.uf), uf: local.uf }] : [];
 }
 
+export type VisitaConfirmada = { nome: string; uf: string; observacao?: string };
+
+const chaveLugar = (nome: string, uf?: string) => `${(uf ?? '').trim().toUpperCase()}|${nome.normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim().toLowerCase()}`;
+
 export type Lugar = {
   nome: string;
   uf?: string;
@@ -118,6 +122,7 @@ export type Lugar = {
   pecas: number;
   coords?: [number, number];
   marcos?: MarcoEstrada[];
+  visita?: VisitaConfirmada;
 };
 
 export type GrupoDeLugar = {
@@ -133,11 +138,11 @@ export type GrupoDeLugar = {
  * cidade, agrupado por estado. Cidade que só apareceu como estado entra no
  * grupo como "todo o estado".
  */
-export function lugares(posts: Post[], trofeus: Trofeu[], marcos: MarcoEstrada[] = []): GrupoDeLugar[] {
+export function lugares(posts: Post[], trofeus: Trofeu[], marcos: MarcoEstrada[] = [], visitas: VisitaConfirmada[] = []): GrupoDeLugar[] {
   const mapa = new Map<string, Lugar>();
 
   const registrar = (nome: string, uf: string | undefined, campo: 'publicacoes' | 'pecas', lat?: number, lng?: number) => {
-    const chave = `${uf ?? ''}|${nome.toLowerCase()}`;
+    const chave = chaveLugar(nome, uf);
     if (!mapa.has(chave)) mapa.set(chave, { nome, uf, publicacoes: 0, pecas: 0 });
     const lugar = mapa.get(chave)!;
     if (Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat!) <= 90 && Math.abs(lng!) <= 180 && !lugar.coords) lugar.coords = [lat!, lng!];
@@ -148,7 +153,7 @@ export function lugares(posts: Post[], trofeus: Trofeu[], marcos: MarcoEstrada[]
     for (const registro of registros) {
       const vistos = new Set<string>();
       for (const d of destinosRegistro(registro.data)) {
-        const chave = `${d.uf}|${d.nome.toLocaleLowerCase('pt-BR')}`;
+        const chave = chaveLugar(d.nome, d.uf);
         if (vistos.has(chave)) continue;
         vistos.add(chave);
         registrar(d.nome, d.uf, campo, 'lat' in d ? d.lat : undefined, 'lng' in d ? d.lng : undefined);
@@ -157,11 +162,17 @@ export function lugares(posts: Post[], trofeus: Trofeu[], marcos: MarcoEstrada[]
   }
 
   for (const marco of marcos) {
-    const chave = `${marco.uf}|${marco.nome.toLowerCase()}`;
+    const chave = chaveLugar(marco.nome, marco.uf);
     if (!mapa.has(chave)) mapa.set(chave, { nome: marco.nome, uf: marco.uf, publicacoes: 0, pecas: 0 });
     const lugar = mapa.get(chave)!;
     lugar.marcos ??= [];
     if (!lugar.marcos.some(m => m.href === marco.href)) lugar.marcos.push(marco);
+  }
+
+  // Registros existentes têm prioridade. Visitas não inventam publicações/peças.
+  for (const visita of visitas) {
+    const chave = chaveLugar(visita.nome, visita.uf);
+    if (!mapa.has(chave)) mapa.set(chave, { nome: visita.nome, uf: visita.uf, publicacoes: 0, pecas: 0, visita });
   }
 
   const grupos = new Map<string, GrupoDeLugar>();
