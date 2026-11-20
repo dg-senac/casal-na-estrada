@@ -17,14 +17,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: '22.23.4'
           cache: npm
 
       - name: Instalar dependências
         run: npm ci
 
       - name: Auditar dependências (alto/crítico)
-        run: npm audit --audit-level=high
+        run: npm audit --audit-level=moderate
 
       - name: Testar sanitização e JSON-LD
         run: npm run test:seguranca

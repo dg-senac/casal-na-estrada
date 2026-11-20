@@ -8,7 +8,7 @@
     "start": "astro dev --host 0.0.0.0 --port 4321",
     "build": "astro build",
     "preview": "astro preview --host 0.0.0.0 --port 4321",
-    "test:seguranca": "node tests/seguranca.mjs && node tests/controle-acesso.mjs && node tests/mfa-painel.mjs && node tests/mfa-banco.mjs && node tests/inatividade.mjs && node tests/inatividade-integracao.mjs && node tests/midia-privada.mjs && node tests/midia-banco.mjs"
+    "test:seguranca": "node tests/seguranca.mjs && node tests/controle-acesso.mjs && node tests/mfa-painel.mjs && node tests/mfa-banco.mjs && node tests/inatividade.mjs && node tests/inatividade-integracao.mjs && node tests/midia-privada.mjs && node tests/midia-banco.mjs && node tests/agendamento-banco.mjs && node tests/csp-painel.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
@@ -16,7 +16,7 @@
     "@fontsource/barlow-condensed": "^5.3.0",
     "@fontsource/bodoni-moda": "^5.3.0",
     "@supabase/supabase-js": "^2.119.0",
-    "astro": "^7.4.1",
+    "astro": "7.4.13",
     "dompurify": "^3.4.17",
     "leaflet": "^1.9.4",
     "marked": "^18.2.0",
@@ -31,6 +31,6 @@
     "typescript": "^5.9.3"
   },
   "engines": {
-    "node": ">=22.22.0"
+    "node": ">=22.23.4"
   }
 }

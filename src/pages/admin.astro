@@ -16,6 +16,7 @@ import '@fontsource/barlow-condensed/700.css';
 import '@fontsource-variable/inter';
 import '../styles/global.css';
 import { url } from '../lib/url';
+import { cspPainel } from '../lib/csp-painel.js';
 
 const endereco = import.meta.env.PUBLIC_SUPABASE_URL ?? '';
 const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -25,6 +26,8 @@ const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
 <html lang="pt-BR">
   <head>
     <meta charset="utf-8" />
+    {import.meta.env.PROD && <meta http-equiv="Content-Security-Policy" content={cspPainel(endereco)} />}
+    <meta name="referrer" content="no-referrer" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Painel — Casal na Estrada</title>
     <meta name="robots" content="noindex, nofollow" />
