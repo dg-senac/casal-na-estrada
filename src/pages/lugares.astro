@@ -125,13 +125,20 @@ const totalEstados = grupos.filter((g) => g.uf).length;
 
 <style>
   .primeira-estrada {
+    /* Ilha clara no tema escuro: toda a tinta é definida localmente. */
+    --ink: #29251f;
+    --ink-2: #3d372f;
+    --ink-soft: #51483d;
+    --ink-mute: #625647;
+    --rust-text: #96341f;
+    color: var(--ink);
     display: grid;
     grid-template-columns: minmax(160px, .65fr) 2fr;
     gap: clamp(1.5rem, 4vw, 4rem);
     padding: clamp(1.5rem, 4vw, 3rem);
     border: 1px solid var(--ink);
     border-top: 4px solid var(--ink);
-    background: var(--paper2, #eee8dc);
+    background: #eee8dc;
   }
   .primeira-estrada__selo {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
