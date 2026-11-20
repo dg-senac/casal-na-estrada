@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { marcosEstrada, primeiraViagem } from '../data/marcos-estrada';
 import MapaViagens from '../components/MapaViagens.astro';
 import { carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
 import { lugares } from '../lib/estrada';
@@ -7,7 +8,7 @@ import { url } from '../lib/url';
 
 const posts = postsNoAr(await carregarPosts());
 const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
-const grupos = lugares(posts, trofeus);
+const grupos = lugares(posts, trofeus, marcosEstrada);
 
 const totalLugares = new Set(grupos.flatMap((g) => g.lugares.map((l) => `${l.uf ?? ''}|${l.nome.toLowerCase()}`))).size;
 const totalEstados = grupos.filter((g) => g.uf).length;
@@ -32,7 +33,30 @@ const totalEstados = grupos.filter((g) => g.uf).length;
     </div>
   </header>
 
-  <MapaViagens posts={posts} trofeus={trofeus} />
+  <section class="section section--tight" aria-labelledby="primeira-estrada-titulo">
+    <div class="wrap">
+      <article class="primeira-estrada">
+        <div class="primeira-estrada__selo" aria-hidden="true">
+          <span>O primeiro capítulo</span>
+          <strong>{primeiraViagem.ano}</strong>
+          <span>Recife · Salvador</span>
+        </div>
+        <div class="primeira-estrada__texto">
+          <p class="eyebrow">Lugar de honra · nossa primeira grande viagem</p>
+          <h2 id="primeira-estrada-titulo">Bahia, onde a estrada <em>virou história.</em></h2>
+          <p>
+            Em 2023, saímos do Recife na Yamaha Lander 250 rumo à Bahia. A chegada a
+            Salvador marcou a primeira grande viagem oficial do Casal na Estrada —
+            um capítulo que merece sua própria bandeira e um lugar especial entre todos os destinos.
+          </p>
+          <p class="primeira-estrada__legado">Antes de tantas lembranças, houve essa primeira estrada. E ela segue com a gente.</p>
+          <a class="link-arrow" href={url(primeiraViagem.href)}>Relembrar o começo da nossa história →</a>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <MapaViagens posts={posts} trofeus={trofeus} marcos={marcosEstrada} />
 
   <section class="section section--tight">
     <div class="wrap">
@@ -45,6 +69,7 @@ const totalEstados = grupos.filter((g) => g.uf).length;
                 {grupo.publicacoes > 0 && `${grupo.publicacoes} ${grupo.publicacoes === 1 ? 'publicação' : 'publicações'}`}
                 {grupo.publicacoes > 0 && grupo.pecas > 0 && ' · '}
                 {grupo.pecas > 0 && `${grupo.pecas} ${grupo.pecas === 1 ? 'peça' : 'peças'}`}
+                {grupo.lugares.some(l => l.marcos?.length) && `${grupo.publicacoes + grupo.pecas > 0 ? ' · ' : ''}Marco da nossa história`}
               </span>
               <span class="estado__linha" aria-hidden="true" />
             </header>
@@ -52,10 +77,11 @@ const totalEstados = grupos.filter((g) => g.uf).length;
             <ul class="lugares">
               {grupo.lugares.map((lugar) => (
                 <li class="lugar">
-                  <a class="lugar__nome" href={url(`/diario?lugar=${encodeURIComponent(lugar.nome)}`)}>
+                  <a class="lugar__nome" href={url(lugar.marcos?.[0]?.href ?? `/diario?lugar=${encodeURIComponent(lugar.nome)}`)}>
                     {lugar.nome}
                   </a>
                   <span class="lugar__nums">
+                    {lugar.marcos?.map(m => <span>Primeira grande viagem · {m.ano}</span>)}
                     {lugar.publicacoes > 0 && (
                       <span>{lugar.publicacoes} {lugar.publicacoes === 1 ? 'publicação' : 'publicações'}</span>
                     )}
@@ -98,6 +124,29 @@ const totalEstados = grupos.filter((g) => g.uf).length;
 </Base>
 
 <style>
+  .primeira-estrada {
+    display: grid;
+    grid-template-columns: minmax(160px, .65fr) 2fr;
+    gap: clamp(1.5rem, 4vw, 4rem);
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border: 1px solid var(--ink);
+    border-top: 4px solid var(--ink);
+    background: var(--paper2, #eee8dc);
+  }
+  .primeira-estrada__selo {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: .8rem; padding: 1rem; text-align: center;
+    border: 1px solid currentColor;
+  }
+  .primeira-estrada__selo strong { font-size: clamp(2.5rem, 6vw, 5rem); line-height: 1; }
+  .primeira-estrada__texto h2 { margin: .8rem 0 1rem; }
+  .primeira-estrada__texto p { max-width: 65ch; }
+  .primeira-estrada__legado { margin: 1rem 0 1.5rem; font-style: italic; }
+  @media (max-width: 640px) {
+    .primeira-estrada { grid-template-columns: 1fr; }
+    .primeira-estrada__selo { padding: 1.2rem; }
+  }
+
   .estado {
     padding-block: clamp(1.4rem, 2.6vw, 2rem);
     scroll-margin-top: 120px;

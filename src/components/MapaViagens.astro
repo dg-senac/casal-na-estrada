@@ -1,10 +1,11 @@
 ---
+import type { MarcoEstrada } from '../data/marcos-estrada';
 import type { Post, Trofeu } from '../lib/dados';
 import { coordenadas, normalizarLugar } from '../lib/mapa';
 import { lugares, separarCidade, destinosRegistro } from '../lib/estrada';
 import { url } from '../lib/url';
-const { posts, trofeus } = Astro.props as { posts: Post[]; trofeus: Trofeu[] };
-const destinos = lugares(posts, trofeus).flatMap(g => g.lugares.map(l => ({ ...l, coords: l.coords ?? coordenadas(l.nome, l.uf) })));
+const { posts, trofeus, marcos = [] } = Astro.props as { posts: Post[]; trofeus: Trofeu[]; marcos?: MarcoEstrada[] };
+const destinos = lugares(posts, trofeus, marcos).flatMap(g => g.lugares.map(l => ({ ...l, coords: l.coords ?? coordenadas(l.nome, l.uf) })));
 const pontos = destinos.filter(l => l.coords);
 const semPonto = destinos.length - pontos.length;
 ---
@@ -38,6 +39,7 @@ const semPonto = destinos.length - pontos.length;
         return <article class="destino" id={`destino-${i}`}>
           <h3>{p.nome}{p.uf ? ` — ${p.uf}` : ''}</h3>
           <ul>
+            {p.marcos?.map(m => <li><span>Marco da nossa história · {m.ano}</span> <a href={url(m.href)}>{m.titulo} →</a></li>)}
             {relatos.map(post => <li><span>Diário</span> <a href={url(`/diario/${post.slug}`)}>{post.data.titulo} →</a></li>)}
             {pecas.map(t => <li><span>Peça</span> <a href={url(`/trofeus/${t.slug}`)}>{t.data.evento} →</a></li>)}
           </ul>

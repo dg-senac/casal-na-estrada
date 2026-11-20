@@ -6,6 +6,7 @@
  * peças da sala de troféus.
  */
 import type { Encontro, Post, Trofeu } from './dados';
+import type { MarcoEstrada } from '../data/marcos-estrada';
 
 const UFS: Record<string, string> = {
   acre: 'AC',
@@ -116,6 +117,7 @@ export type Lugar = {
   publicacoes: number;
   pecas: number;
   coords?: [number, number];
+  marcos?: MarcoEstrada[];
 };
 
 export type GrupoDeLugar = {
@@ -131,7 +133,7 @@ export type GrupoDeLugar = {
  * cidade, agrupado por estado. Cidade que só apareceu como estado entra no
  * grupo como "todo o estado".
  */
-export function lugares(posts: Post[], trofeus: Trofeu[]): GrupoDeLugar[] {
+export function lugares(posts: Post[], trofeus: Trofeu[], marcos: MarcoEstrada[] = []): GrupoDeLugar[] {
   const mapa = new Map<string, Lugar>();
 
   const registrar = (nome: string, uf: string | undefined, campo: 'publicacoes' | 'pecas', lat?: number, lng?: number) => {
@@ -152,6 +154,14 @@ export function lugares(posts: Post[], trofeus: Trofeu[]): GrupoDeLugar[] {
         registrar(d.nome, d.uf, campo, 'lat' in d ? d.lat : undefined, 'lng' in d ? d.lng : undefined);
       }
     }
+  }
+
+  for (const marco of marcos) {
+    const chave = `${marco.uf}|${marco.nome.toLowerCase()}`;
+    if (!mapa.has(chave)) mapa.set(chave, { nome: marco.nome, uf: marco.uf, publicacoes: 0, pecas: 0 });
+    const lugar = mapa.get(chave)!;
+    lugar.marcos ??= [];
+    if (!lugar.marcos.some(m => m.href === marco.href)) lugar.marcos.push(marco);
   }
 
   const grupos = new Map<string, GrupoDeLugar>();
