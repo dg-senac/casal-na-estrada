@@ -1,4 +1,5 @@
 ---
+import { distanciaComUnidade } from '../lib/distancia.js';
 import type { Post } from '../lib/dados';
 
 interface Props {
@@ -67,7 +68,7 @@ import { url } from '../lib/url';
 
     <div class="post__foot">
       <span class="post__local">{data.local}{data.uf ? ` — ${data.uf}` : ''}</span>
-      {data.distancia && <span class="post__dist">{data.distancia}</span>}
+      {data.distancia && <span class="post__dist">{distanciaComUnidade(data.distancia)}</span>}
     </div>
   </div>
 </article>

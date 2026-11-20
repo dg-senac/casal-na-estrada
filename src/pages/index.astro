@@ -1,4 +1,5 @@
 ---
+import { distanciaComUnidade } from '../lib/distancia.js';
 import { site } from '../data/site';
 import { carregarAlbuns, carregarEncontros, carregarPosts, carregarTrofeus, postsNoAr } from '../lib/dados';
 import { kilometros, kmTexto } from '../lib/estrada';
@@ -147,7 +148,7 @@ import { ordenar, seloCurto } from '../lib/trofeus';
             <div class="headline__foot">
               <a class="link-arrow" href={url(`/diario/${manchete.id}`)}>Continuar lendo →</a>
               {manchete.data.distancia && (
-                <span class="small-caps">{manchete.data.distancia} de asfalto e poeira</span>
+                <span class="small-caps">{distanciaComUnidade(manchete.data.distancia)} de asfalto e poeira</span>
               )}
             </div>
           </div>
