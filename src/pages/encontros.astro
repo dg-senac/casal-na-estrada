@@ -14,14 +14,14 @@ const todos = (await carregarEncontros()).sort(
 const estados = [...new Set(todos.map(e => e.data.uf.trim().toUpperCase()).filter(Boolean))].sort();
 const compartilharEncontro = (e: typeof todos[number]) => {
   const link = new URL(`${url('/encontros/')}#encontro-${encodeURIComponent(e.id)}`, Astro.site ?? 'https://casalnaestrada.com.br');
-  const texto = `${e.data.nome} — ${e.data.cidade}/${e.data.uf}\n${e.data.inicio.toLocaleDateString('pt-BR')}${e.data.fim ? ` a ${e.data.fim.toLocaleDateString('pt-BR')}` : ''}\nConfira a situação e os detalhes na agenda antes de sair: ${link.href}`;
+  const texto = `${e.data.nome} — ${e.data.cidade}/${e.data.uf}\n${e.data.inicio.toLocaleDateString('pt-BR')}${e.data.horaInicio ? ` às ${e.data.horaInicio} (horário de Recife)` : ''}${e.data.fim ? ` a ${e.data.fim.toLocaleDateString('pt-BR')}` : ''}\nConfira a situação e os detalhes na agenda antes de sair: ${link.href}`;
   return `https://wa.me/?text=${encodeURIComponent(texto)}`;
 };
 const hoje = new Date();
 
 // Agrupamento inicial no build; o navegador atualiza sem depender de novo deploy.
 const estado = (e: typeof todos[number]) => {
-  const t = limitesEncontro(e.data.inicio, e.data.fim);
+  const t = limitesEncontro(e.data.inicio, e.data.fim, e.data.horaInicio);
   return estadoEncontro(t.inicio, t.fim, hoje.valueOf());
 };
 const categoria = (e: typeof todos[number]) => categoriaEncontro(estado(e), e.data.cancelado, e.data.confirmado);
@@ -38,7 +38,7 @@ const grupos = [
     ? b.data.inicio.valueOf() - a.data.inicio.valueOf()
     : a.data.inicio.valueOf() - b.data.inicio.valueOf()) }));
 const dadosContagem = todos.filter(e => e.data.confirmado && !e.data.cancelado).map(e => ({
-  ...limitesEncontro(e.data.inicio, e.data.fim), nome: e.data.nome,
+  ...limitesEncontro(e.data.inicio, e.data.fim, e.data.horaInicio), nome: e.data.nome,
   local: `${e.data.cidade} — ${e.data.uf}`, uf: e.data.uf.trim().toUpperCase(),
 }));
 
@@ -134,8 +134,8 @@ const completo = (d: Date) =>
               data-evento
               id={`encontro-${e.id}`}
               data-uf={e.data.uf.trim().toUpperCase()}
-              data-inicio={limitesEncontro(e.data.inicio, e.data.fim).inicio}
-              data-fim={limitesEncontro(e.data.inicio, e.data.fim).fim}
+              data-inicio={limitesEncontro(e.data.inicio, e.data.fim, e.data.horaInicio).inicio}
+              data-fim={limitesEncontro(e.data.inicio, e.data.fim, e.data.horaInicio).fim}
               data-cancelado={String(e.data.cancelado)}
               data-confirmado={String(e.data.confirmado)}
               style={`--reveal-delay:${i * 60}ms`}
@@ -159,6 +159,7 @@ const completo = (d: Date) =>
                   {e.data.cidade} — {e.data.uf}
                   {e.data.local && <span class="evento__extra"> · {e.data.local}</span>}
                 </p>
+                {e.data.horaInicio && <p class="evento__fim">Início às <time datetime={e.data.horaInicio}>{e.data.horaInicio}</time> · horário de Recife (UTC−03)</p>}
                 {e.data.fim && (
                   <p class="evento__fim">
                     De {completo(e.data.inicio)} a {completo(e.data.fim)}

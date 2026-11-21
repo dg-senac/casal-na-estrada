@@ -388,6 +388,7 @@ const SECOES = {
       { n: 'nome', r: 'Nome do encontro', t: 'texto', req: true },
       { n: 'inicio', r: 'Começa em', t: 'data', req: true, col: 3 },
       { n: 'fim', r: 'Termina em', t: 'data', col: 3 },
+      { n: 'hora_inicio', r: 'Horário de início', t: 'hora', col: 3, dica: 'Opcional. Horário de Recife (UTC−03). Deixe vazio se ainda não souber.' },
       { n: 'cidade', r: 'Cidade', t: 'texto', req: true, col: 4 },
       { n: 'uf', r: 'UF', t: 'texto', col: 2, max: 2 },
       { n: 'local', r: 'Local', t: 'texto', dica: 'Opcional. Ex.: Pátio de Eventos' },
@@ -399,7 +400,7 @@ const SECOES = {
     ],
     resumo: (r) => ({
       titulo: r.nome,
-      meta: `${dataBR(r.inicio)}${r.fim ? ' a ' + dataBR(r.fim) : ''} · ${r.cidade || ''}${r.uf ? '/' + r.uf : ''}`,
+      meta: `${dataBR(r.inicio)}${r.hora_inicio ? ' às ' + r.hora_inicio + ' (Recife)' : ''}${r.fim ? ' a ' + dataBR(r.fim) : ''} · ${r.cidade || ''}${r.uf ? '/' + r.uf : ''}`,
       foto: null,
       link: r.publicado ? `${BASE}encontros/` : null,
     }),
@@ -863,6 +864,9 @@ function campoHTML(campo, valor, registro = null) {
             )}</option>`
         )
         .join('')}</select>`;
+      break;
+    case 'hora':
+      controle = `<input type="time" name="${campo.n}" value="${esc(v)}" step="60" />`;
       break;
     case 'data':
       controle = `<input type="date" name="${campo.n}" value="${esc(
@@ -1408,6 +1412,7 @@ async function salvar(form) {
   }
 
   if (cfgSecao.tabela === 'encontros') {
+    if (dados.hora_inicio && !/^([01]\d|2[0-3]):[0-5]\d$/.test(dados.hora_inicio)) { avisar('Informe um horário válido no formato HH:MM.', 'erro'); return; }
     if (dados.fonte_url && !fonteEncontro(dados.fonte_url)) { avisar('Informe um link HTTP(S) válido para a fonte, sem usuário ou senha.', 'erro'); return; }
     if (dados.conferido_em && !dataConferencia(dados.conferido_em)) { avisar('Informe uma data de conferência válida.', 'erro'); return; }
     if (dados.fim && dados.inicio && dados.fim < dados.inicio) { avisar('O término não pode ser anterior ao início do encontro.', 'erro'); return; }
@@ -1453,7 +1458,7 @@ async function salvar(form) {
     avisar(
       erro.code === '23505'
         ? 'Já existe um item com esse endereço (slug). Mude o título.'
-        : /destinos_mapa|ficha_rota|fonte_url|conferido_em/.test(String(erro.message))
+        : /destinos_mapa|ficha_rota|fonte_url|conferido_em|hora_inicio/.test(String(erro.message))
           ? 'Os novos campos do cadastro precisam ser ativados no banco de dados pelo responsável. As alterações não foram salvas.'
           : `Não consegui salvar: ${erro.message}`,
       'erro'
