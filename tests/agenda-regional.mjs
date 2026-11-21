@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {PGlite} from '@electric-sql/pglite';
+import {fonteEncontro,dataConferencia} from '../src/lib/fonte-encontro.js';
+for(const u of ['javascript:alert(1)','//evil.example','https://user:senha@host.test','https://host.test/\\x','https://host.test/\nx','data:text/html,x'])assert.equal(fonteEncontro(u),'');
+assert.equal(fonteEncontro('https://organizador.example/evento'),'https://organizador.example/evento');
+assert.equal(dataConferencia('2026-02-30'),'');assert.equal(dataConferencia('2026-11-01'),'2026-11-01');
+const db=new PGlite();await db.exec('create table encontros(id int primary key);insert into encontros values(1);');
+const sql=readFileSync('supabase/migrations/202611210002_fontes_encontros.sql','utf8');await db.exec(sql);await db.exec(sql);
+assert.equal((await db.query('select fonte_url from encontros')).rows[0].fonte_url,null);
+for(const u of ['javascript:alert(1)','//host.test','https://user:pass@host.test','https://host.test/ a','https://host.test/\\x'])await assert.rejects(db.query('update encontros set fonte_url=$1',[u]));
+await db.query('update encontros set fonte_url=$1,conferido_em=$2',['https://organizador.example/evento','2026-11-01']);
+await db.close();console.log('Agenda regional: links seguros, data válida e migração idempotente aprovados.');

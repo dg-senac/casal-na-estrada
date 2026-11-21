@@ -13,13 +13,13 @@ const fonte = readFileSync(new URL('../src/pages/encontros.astro', import.meta.u
 const script = fonte.match(/<script>([\s\S]*?)<\/script>/)[1].replace(/^\s*import .*;$/gm, '');
 const ids = ['andamento', 'futuro', 'confirmar', 'passado', 'cancelado'];
 const agora = Date.now();
-const dom = new JSDOM(`<nav data-categorias hidden>${ids.map(id => `<button data-filtro="${id}"><span data-total="${id}"></span></button>`).join('')}</nav><p data-categoria-vazia hidden></p>${ids.map(id => `<section data-grupo="${id}"><div class="lista"></div></section>`).join('')}`, { runScripts: 'outside-only' });
+const dom = new JSDOM(`<div data-filtro-estado hidden><select id="agenda-uf"><option value="">Todos</option><option>PE</option><option>PB</option></select></div><nav data-categorias hidden>${ids.map(id => `<button data-filtro="${id}"><span data-total="${id}"></span></button>`).join('')}</nav><p data-categoria-vazia hidden></p>${ids.map(id => `<section data-grupo="${id}"><div class="lista"></div></section>`).join('')}`, { runScripts: 'outside-only' });
 const { window: w } = dom;
 const d = w.document;
 function card(inicio, fim, confirmado, cancelado) {
   const el = d.createElement('article');
   Object.assign(el.dataset, {evento: '', inicio: String(inicio), fim: String(fim), confirmado: String(confirmado), cancelado: String(cancelado)});
-  el.innerHTML = '<span data-estado></span><p data-relogio><strong data-restante></strong></p><a class="evento__acao">Vou também</a>';
+  el.innerHTML = '<span data-estado></span><p data-relogio><strong data-restante></strong></p><a class="evento__acao" data-comboio>Vou também</a>';
   d.querySelector('.lista').append(el);
   return el;
 }
@@ -28,6 +28,7 @@ const pendente = card(agora-1000, agora+100000, false, false);
 const cancelado = card(agora-1000, agora+100000, true, true);
 const encerrado = card(agora-2000, agora-1000, false, false);
 const futuro = card(agora+100000, agora+200000, true, false);
+ativo.dataset.uf='PE';futuro.dataset.uf='PB';cancelado.dataset.uf='PE';cancelado.id='encontro-cancelado';
 w.categoriaEncontro = categoriaEncontro;
 w.estadoEncontro = (inicio, fim, agora) => agora < inicio ? 'futuro' : agora < fim ? 'andamento' : 'passado';
 w.tempoRestante = () => ({dias:'0',horas:'00',minutos:'00',segundos:'00'});
@@ -47,5 +48,14 @@ assert.equal(ativo.closest('[data-grupo]').dataset.grupo,'passado');
 assert.equal(d.querySelector('[data-grupo="cancelado"]').hidden,false);
 d.querySelector('[data-filtro="andamento"]').click();
 assert.equal(d.querySelector('[data-categoria-vazia]').hidden,false);
+const uf=d.querySelector('#agenda-uf');
+d.querySelector('[data-filtro="futuro"]').click();
+uf.value='PB';uf.dispatchEvent(new w.Event('change'));
+assert.equal(futuro.hidden,false);assert.equal(ativo.hidden,true);
+assert.equal(d.querySelector('[data-total="futuro"]').textContent,'1');
+uf.value='PE';uf.dispatchEvent(new w.Event('change'));
+assert.equal(futuro.hidden,true);assert.equal(d.querySelector('[data-categoria-vazia]').hidden,false);
+w.location.hash='#encontro-cancelado';w.dispatchEvent(new w.Event('hashchange'));
+assert.equal(uf.value,'');assert.equal(d.querySelector('[data-grupo="cancelado"]').hidden,false);
 w.close();
 console.log('Categorias: classificação, filtros, contadores, estado vazio e encerramento automático aprovados.');

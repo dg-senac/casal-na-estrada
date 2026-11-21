@@ -15,6 +15,8 @@ import { criarTelaMfa } from '../lib/mfa-painel.js';
 import { criarRelogioInatividade, identificadorSessao } from '../lib/inatividade.js';
 import { criarAvisoInatividade } from '../lib/aviso-inatividade.js';
 import { marked } from 'marked';
+import { fonteEncontro, dataConferencia } from '../lib/fonte-encontro.js';
+import { camposFicha, tiposDistancia, lerFichaFormulario } from '../lib/ficha-rota.js';
 import { montarEditorDestinos } from '../lib/editor-destinos.js';
 import { sanitizarPrevia } from '../lib/previa-segura.js';
 import { url as urlSegura } from '../lib/url';
@@ -281,6 +283,7 @@ const SECOES = {
       ] },
       { n: 'local', r: 'Onde foi', t: 'texto', req: true, col: 4, dica: 'Cidade ou trecho. Ex.: Gravatá' },
       { n: 'uf', r: 'UF', t: 'texto', col: 2, max: 2 },
+      { n: 'ficha_rota', r: 'Ficha da rota (opcional)', t: 'ficha' },
       { n: 'distancia', r: 'Distância', t: 'texto', col: 3, dica: 'Opcional. Ex.: 186 km' },
       { n: 'tags', r: 'Marcadores', t: 'tags', col: 3, dica: 'Separe por vírgula' },
       { n: 'resumo', r: 'Resumo', t: 'area', req: true, dica: 'Duas frases que aparecem no cartão e na home.' },
@@ -389,6 +392,8 @@ const SECOES = {
       { n: 'uf', r: 'UF', t: 'texto', col: 2, max: 2 },
       { n: 'local', r: 'Local', t: 'texto', dica: 'Opcional. Ex.: Pátio de Eventos' },
       { n: 'observacao', r: 'Observação', t: 'area', dica: 'Opcional. Aparece embaixo do encontro.' },
+      { n: 'fonte_url', r: 'Fonte oficial do encontro', t: 'texto', dica: 'Opcional. Link HTTP(S) do organizador ou da divulgação oficial. Não significa verificação automática.' },
+      { n: 'conferido_em', r: 'Última conferência das informações', t: 'data', dica: 'Opcional. Preencha somente quando conferir as informações com a fonte. Não muda sozinho ao salvar.' },
       { n: 'confirmado', r: 'Data confirmada', t: 'sim', padrao: true },
       { n: 'publicado', r: 'Publicado no site', t: 'sim', padrao: true },
     ],
@@ -817,6 +822,22 @@ function campoHTML(campo, valor, registro = null) {
   const obrigatorio = campo.req ? ' <em>*</em>' : '';
   const dica = campo.dica ? `<small class="pn-dica">${esc(campo.dica)}</small>` : '';
   const v = valor ?? '';
+
+  if (campo.t === 'ficha') {
+    const ficha = valor && typeof valor === 'object' ? valor : {};
+    return `<fieldset class="pn-campo" style="grid-column: 1 / -1"><legend>Ficha da rota (opcional)</legend>
+      <p class="pn-dica">Preencha só o que souber. Campos vazios não aparecem no relato. A distância usa o campo Distância do cadastro; indique se é somente ida ou ida e volta. As condições do asfalto são as observadas na viagem, não uma garantia atual.</p>
+      ${camposFicha.map(([chave,rotulo,tipo]) => {
+        const nome = `ficha_${chave}`;
+        const v = typeof ficha[chave] === 'string' ? ficha[chave] : '';
+        let input;
+        if (tipo === 'select') input = `<select name="${nome}"><option value="">Não informar</option>${Object.entries(tiposDistancia).map(([id,label]) => `<option value="${id}" ${v === id ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select>`;
+        else if (tipo === 'area') input = `<textarea name="${nome}" maxlength="1000">${esc(v)}</textarea>`;
+        else input = `<input name="${nome}" type="${tipo === 'data' ? 'date' : 'text'}" value="${esc(v)}" maxlength="1000" />`;
+        return `<label>${esc(rotulo)}${input}</label>`;
+      }).join('')}
+    </fieldset>`;
+  }
 
   if (campo.t === 'sim') {
     return `<label class="pn-check"${span}>
@@ -1350,6 +1371,11 @@ async function salvar(form) {
   }
 
   for (const campo of cfgSecao.campos) {
+    if (campo.t === 'ficha') {
+      try { dados[campo.n] = lerFichaFormulario(form); }
+      catch (erro) { avisar(erro.message, 'erro'); return; }
+      continue;
+    }
     if (campo.t === 'fotos' || campo.t === 'videos') continue;
 
     if (campo.t === 'sim') {
@@ -1379,6 +1405,12 @@ async function salvar(form) {
       continue;
     }
     dados[campo.n] = valor === '' ? null : valor;
+  }
+
+  if (cfgSecao.tabela === 'encontros') {
+    if (dados.fonte_url && !fonteEncontro(dados.fonte_url)) { avisar('Informe um link HTTP(S) válido para a fonte, sem usuário ou senha.', 'erro'); return; }
+    if (dados.conferido_em && !dataConferencia(dados.conferido_em)) { avisar('Informe uma data de conferência válida.', 'erro'); return; }
+    if (dados.fim && dados.inicio && dados.fim < dados.inicio) { avisar('O término não pode ser anterior ao início do encontro.', 'erro'); return; }
   }
 
   if (!cfgSecao.semSlug) {
@@ -1421,8 +1453,8 @@ async function salvar(form) {
     avisar(
       erro.code === '23505'
         ? 'Já existe um item com esse endereço (slug). Mude o título.'
-        : String(erro.message).includes('destinos_mapa')
-          ? 'O cadastro dos destinos precisa ser ativado no banco de dados pelo responsável. As alterações não foram salvas.'
+        : /destinos_mapa|ficha_rota|fonte_url|conferido_em/.test(String(erro.message))
+          ? 'Os novos campos do cadastro precisam ser ativados no banco de dados pelo responsável. As alterações não foram salvas.'
           : `Não consegui salvar: ${erro.message}`,
       'erro'
     );
