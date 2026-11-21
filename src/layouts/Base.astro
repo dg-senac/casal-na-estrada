@@ -30,7 +30,7 @@ const {
   noindex = false,
 } = Astro.props;
 
-const pageTitle = title ? `${title} — ${site.nome}` : `${site.nome} · ${site.nomes}`;
+const pageTitle = title ? `${title} — ${site.nome}` : site.tituloInicio;
 const canonical = new URL(Astro.url.pathname, Astro.site ?? 'https://casalnaestrada.com.br');
 import { url } from '../lib/url';
 

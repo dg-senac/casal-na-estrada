@@ -2,6 +2,7 @@
 import { distanciaComUnidade } from '../../lib/distancia.js';
 import { jsonSeguro } from '../../lib/json-seguro';
 import Base from '../../layouts/Base.astro';
+import FichaRota from '../../components/FichaRota.astro';
 import PostCard from '../../components/PostCard.astro';
 import { site } from '../../data/site';
 import { carregarPosts, postsNoAr, type Post } from '../../lib/dados';
@@ -154,6 +155,7 @@ import { url } from '../../lib/url';
     <div class="wrap artigo">
       <div class="artigo__body prose">
         <Fragment set:html={corpo} />
+        <FichaRota ficha={data.fichaRota} distancia={data.distancia} />
       </div>
 
       <aside class="artigo__aside">

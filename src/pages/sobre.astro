@@ -108,7 +108,7 @@ const foto = '/media/casal-cieri-milla.jpg';
       <div class="moto" data-reveal>
         <div>
           <p class="eyebrow">A companheira dos próximos destinos</p>
-          <h2 class="display">A moto</h2>
+          <h2 class="display">A moto e os equipamentos</h2>
           <h3 class="moto__nome">Bajaj Dominar 400</h3>
           <p class="lead">
             A Dominar 400 verde chegou há algum tempo para escrever um novo capítulo com a
@@ -139,6 +139,50 @@ const foto = '/media/casal-cieri-milla.jpg';
           </figcaption>
         </figure>
       </div>
+
+      <div class="viagem-dois" aria-label="Equipamentos e preparação para viajar a dois">
+        <section aria-labelledby="equipamentos-titulo">
+          <p class="eyebrow">O que acompanha a gente</p>
+          <h3 id="equipamentos-titulo">Equipamentos de proteção</h3>
+          <p>Nas viagens, usamos capacete, jaquetas, luvas, botas, balaclava e proteção ocular.
+            São os equipamentos que acompanham a gente, sem uma lista de marcas ou modelos recomendados.</p>
+        </section>
+        <section aria-labelledby="bagagem-titulo">
+          <p class="eyebrow">Espaço para levar as lembranças</p>
+          <h3 id="bagagem-titulo">Bagagem: baú e alforjes</h3>
+          <p>Para levar a bagagem, usamos baú e alforjes. A organização faz parte da preparação
+            de uma viagem de moto a dois, junto com a escolha do que realmente precisa ir.</p>
+        </section>
+      </div>
+
+      <section class="preparo-viagem" aria-labelledby="preparo-titulo">
+        <p class="eyebrow">Orientações gerais · viagem a dois</p>
+        <h3 id="preparo-titulo">Conforto e cuidado também fazem parte do caminho</h3>
+        <p>Estas são orientações gerais de preparação, não uma avaliação de desempenho ou
+          um relato de conforto medido por nós na Dominar 400.</p>
+        <dl>
+          <div>
+            <dt>Conforto do piloto e da garupa</dt>
+            <dd>O conforto varia conforme a pessoa, a duração do percurso e as condições da via.
+              Planeje pausas e combine a comunicação entre piloto e garupa para ajustar o ritmo da viagem.</dd>
+          </div>
+          <div>
+            <dt>Ritmo e velocidade</dt>
+            <dd>Respeite os limites de velocidade e reduza o ritmo conforme o trânsito, a visibilidade
+              e o estado da pista. A cilindrada não define uma velocidade segura para todas as situações.</dd>
+          </div>
+          <div>
+            <dt>Preparação e bagagem</dt>
+            <dd>Confira a fixação do baú e dos alforjes, a distribuição da bagagem e os limites de carga
+              da moto e dos acessórios. Siga as instruções dos fabricantes e procure orientação profissional quando necessário.</dd>
+          </div>
+          <div>
+            <dt>Proteção sem promessas</dt>
+            <dd>Use equipamentos adequados, bem ajustados e em boas condições. Balaclava não substitui
+              o capacete, e a proteção ocular deve ser apropriada ao uso na moto. Nenhum equipamento elimina todos os riscos.</dd>
+          </div>
+        </dl>
+      </section>
 
       <article class="moto moto--honra" aria-labelledby="lander-titulo" data-reveal>
         <figure class="moto__foto moto__foto--lander">
@@ -333,6 +377,15 @@ const foto = '/media/casal-cieri-milla.jpg';
     font-style: italic;
     color: var(--ink);
   }
+
+  .viagem-dois { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2rem; margin-top: 2rem; }
+  .viagem-dois section, .preparo-viagem { border-top: 1px solid var(--line-strong); padding-top: 1.5rem; }
+  .viagem-dois p, .preparo-viagem p, .preparo-viagem dd { color: var(--ink-2); }
+  .preparo-viagem { margin-top: 2rem; }
+  .preparo-viagem dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem 2rem; }
+  .preparo-viagem dt { font-weight: 600; }
+  .preparo-viagem dd { margin: .5rem 0 0; }
+  @media (max-width: 640px) { .viagem-dois, .preparo-viagem dl { grid-template-columns: 1fr; } }
 
   .moto__txt {
     color: var(--ink-soft);

@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {JSDOM} from 'jsdom';
+import {PGlite} from '@electric-sql/pglite';
+import {normalizarFicha,lerFichaFormulario,camposFicha} from '../src/lib/ficha-rota.js';
+assert.deepEqual(normalizarFicha(undefined),{});
+assert.deepEqual(normalizarFicha({origem:' Recife ',paradas:'  '}),{origem:'Recife'});
+for(const invalido of [[],42,{origem:5},{asfalto:'a'.repeat(1001)},{distancia_tipo:'voo'},{conferido_em:'2026-02-30'}])assert.throws(()=>normalizarFicha(invalido));
+const doc=new JSDOM('<form></form>').window.document,form=doc.querySelector('form');
+for(const [chave] of camposFicha){const input=doc.createElement('input');input.name=`ficha_${chave}`;form.append(input);}
+form.querySelector('[name="ficha_origem"]').value='Recife';
+form.querySelector('[name="ficha_distancia_tipo"]').value='ida_volta';
+assert.deepEqual(lerFichaFormulario(form),{origem:'Recife',distancia_tipo:'ida_volta'});
+form.reset();assert.deepEqual(lerFichaFormulario(form),{});
+const db=new PGlite();await db.exec('create role authenticated;create schema painel_privado;create table posts(id int primary key);insert into posts values(1);');
+const sql=readFileSync('supabase/migrations/202611210001_ficha_rota.sql','utf8');await db.exec(sql);await db.exec(sql);
+assert.deepEqual((await db.query('select ficha_rota from posts')).rows[0].ficha_rota,{});
+await db.query('update posts set ficha_rota=$1',[JSON.stringify({origem:'Recife',asfalto:'Observado na viagem',distancia_tipo:'ida_volta',conferido_em:'2026-11-01'})]);
+for(const v of [[],null,{origem:5},{outro:'X'},{asfalto:'a'.repeat(1001)},{distancia_tipo:'voo'},{conferido_em:'2026-02-30'}])await assert.rejects(db.query('update posts set ficha_rota=$1',[JSON.stringify(v)]));
+await db.close();console.log('Ficha da rota: opcional, edição/limpeza, limites, datas e SQL idempotente aprovados.');

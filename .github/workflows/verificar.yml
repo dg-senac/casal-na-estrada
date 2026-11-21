@@ -45,6 +45,12 @@ jobs:
           SITE_BASE: /casal-na-estrada/
         run: npm run build
 
+      - name: Conferir moto e equipamentos
+        run: node tests/moto-equipamentos.mjs
+
+      - name: Conferir SEO básico da página inicial
+        run: node tests/seo-basico.mjs
+
       - name: Conferir homenagem à primeira viagem
         run: node tests/primeira-viagem.mjs && node tests/visitas-confirmadas.mjs
 

@@ -1,0 +1,29 @@
+---
+import { camposFicha, normalizarFicha, tiposDistancia } from '../lib/ficha-rota.js';
+import { distanciaComUnidade } from '../lib/distancia.js';
+interface Props { ficha?: Record<string, string>; distancia?: string; }
+const { ficha, distancia } = Astro.props;
+let dados: Record<string, string> = {};
+try { dados = normalizarFicha(ficha); } catch { /* Dados inválidos não quebram a publicação antiga. */ }
+const linhas = camposFicha.flatMap(([chave,rotulo]) => {
+  const valor = dados[chave];
+  if (!valor || chave === 'distancia_tipo') return [];
+  return [{rotulo: chave === 'conferido_em' ? 'Informações de' : rotulo, valor: chave === 'conferido_em' ? valor.split('-').reverse().join('/') : valor}];
+});
+if (distancia && dados.distancia_tipo) linhas.splice(2,0, {rotulo:`Distância — ${tiposDistancia[dados.distancia_tipo]}`,valor:distanciaComUnidade(distancia)});
+---
+{linhas.length > 0 && <section class="ficha-rota" aria-labelledby="titulo-ficha-rota">
+  <p class="eyebrow">Para consultar antes de sair</p>
+  <h2 id="titulo-ficha-rota">Ficha da rota</h2>
+  <dl>{linhas.map(l => <div><dt>{l.rotulo}</dt><dd>{l.valor}</dd></div>)}</dl>
+  <p class="ficha-rota__nota">Informações da nossa experiência na viagem, não uma garantia das condições atuais. Confira o percurso, o funcionamento das paradas e os valores antes de sair.</p>
+</section>}
+<style>
+  .ficha-rota { margin-top: 2.5rem; padding: clamp(1rem, 3vw, 2rem); border: 1px solid var(--line-strong); background: var(--paper-2); color: var(--ink); }
+  .ficha-rota h2 { margin: 0 0 1rem; }
+  .ficha-rota dl { margin: 0; }
+  .ficha-rota dl > div { padding: .75rem 0; border-bottom: 1px solid var(--line); }
+  .ficha-rota dt { font-weight: 600; color: var(--ink); }
+  .ficha-rota dd { margin: .25rem 0 0; white-space: pre-line; overflow-wrap: anywhere; color: var(--ink-2); }
+  .ficha-rota__nota { margin: 1rem 0 0; color: var(--ink-soft); font-size: .85rem; }
+</style>

@@ -6,11 +6,12 @@
 export const site = {
   nome: 'Casal na Estrada',
   nomes: 'Cieri & Milla',
+  tituloInicio: 'Casal na Estrada | Viagens de moto em Pernambuco e no Nordeste',
   desde: 2023,
   base: 'Recife — PE',
   lema: 'Cieri e Milla',
   descricao:
-    'Diário de estrada de Cieri e Milla, um casal de Recife que roda o Brasil de moto atrás de encontros, moto casais e boas histórias.',
+    'Viagens de moto, bate-voltas e encontros de motociclistas em Pernambuco e no Nordeste. Acompanhe o diário de estrada de Cieri e Milla, um casal de Recife.',
   email: 'contato@casalnaestrada.com.br',
   // WhatsApp em formato internacional, só dígitos (é o que o wa.me espera).
   whatsapp: '5581986941562',

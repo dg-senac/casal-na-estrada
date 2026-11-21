@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { JSDOM } from 'jsdom';
+const doc=new JSDOM(readFileSync('dist/sobre/index.html','utf8')).window.document;
+const secao=doc.querySelector('#moto');
+for(const termo of ['Bajaj Dominar 400','verde','capacete','jaquetas','luvas','botas','balaclava','proteção ocular','baú e alforjes','Yamaha Lander 250','Menção honrosa'])assert.ok(secao.textContent.includes(termo),termo);
+assert.match(secao.querySelector('.preparo-viagem').textContent,/Orientações gerais/);
+assert.match(secao.querySelector('.preparo-viagem').textContent,/não uma avaliação de desempenho/);
+assert.match(secao.querySelector('.preparo-viagem').textContent,/Nenhum equipamento elimina todos os riscos/);
+assert.ok(!/km\/l|km\/h|autonomia|pneus/i.test(secao.textContent));
+assert.equal(secao.querySelectorAll('img').length,2);
+assert.match(secao.querySelector('.moto__foto figcaption').textContent,/Imagem ilustrativa/);
+assert.ok(doc.getElementById('primeira-viagem'));
+for(const id of ['equipamentos-titulo','bagagem-titulo','preparo-titulo','lander-titulo'])assert.equal(doc.querySelectorAll(`#${id}`).length,1);
+console.log('Moto/equipamentos: itens confirmados, orientações identificadas, Lander/fotos/âncoras preservadas e dados técnicos não inventados.');

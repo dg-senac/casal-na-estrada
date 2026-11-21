@@ -36,6 +36,7 @@ export type Post = {
     capaMini?: string;
     tipo: 'crônica' | 'notícia' | 'relato' | 'aviso';
     distancia?: string;
+    fichaRota?: Record<string, string>;
     tags: string[];
     destaque: boolean;
     destinos?: { nome: string; uf: string; lat?: number; lng?: number }[];
@@ -102,6 +103,8 @@ export type Encontro = {
     uf: string;
     local?: string;
     confirmado: boolean;
+    fonteUrl?: string;
+    conferidoEm?: string;
     observacao?: string;
     /** Encontro cancelado: continua na agenda, mas com o motivo à mostra. */
     cancelado: boolean;
@@ -160,6 +163,7 @@ export function carregarPosts(): Promise<Post[]> {
           capaMini: texto(l.capa_mini),
           tipo: (l.tipo ?? 'relato') as Post['data']['tipo'],
           distancia: texto(l.distancia),
+          fichaRota: l.ficha_rota && typeof l.ficha_rota === 'object' && !Array.isArray(l.ficha_rota) ? l.ficha_rota : undefined,
           tags: lista<string>(l.tags),
           destaque: Boolean(l.destaque),
           destinos: lista(l.destinos_mapa),
@@ -290,6 +294,8 @@ export function carregarEncontros(): Promise<Encontro[]> {
         uf: (l.uf ?? '') as string,
         local: texto(l.local),
         confirmado: l.confirmado !== false,
+        fonteUrl: texto(l.fonte_url),
+        conferidoEm: texto(l.conferido_em),
         observacao: texto(l.observacao),
         cancelado: l.cancelado === true,
         motivoCancelamento: texto(l.motivo_cancelamento),

@@ -1,5 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
+import { fonteEncontro, dataConferencia } from '../lib/fonte-encontro.js';
+import { url } from '../lib/url';
 import { carregarEncontros } from '../lib/dados';
 import { site } from '../data/site';
 import { limitesEncontro, estadoEncontro } from '../lib/tempo-encontros';
@@ -9,6 +11,12 @@ const todos = (await carregarEncontros()).sort(
   (a, b) => a.data.inicio.valueOf() - b.data.inicio.valueOf()
 );
 
+const estados = [...new Set(todos.map(e => e.data.uf.trim().toUpperCase()).filter(Boolean))].sort();
+const compartilharEncontro = (e: typeof todos[number]) => {
+  const link = new URL(`${url('/encontros/')}#encontro-${encodeURIComponent(e.id)}`, Astro.site ?? 'https://casalnaestrada.com.br');
+  const texto = `${e.data.nome} — ${e.data.cidade}/${e.data.uf}\n${e.data.inicio.toLocaleDateString('pt-BR')}${e.data.fim ? ` a ${e.data.fim.toLocaleDateString('pt-BR')}` : ''}\nConfira a situação e os detalhes na agenda antes de sair: ${link.href}`;
+  return `https://wa.me/?text=${encodeURIComponent(texto)}`;
+};
 const hoje = new Date();
 
 // Agrupamento inicial no build; o navegador atualiza sem depender de novo deploy.
@@ -31,7 +39,7 @@ const grupos = [
     : a.data.inicio.valueOf() - b.data.inicio.valueOf()) }));
 const dadosContagem = todos.filter(e => e.data.confirmado && !e.data.cancelado).map(e => ({
   ...limitesEncontro(e.data.inicio, e.data.fim), nome: e.data.nome,
-  local: `${e.data.cidade} — ${e.data.uf}`,
+  local: `${e.data.cidade} — ${e.data.uf}`, uf: e.data.uf.trim().toUpperCase(),
 }));
 
 const dia = (d: Date) => new Intl.DateTimeFormat('pt-BR', { day: '2-digit' }).format(d);
@@ -97,6 +105,14 @@ const completo = (d: Date) =>
     )
   }
 
+  <div class="wrap filtro-estado" data-filtro-estado hidden>
+    <label for="agenda-uf">Filtrar por estado</label>
+    <select id="agenda-uf">
+      <option value="">Todos os estados</option>
+      {estados.map(uf => <option value={uf}>{uf}</option>)}
+    </select>
+    <p>Confira a divulgação do organizador antes de sair. Fontes e datas de conferência aparecem quando informadas.</p>
+  </div>
   <nav class="wrap categorias" aria-label="Categorias de encontros" data-categorias hidden>
     {grupos.map(grupo => (
       <button type="button" class="categoria" data-filtro={grupo.id} aria-pressed={grupo.id === 'andamento'}>
@@ -116,6 +132,8 @@ const completo = (d: Date) =>
             <article
               class:list={['evento', { 'evento--cancelado': e.data.cancelado }]}
               data-evento
+              id={`encontro-${e.id}`}
+              data-uf={e.data.uf.trim().toUpperCase()}
               data-inicio={limitesEncontro(e.data.inicio, e.data.fim).inicio}
               data-fim={limitesEncontro(e.data.inicio, e.data.fim).fim}
               data-cancelado={String(e.data.cancelado)}
@@ -150,6 +168,8 @@ const completo = (d: Date) =>
                 {e.data.observacao && !e.data.cancelado && (
                   <p class="evento__obs">{e.data.observacao}</p>
                 )}
+                {fonteEncontro(e.data.fonteUrl) && <p class="evento__obs"><a href={fonteEncontro(e.data.fonteUrl)} target="_blank" rel="noopener noreferrer">Ver fonte oficial ↗</a></p>}
+                {dataConferencia(e.data.conferidoEm) && <p class="evento__obs">Última conferência: <time datetime={e.data.conferidoEm}>{e.data.conferidoEm!.split('-').reverse().join('/')}</time></p>}
                 {e.data.cancelado && (
                   <p class="evento__motivo">
                     <strong>Por que cancelou:</strong>{' '}
@@ -159,9 +179,11 @@ const completo = (d: Date) =>
               </div>
 
               <div class="evento__acao">
+                <a class="link-arrow" href={compartilharEncontro(e)} target="_blank" rel="noopener noreferrer" aria-label={`Compartilhar ${e.data.nome} no WhatsApp`}>Compartilhar no WhatsApp ↗</a>
                 {!e.data.cancelado && (
                   <a
                     class="link-arrow"
+                    data-comboio
                     href={`https://wa.me/${site.whatsapp}`}
                     target="_blank"
                     rel="noopener"
@@ -206,16 +228,20 @@ const completo = (d: Date) =>
   const caixa = document.querySelector<HTMLElement>('[data-contagem]');
   const secao = document.querySelector<HTMLElement>('[data-secao-contagem]');
   const cards = [...document.querySelectorAll<HTMLElement>('[data-evento]')];
-  type Evento = { inicio: number; fim: number; nome: string; local: string };
+  type Evento = { inicio: number; fim: number; nome: string; local: string; uf?: string };
   const eventos: Evento[] = JSON.parse(caixa?.dataset.eventos ?? '[]');
   const grupos = [...document.querySelectorAll<HTMLElement>('[data-grupo]')];
   let selecionada = 'andamento';
+  const uf = document.querySelector<HTMLSelectElement>('#agenda-uf');
+  const blocoUf = document.querySelector<HTMLElement>('[data-filtro-estado]');
+  if (blocoUf) blocoUf.hidden = false;
   const filtros = [...document.querySelectorAll<HTMLButtonElement>('[data-filtro]')];
   const vazio = document.querySelector<HTMLElement>('[data-categoria-vazia]');
   document.querySelector<HTMLElement>('[data-categorias]')!.hidden = false;
   const filtrar = () => {
+    cards.forEach(card => { card.hidden = Boolean(uf?.value && card.dataset.uf !== uf.value); });
     grupos.forEach(g => {
-      const total = g.querySelectorAll('[data-evento]').length;
+      const total = [...g.querySelectorAll<HTMLElement>('[data-evento]')].filter(c => !c.hidden).length;
       g.hidden = g.dataset.grupo !== selecionada || total === 0;
       const contador = document.querySelector(`[data-total="${g.dataset.grupo}"]`);
       if (contador) contador.textContent = String(total);
@@ -230,7 +256,7 @@ const completo = (d: Date) =>
         passado: 'Nenhum encontro encerrado na agenda.',
         cancelado: 'Nenhum encontro cancelado na agenda.',
       };
-      const mensagem = mensagens[selecionada];
+      const mensagem = mensagens[selecionada] + (uf?.value ? ` Estado selecionado: ${uf.value}.` : '');
       if (vazio.textContent !== mensagem) vazio.textContent = mensagem;
     }
   };
@@ -238,6 +264,7 @@ const completo = (d: Date) =>
     selecionada = f.dataset.filtro!;
     filtrar();
   }));
+  uf?.addEventListener('change', () => tique());
   const tique = () => {
     const agora = Date.now();
     cards.forEach(card => {
@@ -262,14 +289,15 @@ const completo = (d: Date) =>
         const t = tempoRestante(Number(card.dataset.fim), agora);
         relogio.querySelector('[data-restante]')!.textContent = `${t.dias}d ${t.horas}h ${t.minutos}min ${t.segundos}s`;
       }
-      const acao = card.querySelector<HTMLElement>('.evento__acao');
+      const acao = card.querySelector<HTMLElement>('[data-comboio]');
       if (acao) acao.hidden = estado === 'passado' || !confirmado;
     });
     filtrar();
-    const ativos = eventos.filter(e => agora < e.fim).length;
+    const eventosEstado = eventos.filter(e => !uf?.value || e.uf === uf.value);
+    const ativos = eventosEstado.filter(e => agora < e.fim).length;
     const resumo = document.querySelector('[data-agenda-resumo]');
     if (resumo) resumo.textContent = ativos ? `Agenda · ${ativos} ${ativos === 1 ? 'encontro na agenda' : 'encontros na agenda'}` : 'Agenda · sem novos encontros';
-    const proximo = eventos.find(e => e.inicio <= agora && agora < e.fim) ?? eventos.find(e => e.inicio > agora);
+    const proximo = eventosEstado.find(e => e.inicio <= agora && agora < e.fim) ?? eventosEstado.find(e => e.inicio > agora);
     if (secao) secao.hidden = !proximo;
     if (!caixa || !proximo) return;
     const acontecendo = agora >= proximo.inicio;
@@ -281,13 +309,31 @@ const completo = (d: Date) =>
       caixa.querySelector(`[data-${attr}]`)!.textContent = valor;
     }
   };
+  const abrirLink = () => {
+    const alvo = cards.find(c => `#${c.id}` === window.location.hash);
+    if (!alvo) return;
+    if (uf) uf.value = '';
+    selecionada = categoriaEncontro(estadoEncontro(Number(alvo.dataset.inicio),Number(alvo.dataset.fim),Date.now()),alvo.dataset.cancelado === 'true',alvo.dataset.confirmado === 'true');
+    tique();
+    alvo.scrollIntoView?.({block:'start'});
+  };
   tique();
+  abrirLink();
+  window.addEventListener('hashchange', abrirLink);
   const relogio = window.setInterval(tique, 1000);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) tique(); });
   window.addEventListener('pagehide', () => window.clearInterval(relogio));
 </script>
 
 <style>
+  .filtro-estado { padding-top: 1.5rem; }
+  .filtro-estado label { display: block; margin-bottom: .5rem; }
+  .filtro-estado select { padding: .7rem; background: var(--paper-2); color: var(--ink); border: 1px solid var(--line-strong); max-width: 100%; }
+  .filtro-estado p { margin-top: .75rem; color: var(--ink-soft); }
+  [data-evento][hidden] { display: none; }
+  [data-evento] { scroll-margin-top: 120px; }
+  .evento__acao { display: flex; flex-direction: column; align-items: flex-start; gap: 1rem; }
+
   .categorias { display: flex; flex-wrap: wrap; gap: 0.65rem; padding-block: 1.5rem; }
   .categorias[hidden], .categoria-vazia[hidden] { display: none; }
   .categoria {
