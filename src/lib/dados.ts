@@ -103,6 +103,7 @@ export type Encontro = {
     uf: string;
     local?: string;
     confirmado: boolean;
+    horaInicio?: string;
     fonteUrl?: string;
     conferidoEm?: string;
     observacao?: string;
@@ -294,6 +295,7 @@ export function carregarEncontros(): Promise<Encontro[]> {
         uf: (l.uf ?? '') as string,
         local: texto(l.local),
         confirmado: l.confirmado !== false,
+        horaInicio: typeof l.hora_inicio === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(l.hora_inicio) ? l.hora_inicio : undefined,
         fonteUrl: texto(l.fonte_url),
         conferidoEm: texto(l.conferido_em),
         observacao: texto(l.observacao),
