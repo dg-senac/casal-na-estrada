@@ -1,7 +1,7 @@
 import {spawnSync} from 'node:child_process';
 const testes=[
- 'experiments/emergencia/gerar-worker-controle.mjs',
- ...['emergencia-prototipo','emergencia-autorizacao','emergencia-botao','hora-encontros','pacote-editorial','recuperacao-editorial-banco','captura-editorial','download-editorial','worker-download-completo','backup-real-d1','conferir-backup','baixar-copia-guardada','controle-operacoes','controle-operacoes-sqlite'].map(t=>'tests/'+t+'.mjs'),
+ 'experiments/emergencia/gerar-worker-fotos.mjs',
+ ...['emergencia-prototipo','emergencia-autorizacao','emergencia-botao','hora-encontros','pacote-editorial','recuperacao-editorial-banco','captura-editorial','download-editorial','worker-download-completo','backup-real-d1','conferir-backup','baixar-copia-guardada','controle-operacoes','controle-operacoes-sqlite','backup-fotos','fotos-browser'].map(t=>'tests/'+t+'.mjs'),
 ];
 for(const arquivo of testes){
  const r=spawnSync(process.execPath,[arquivo],{stdio:'inherit',env:process.env});

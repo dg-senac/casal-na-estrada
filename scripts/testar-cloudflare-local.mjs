@@ -8,7 +8,7 @@ function rodar(args,extras={}){
  if(r.status!==0)throw Error('Teste Cloudflare falhou: '+args.join(' '));
 }
 try{
- rodar(['experiments/emergencia/gerar-worker-controle.mjs']);
+ rodar(['experiments/emergencia/gerar-worker-fotos.mjs']);
  rodar(['tests/site-worker.mjs']);
  rodar(['scripts/build-cloudflare-teste.mjs','--fixture-local']);
  rodar(['node_modules/wrangler/bin/wrangler.js','deploy','--config','wrangler.jsonc','--dry-run','--outdir',pasta]);

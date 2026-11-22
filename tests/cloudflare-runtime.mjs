@@ -12,6 +12,9 @@ let capturou,soltar;
 const capturaIniciou=new Promise(r=>capturou=r),gate=new Promise(r=>soltar=r);
 const dados=Object.fromEntries(['posts','albuns','trofeus','encontros','album_fotos','album_videos','trofeu_fotos'].map(t=>[t,[]]));
 const captura={versaoCaptura:1,capturadoEm:'2026-11-09T12:00:00.000Z',dados,contagens:Object.fromEntries(Object.keys(dados).map(t=>[t,0]))};
+const conteudoFoto=new TextEncoder().encode('foto fictícia');
+const hashFoto=Buffer.from(await crypto.subtle.digest('SHA-256',conteudoFoto)).toString('hex');
+writeFileSync(join(pasta,'_backup-assets.json'),JSON.stringify({versao:1,arquivos:[{bucket:'repositorio',caminho:'media/foto.txt',tamanho:conteudoFoto.length,sha256:hashFoto}]}));
 const mf=new Miniflare(convertV4MiniflareOptions({rootPath:'/',name:'site',modules:true,scriptPath:resolve(process.env.CLOUDFLARE_BUNDLE || '/tmp/cloudflare-dryrun/site-worker.js'),compatibilityDate:'2026-11-09',
  assets:{directory:pasta,binding:'ASSETS',run_worker_first:true},
  d1Databases:['DB'],bindings:{SUPABASE_URL:'https://pjglrlullnchqazxpvyn.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_ficticia'},
@@ -19,6 +22,7 @@ const mf=new Miniflare(convertV4MiniflareOptions({rootPath:'/',name:'site',modul
   const url=new URL(request.url);assert.equal(url.origin,'https://pjglrlullnchqazxpvyn.supabase.co');
   if(url.pathname==='/auth/v1/user')return Response.json({id:'operador-ficticio'});
   if(url.pathname==='/rest/v1/rpc/estado_acesso_painel')return Response.json({autorizado:true,mfa_necessario:false});
+  if(url.pathname.startsWith('/storage/v1/object/list/'))return Response.json([]);
   assert.equal(url.pathname,'/rest/v1/rpc/capturar_editorial_emergencia');capturou();await gate;return Response.json(captura);
  },
 }));
@@ -45,5 +49,11 @@ try{
  assert.equal((await executar(origem+'/media/foto.txt')).status,200);
  assert.equal((await db.prepare('SELECT operacao_id FROM controle_operacoes WHERE id=1').first()).operacao_id,null);
  assert.equal((await db.prepare('SELECT count(*) AS n FROM historico_operacoes').first()).n,4);
+ const inventario=await executar(origem+'/api/midia-inventario',options());assert.equal(inventario.status,200);assert.equal((await inventario.json()).arquivos.length,1);
+ const baixar=options();baixar.headers['X-Midia-Bucket']='repositorio';baixar.headers['X-Midia-Caminho']='media%2Ffoto.txt';
+ const foto=await executar(origem+'/api/midia-arquivo',baixar);assert.equal(foto.status,200);assert.equal(foto.headers.get('X-Conteudo-Sha256'),hashFoto);assert.equal(await foto.text(),'foto fictícia');
+ assert.equal((await executar(origem+'/_backup-assets.json')).status,404);
+ console.log('Runtime local de mídia: inventário autenticado, bytes do ASSETS, hash SHA-256 e manifesto sem rota pública aprovados.');
+
  console.log('Runtime Cloudflare LOCAL: assets, D1 emulado, autenticação simulada, backup, concorrência 409, bloqueio HTML/arquivo, reabertura e auditoria transacional aprovados. Sem conta/provedor remoto.');
 }finally{soltar();await mf.dispose();rmSync(pasta,{recursive:true,force:true});}

@@ -29,3 +29,7 @@ CONTROLE-OPERACOES.md descreve trava e histórico. Novo teste controle-operacoes
 - Site completo na Cloudflare em paralelo, depois migração e integração no canto direito do admin somente com aprovação. Tratar origem Pages, acesso direto REST/Storage e objetos previamente baixados; não prometer contenção absoluta.
 
 Nenhuma dessas pendências autoriza contratação, mudança de DNS, desligamento do Pages ou alteração de dados reais sem aprovação.
+
+## Atualização: mídia no site paralelo
+
+Novo BACKUP-FOTOS.md descreve ZIP autenticado no computador com binários de public/media e dos dois buckets conhecidos, mais verificador inteiramente local no navegador. Sem alteração de banco/bucket, sem serviço pago, sem gravar fotos no D1. Não é backup automático de fotos integrado à emergência. Site paralelo usa worker-fotos-teste gerado; bundles antigos servem somente às regressões históricas. Scripts de build regeneram controlador e manifesto SHA dos assets. Suíte test:emergencia inclui backup-fotos/fotos-browser. Runtime local também testa endpoints de inventário/bytes e hash. Fotos reais ainda precisam de teste manual no navegador do usuário; não anexar ZIP/fotos no chat.

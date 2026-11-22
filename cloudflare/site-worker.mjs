@@ -1,5 +1,6 @@
 /** Teste paralelo do site completo. Não é migração do GitHub Pages. */
-import painel from '../experiments/emergencia/worker-controle-teste.mjs';
+import painel from '../experiments/emergencia/worker-fotos-teste.mjs';
+import {tratarMidiaBackup} from './midia-backup.mjs';
 const rotasPainel=new Set(['/login-teste','/api/verificar','/api/emergencia-real','/api/emergencia-teste','/api/reabrir-teste','/api/exportar-editorial','/api/conferir-backup','/api/baixar-backup']);
 function manutencao(){return new Response('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Manutenção — Casal na Estrada</title><h1>Voltamos em breve</h1><p>O site está temporariamente em manutenção.</p></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Retry-After':'300','X-Robots-Tag':'noindex, nofollow','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'"}});}
 export default {
@@ -9,6 +10,8 @@ export default {
   env={...env,SUPABASE_URL:env.SUPABASE_URL ?? env.PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY:env.SUPABASE_ANON_KEY ?? env.PUBLIC_SUPABASE_ANON_KEY};
   const url=new URL(request.url);
+  if(['/api/midia-inventario','/api/midia-arquivo'].includes(url.pathname))return tratarMidiaBackup(request,env);
+  if(url.pathname==='/_backup-assets.json')return new Response('Não encontrado.',{status:404,headers:{'Cache-Control':'no-store'}});
   // Rotas mínimas do controle continuam disponíveis mesmo com páginas bloqueadas.
   // /admin original também é bloqueado na manutenção; /login-teste permite reabrir.
   if(rotasPainel.has(url.pathname))return painel.fetch(request,env);
