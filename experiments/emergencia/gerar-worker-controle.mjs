@@ -1,0 +1,11 @@
+import {readFileSync,writeFileSync} from 'node:fs';
+import './gerar-worker-copia-guardada.mjs';
+const pasta=new URL('./',import.meta.url);
+let base=readFileSync(new URL('worker-copia-guardada-teste.mjs',pasta),'utf8');
+const modulo=readFileSync(new URL('controle-operacoes.mjs',pasta),'utf8').replace(/^import .*;\n/gm,'').replaceAll('export ','');
+if((base.match(/export default \{/g)||[]).length!==1)throw Error('Export inesperado');
+base=base.replace('export default {','const workerInterno = {');
+base=base.replace('<section id="acoes" hidden>', '<section id="acoes" hidden><p>Controle de operações ativo: manutenção e reabertura são serializadas e registradas no D1. Trava incerta exige conferência, sem liberação automática.</p>');
+base+=`\nexport default {fetch(request,env){return controlarOperacao(request,env,()=>workerInterno.fetch(request,env));}};\n`;
+writeFileSync(new URL('worker-controle-teste.mjs',pasta),modulo+'\n'+base);
+console.log('Worker com controle gerado. Não publicado.');

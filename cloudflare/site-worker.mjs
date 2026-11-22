@@ -1,0 +1,28 @@
+/** Teste paralelo do site completo. Não é migração do GitHub Pages. */
+import painel from '../experiments/emergencia/worker-controle-teste.mjs';
+const rotasPainel=new Set(['/login-teste','/api/verificar','/api/emergencia-real','/api/emergencia-teste','/api/reabrir-teste','/api/exportar-editorial','/api/conferir-backup','/api/baixar-backup']);
+function manutencao(){return new Response('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Manutenção — Casal na Estrada</title><h1>Voltamos em breve</h1><p>O site está temporariamente em manutenção.</p></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Retry-After':'300','X-Robots-Tag':'noindex, nofollow','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'"}});}
+export default {
+ async fetch(request,env){
+  const url=new URL(request.url);
+  // Rotas mínimas do controle continuam disponíveis mesmo com páginas bloqueadas.
+  // /admin original também é bloqueado na manutenção; /login-teste permite reabrir.
+  if(rotasPainel.has(url.pathname))return painel.fetch(request,env);
+  if(url.pathname.startsWith('/api/'))return new Response('Não encontrado.',{status:404,headers:{'Cache-Control':'no-store','X-Robots-Tag':'noindex'}});
+  if(!['GET','HEAD'].includes(request.method))return new Response('Método não permitido.',{status:405,headers:{Allow:'GET, HEAD','Cache-Control':'no-store'}});
+  let estado;
+  try{estado=await env.DB.prepare('SELECT manutencao FROM estado_site WHERE id = 1').first();}catch{return manutencao();}
+  if(estado?.manutencao!==0)return manutencao();
+  if(!env.ASSETS)return manutencao();
+  try{
+   // Consulta vem antes de TODOS os assets. Nunca redireciona/proxy para Pages.
+   const resposta=await env.ASSETS.fetch(request);
+   const headers=new Headers(resposta.headers);
+   headers.set('Cache-Control','no-store');
+   headers.set('X-Robots-Tag','noindex, nofollow'); // Endereço paralelo não deve competir com o site real.
+   headers.set('X-Content-Type-Options','nosniff');
+   headers.set('Referrer-Policy','strict-origin-when-cross-origin');
+   return new Response(resposta.body,{status:resposta.status,statusText:resposta.statusText,headers});
+  }catch{return manutencao();}
+ }
+};

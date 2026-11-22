@@ -5,3 +5,8 @@ dist/
 *.log
 .env
 .env.*
+
+# Desenvolvimento Cloudflare: estado local e credenciais nunca entram no Git.
+.wrangler/
+.dev.vars
+.dev.vars.*
