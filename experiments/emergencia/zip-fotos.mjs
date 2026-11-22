@@ -24,7 +24,7 @@ export function montarZipFotos(arquivos){
 }
 
 /** Confere nosso formato ZIP sem extrair arquivos no disco e sem enviar à rede. */
-export async function verificarZipFotos(arquivo){
+export async function inspecionarZipFotos(arquivo,comBytes=false){
  if(!arquivo||arquivo.size>66*1024*1024)throw Error('ZIP acima do limite.');
  const bytes=new Uint8Array(await arquivo.arrayBuffer()),view=new DataView(bytes.buffer);
  const u16=p=>view.getUint16(p,true),u32=p=>view.getUint32(p,true);
@@ -59,5 +59,9 @@ export async function verificarZipFotos(arquivo){
   total+=conteudo.length;nomes.add(a.nome);
  }
  if(total!==manifesto.totalBytes||total>60*1024*1024)throw Error('Total divergente.');
- return {arquivos:manifesto.arquivos.length,totalBytes:total};
+ return {arquivos:manifesto.arquivos.length,totalBytes:total,manifesto,...(comBytes?{itens}:{})};
+}
+
+export async function verificarZipFotos(arquivo){
+ const {arquivos,totalBytes}=await inspecionarZipFotos(arquivo);return {arquivos,totalBytes};
 }

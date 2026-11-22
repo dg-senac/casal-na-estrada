@@ -1,3 +1,4 @@
+import { instalarEmergenciaAdmin } from '../lib/emergencia-admin.js';
 import { BUCKET_RASCUNHOS, urlFotoPrivada, criarPreviaPrivada } from '../lib/midia-privada.js';
 /**
  * Painel do casal (/admin).
@@ -504,6 +505,8 @@ function telaPainel() {
     <div class="pn-faixa" id="pn-faixa"></div>
     <main class="pn-area" id="pn-area"></main>
   `;
+
+  instalarEmergenciaAdmin({habilitado:import.meta.env.PUBLIC_EMERGENCIA_PARALELO === '1', obterSessao:async()=>{const {data,error}=await supabase.auth.getSession();if(error)throw error;return data.session;}});
 
   document.getElementById('pn-publicar').addEventListener('click', (ev) => {
     const botao = ev.currentTarget;

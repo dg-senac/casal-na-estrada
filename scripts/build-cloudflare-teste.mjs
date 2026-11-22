@@ -13,7 +13,7 @@ const anonLegada=()=>{try{const c=JSON.parse(Buffer.from(chave.split('.')[1],'ba
 const gerar=spawnSync(process.execPath,['experiments/emergencia/gerar-worker-fotos.mjs'],{stdio:'inherit'});
 if(gerar.status!==0)process.exit(gerar.status||1);
 if(!fixture && (endereco.replace(/\/$/,'')!==publica.url || chave!==chave.trim() || !(chave.startsWith('sb_publishable_') || anonLegada())))throw Error('Build exige URL do projeto e chave pública Publishable ou anon. Nunca usar chave secreta.');
-const env={...process.env,PUBLIC_SUPABASE_URL:endereco,PUBLIC_SUPABASE_ANON_KEY:chave,SITE_BASE:'/',SITE_URL:site,...(fixture?{DADOS_FIXTURE:'scripts/dados-exemplo.json'}:{})};
+const env={...process.env,PUBLIC_EMERGENCIA_PARALELO:'1',PUBLIC_SUPABASE_URL:endereco,PUBLIC_SUPABASE_ANON_KEY:chave,SITE_BASE:'/',SITE_URL:site,...(fixture?{DADOS_FIXTURE:'scripts/dados-exemplo.json'}:{})};
 const r=spawnSync(process.execPath,['node_modules/astro/bin/astro.mjs','build'],{stdio:'inherit',env});
 if(r.status!==0)process.exit(r.status||1);
 await gerarManifestoAssets('dist');
