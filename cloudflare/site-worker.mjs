@@ -4,6 +4,10 @@ const rotasPainel=new Set(['/login-teste','/api/verificar','/api/emergencia-real
 function manutencao(){return new Response('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Manutenção — Casal na Estrada</title><h1>Voltamos em breve</h1><p>O site está temporariamente em manutenção.</p></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Retry-After':'300','X-Robots-Tag':'noindex, nofollow','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'"}});}
 export default {
  async fetch(request,env){
+  // Aceita os nomes já cadastrados pelo usuário no runtime do Worker novo.
+  // O painel continua exigindo chave Publishable e sessão administrativa/MFA.
+  env={...env,SUPABASE_URL:env.SUPABASE_URL ?? env.PUBLIC_SUPABASE_URL,
+    SUPABASE_ANON_KEY:env.SUPABASE_ANON_KEY ?? env.PUBLIC_SUPABASE_ANON_KEY};
   const url=new URL(request.url);
   // Rotas mínimas do controle continuam disponíveis mesmo com páginas bloqueadas.
   // /admin original também é bloqueado na manutenção; /login-teste permite reabrir.

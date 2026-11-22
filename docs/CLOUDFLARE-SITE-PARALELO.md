@@ -26,3 +26,7 @@ Precisamos autenticar/conectar Cloudflare para publicar ASSETS + código: colar 
 ## Ainda não concluído
 
 Não foi publicado site completo na Cloudflare. Não foi feito backup dos binários, restauração completa do esquema real, rate limit/retentiva/histórico completo nem revogação de origem alternativa. Não desativar Pages, mexer em DNS ou alegar contenção do site real. URL de origem Supabase/media pública continua acessível. Não ativar plano pago. A preparação não significa garantia de finalizar produção hoje.
+
+## Correção posterior: painel sem campos de build vars
+
+Build agora usa fallback público idêntico ao workflow de Pages em cloudflare/supabase-publico.json. PUBLIC_* de build podem sobrescrever, mas não são mais obrigatórios. Runtime aceita aliases PUBLIC_* já cadastrados pelo usuário; keep_vars=true preserva dashboard vars. A configuração de Node está em .node-version. Orientações anteriores de exigir esses campos no painel foram substituídas por docs/CONFIGURAR-CLOUDFLARE-BRANCH.md. Nenhum deploy executado por esta correção.

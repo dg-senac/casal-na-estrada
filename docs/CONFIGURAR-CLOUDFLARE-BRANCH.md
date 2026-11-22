@@ -15,20 +15,17 @@ A preparação não publica nada automaticamente nem modifica o workflow de Page
 - Se houver comando de versão/preview para branches não principais, desativar builds dessas branches neste aplicativo. Não publicar variantes que ignorem o guard de deploy.
 - Instalação usa npm ci/package-lock. Nenhuma mudança de plano ou cobrança deve ser ativada.
 
-## Variáveis para BUILD
+## Build sem variáveis no painel
 
-PUBLIC_SUPABASE_URL = https://pjglrlullnchqazxpvyn.supabase.co
-PUBLIC_SUPABASE_ANON_KEY = chave pública Publishable do projeto (copiar privadamente no painel, nunca postar no chat).
-NODE_VERSION = 22.23.4 se necessário.
+A configuração pública de leitura já usada pelo workflow GitHub Pages está em cloudflare/supabase-publico.json. O script usa esse fallback quando PUBLIC_SUPABASE_URL/PUBLIC_SUPABASE_ANON_KEY não estão disponíveis no ambiente de build. Não é service_role nem chave secreta. Overrides continuam permitidos somente para endereço do projeto e chave pública. .node-version define 22.23.4; NODE_VERSION no runtime não controla o build.
 
-NÃO configurar DADOS_FIXTURE. Não incluir service_role, sb_secret_ ou senhas. O build falha deliberadamente sem as variáveis. SITE_BASE e SITE_URL são definidos pelo script para o endereço paralelo na raiz.
+Não é mais necessário procurar campos de build vars nessa UI. NÃO configurar DADOS_FIXTURE. Não enviar chaves no chat.
 
-## Variáveis de RUNTIME no NOVO Worker
+## Runtime no NOVO Worker
 
-SUPABASE_URL = mesmo endereço acima.
-SUPABASE_ANON_KEY = chave pública Publishable, como no Worker de teste anterior.
+Os nomes PUBLIC_SUPABASE_URL e PUBLIC_SUPABASE_ANON_KEY que o usuário já cadastrou em Runtime são aceitos como aliases pelo Worker do site. Alternativamente SUPABASE_URL/SUPABASE_ANON_KEY também funcionam e têm precedência. Runtime do controlador ainda exige Publishable sb_publishable_ e sessão/MFA: o fallback anon do build não libera acesso administrativo.
 
-Build vars não necessariamente viram runtime vars; confirmar os dois contextos. DB vem do wrangler.jsonc apontando ao D1 casal-emergencia-teste. Não criar outro banco pago. A manutenção será compartilhada com o Worker de controle existente enquanto ambos usam estado_site.
+keep_vars=true preserva as variáveis cadastradas no dashboard nas publicações. DB vem do wrangler.jsonc. Não cadastrar plano pago ou novo banco. Mesma manutenção é compartilhada com o controlador de teste anterior.
 
 ## Antes de clicar Deploy
 

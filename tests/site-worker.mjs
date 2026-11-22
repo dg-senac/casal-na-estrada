@@ -17,3 +17,7 @@ const painelEnv={...env,SUPABASE_URL:'https://pjglrlullnchqazxpvyn.supabase.co',
 manutencao=1;assert.equal((await worker.fetch(new Request('https://teste.invalid/login-teste'),painelEnv)).status,200);
 assert.equal((await worker.fetch(new Request('https://teste.invalid/api/reabrir-teste'),painelEnv)).status,405);
 console.log('Site paralelo: asset normal, bloqueio anterior a páginas/JS/imagens/feed/admin, falha fechada, painel de recuperação preservado e noindex/no-store aprovados. Não bloqueia origem Pages ou Supabase.');
+
+const publicoEnv={...env,PUBLIC_SUPABASE_URL:'https://pjglrlullnchqazxpvyn.supabase.co',PUBLIC_SUPABASE_ANON_KEY:'sb_publishable_ficticia'};
+assert.equal((await worker.fetch(new Request('https://teste.invalid/login-teste'),publicoEnv)).status,200);
+console.log('Runtime: nomes PUBLIC_* já cadastrados também abrem painel, sem reduzir autorização.');
