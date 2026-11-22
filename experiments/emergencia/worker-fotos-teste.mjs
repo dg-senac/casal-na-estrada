@@ -368,6 +368,10 @@ const workerInterno = {
 <button id="conferir" type="button">Conferir cópia no D1</button>
 <button id="baixar-guardada" type="button">Baixar esta cópia guardada no D1</button>
 <p>Inclui rascunhos. Não cria nova cópia nem consulta os cadastros atuais. Guarde o arquivo em pasta privada. Não inclui os arquivos das fotos.</p>
+<h2>Fotos do Supabase guardadas no D1</h2>
+<p>Use o ID da cópia editorial no campo abaixo. Retoma as fotos sem criar outro backup de cadastros. Até 3 conjuntos, 100 arquivos, 1 MiB por arquivo e 8 MiB por conjunto. Não inclui public/media. A aba precisa ficar aberta; se interromper, retome com o mesmo ID.</p>
+<button id="retomar-fotos-d1" type="button">Copiar ou retomar fotos do Supabase no D1</button>
+<button id="baixar-fotos-d1" type="button">Baixar fotos guardadas no D1 (ZIP)</button>
 <h2>Arquivos das fotos — ZIP privado no computador</h2>
 <p>Inclui public/media e arquivos visíveis dos buckets midia/midia-rascunhos. Pode incluir rascunhos. Não inclui URLs externas, cadastros ou tudo que existe na conta. Limites: 60 MiB no total e 10 MiB por arquivo. Não é backup automático no D1.</p>
 <button id="baixar-fotos" type="button">Baixar arquivos de mídia (ZIP)</button>
@@ -496,6 +500,22 @@ document.getElementById('baixar-guardada').addEventListener('click',async()=>{
  }catch{status.textContent='Falha no download da cópia guardada. Nenhum arquivo completo foi confirmado.';}
  finally{ocupadoAcao=false;botoes.forEach(id=>document.getElementById(id).disabled=false);}
 });
+/** Sem sessão persistida. A aba conduz etapas curtas; fechamento exige retomada. */
+async function copiarFotosAutomaticas({id,token,progresso=()=>{},fetchImpl=fetch}){
+ const chamar=async(acao,nome)=>{
+  const r=await fetchImpl('/api/fotos-guardadas/'+acao,{method:'POST',headers:{Authorization:'Bearer '+token,'X-Teste-Id':id,...(nome?{'X-Foto-Nome':encodeURIComponent(nome)}:{})},credentials:'omit',cache:'no-store',redirect:'error'});
+  if(!r.ok)throw Error(await r.text());return r.json();
+ };
+ progresso('Inventariando fotos do Supabase. Mantenha esta aba aberta.');
+ const inventario=await chamar('iniciar');
+ if(!Array.isArray(inventario.arquivos)||inventario.arquivos.length>100)throw Error('Inventário de fotos incompatível.');
+ for(const [i,a] of inventario.arquivos.entries()){
+  progresso('Copiando e conferindo foto '+(i+1)+' de '+inventario.arquivos.length+'. Mantenha a aba aberta.');await chamar('copiar',a.nome);
+ }
+ const resultado=await chamar('concluir');
+ return 'Fotos do Supabase guardadas e conferidas no D1: '+resultado.arquivos+' arquivos, '+resultado.totalBytes+' bytes. Não inclui imagens fixas do repositório; preserve o ZIP completo. ID: '+id;
+}
+
 /** ZIP sem compressão. Montado no navegador; nenhuma imagem vira texto no D1. */
 const zipEncoder=new TextEncoder();
 const zipCRC=Uint32Array.from({length:256},(_,n)=>{for(let i=0;i<8;i++)n=n&1?0xedb88320^(n>>>1):n>>>1;return n>>>0;});
@@ -604,6 +624,36 @@ document.getElementById('verificar-fotos').addEventListener('click',async()=>{
  catch(e){status.textContent='ZIP não validado: '+e.message;}
  finally{ocupadoAcao=false;botoes.forEach(b=>b.disabled=false);}
 });
+
+async function executarFotosGuardadas(baixar){
+ if(ocupadoAcao||!token)return;
+ const id=document.getElementById('id-copia').value.trim();
+ if(!/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(id)){status.textContent='Informe o ID da cópia editorial.';return;}
+ if(!baixar&&!confirm('Copiar/retomar fotos reais e privadas do Supabase no D1 existente? A manutenção não será alterada; use o ID correto e mantenha esta aba aberta. Não inclui public/media.'))return;
+ ocupadoAcao=true;const botoes=[...document.querySelectorAll('#acoes button'),document.getElementById('limpar')];botoes.forEach(b=>b.disabled=true);
+ try{
+  if(!baixar){status.textContent=await copiarFotosAutomaticas({id,token,progresso:t=>status.textContent=t});return;}
+  const headers={Authorization:'Bearer '+token,'X-Teste-Id':id};
+  const obter=async(acao,extras={})=>{const r=await fetch('/api/fotos-guardadas/'+acao,{method:'POST',headers:{...headers,...extras},credentials:'omit',cache:'no-store',redirect:'error'});if(!r.ok)throw Error(await r.text());return r;};
+  status.textContent='Lendo manifesto das fotos GUARDADAS no D1…';
+  const inventario=await (await obter('inventario')).json();if(inventario.estado!=='concluido'||!Array.isArray(inventario.arquivos)||inventario.arquivos.length>100)throw Error('Cópia não concluída.');
+  const partes=[],arquivos=[];let total=0;
+  for(const [i,a] of inventario.arquivos.entries()){
+   status.textContent='Baixando e verificando do D1: '+(i+1)+' de '+inventario.arquivos.length;
+   const r=await obter('arquivo',{'X-Foto-Nome':encodeURIComponent(a.nome)}),bytes=new Uint8Array(await r.arrayBuffer());total+=bytes.length;
+   const sha256=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
+   if(total>8*1048576||bytes.length!==a.tamanho||sha256!==a.sha256||sha256!==r.headers.get('X-Conteudo-Sha256'))throw Error('Integridade do download divergente.');
+   const pos=a.nome.indexOf('/');partes.push({nome:a.nome,bytes});arquivos.push({nome:a.nome,bucket:a.nome.slice(0,pos),caminho:a.nome.slice(pos+1),tamanho:bytes.length,sha256});
+  }
+  const manifesto={versao:1,tipo:'arquivos-midia-sem-cadastros',criadoEm:new Date().toISOString(),snapshotEditorialId:id,totalBytes:total,arquivos,limitacoes:'Somente fotos do Supabase copiadas no D1; não inclui public/media. Data indica download, não captura atômica.'};
+  partes.push({nome:'manifesto.json',bytes:new TextEncoder().encode(JSON.stringify(manifesto,null,2))});
+  const href=URL.createObjectURL(montarZipFotos(partes)),link=document.createElement('a');link.href=href;link.download='fotos-guardadas-d1-'+id+'.zip';document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(href),60000);
+  status.textContent='Download solicitado: '+arquivos.length+' fotos guardadas no D1, '+total+' bytes. Confirme salvamento privado e use o verificador ZIP local. Não inclui public/media.';
+ }catch(e){status.textContent='Fotos não confirmadas: '+e.message+' Preserve o ID; não repita a emergência. Nenhuma reabertura foi feita.';}
+ finally{ocupadoAcao=false;botoes.forEach(b=>b.disabled=false);}
+}
+document.getElementById('retomar-fotos-d1').onclick=()=>executarFotosGuardadas(false);
+document.getElementById('baixar-fotos-d1').onclick=()=>executarFotosGuardadas(true);
 
 document.getElementById('limpar').addEventListener('click',()=>{limpar();status.textContent='Credenciais em memória removidas deste teste. Isso não revoga sessões no Supabase.';});
 </script></html>`,200,{'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':`default-src 'none'; script-src 'nonce-${nonce}'; connect-src 'self' ${SUPABASE}; form-action 'none'; base-uri 'none'; frame-ancestors 'none'`});
