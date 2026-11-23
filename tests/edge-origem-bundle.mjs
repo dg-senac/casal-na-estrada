@@ -1,3 +1,4 @@
+import {assinarConteudo} from '../experiments/origem-protegida/assinatura-conteudo.mjs';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
@@ -7,6 +8,7 @@ const env={MIDIA_WORKER_HMAC:segredo,SUPABASE_URL:'https://pjglrlullnchqazxpvyn.
 const contexto={Deno:{env:{get:n=>env[n]},serve:fn=>handler=fn},crypto,TextEncoder,TextDecoder,Response,Request,URL,Uint8Array,AbortController,setTimeout,clearTimeout,fetch:async(url,o)=>{
  assert.equal(o.headers.Authorization,'Bearer '+env.SUPABASE_SERVICE_ROLE_KEY);
  if(url.endsWith('/origem_worker_consumir_nonce')){const {valor}=JSON.parse(o.body);if(usados.has(valor))return Response.json(false);usados.add(valor);return Response.json(true);}
+ if(url.endsWith('/origem_worker_conteudo_publicado'))return Response.json({versao:1,posts:[],albuns:[],trofeus:[],encontros:[]});
  if(url.endsWith('/origem_worker_foto_publicada'))return Response.json(true);
  leituras++;return new Response(new Uint8Array([255,216,255]),{headers:{'Content-Type':'image/jpeg'}});
 }};
@@ -17,5 +19,10 @@ for(const prefixo of ['/functions/v1','']){
 }
 assert.equal(leituras,2);
 let req=new Request('https://pjglrlullnchqazxpvyn.supabase.co/functions/v1/midia-worker/midia/fixture.jpg');assert.equal((await handler(req)).status,403);
+const conteudoHeaders=await assinarConteudo(segredo);
+const conteudoRequest=new Request('https://pjglrlullnchqazxpvyn.supabase.co/functions/v1/midia-worker/conteudo',{headers:conteudoHeaders});
+const conteudoResponse=await handler(conteudoRequest);assert.equal(conteudoResponse.status,200);assert.equal((await conteudoResponse.json()).versao,1);
+assert.equal((await handler(conteudoRequest)).status,403);
+const errada=await assinarOrigem({segredo,caminho:'/midia-worker/midia/fixture.jpg'});assert.equal((await handler(new Request('https://pjglrlullnchqazxpvyn.supabase.co/functions/v1/midia-worker/conteudo',{headers:errada}))).status,403);
 delete env.MIDIA_WORKER_HMAC;assert.equal((await handler(req)).status,503);assert.equal(leituras,2);
 console.log('Bundle Edge isolado: handlers com/sem prefixo de gateway, HMAC compatível, bytes fictícios, unsigned negado e configuração ausente fecha acesso. Deno/HTTP simulados, sem chamada remota.');

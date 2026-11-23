@@ -2,7 +2,10 @@ import {readFileSync,writeFileSync} from 'node:fs';
 import './gerar-worker-controle.mjs';
 const pasta=new URL('./',import.meta.url);
 let base=readFileSync(new URL('worker-controle-teste.mjs',pasta),'utf8');
-base=base.replace('<button id="baixar" type="button">',`<h2>Teste isolado do canal de imagens</h2>
+base=base.replace('<button id="baixar" type="button">',`<h2>Teste do canal de conteúdo para build</h2>
+<p>Confere somente conteúdo publicado. Não altera conteúdo, backup ou manutenção.</p>
+<button id="testar-conteudo-build" type="button">Testar canal de conteúdo do build</button>
+<h2>Teste isolado do canal de imagens</h2>
 <p>Não cria backup, não ativa manutenção e não troca as imagens do site.</p>
 <button id="testar-origem-assinada" type="button">Testar canal assinado de imagens</button>
 <h2>Fotos do Supabase guardadas no D1</h2>
@@ -16,7 +19,7 @@ base=base.replace('<button id="baixar" type="button">',`<h2>Teste isolado do can
 <button id="verificar-fotos" type="button">Conferir ZIP local neste navegador</button>
 <button id="baixar" type="button">`);
 const automatico=readFileSync(new URL('../../src/lib/fotos-automaticas.js',pasta),'utf8').replaceAll('export ','');
-const script=automatico+'\n'+readFileSync(new URL('zip-fotos.mjs',pasta),'utf8').replaceAll('export ','')+'\n'+readFileSync(new URL('fotos-client.mjs',pasta),'utf8')+'\n'+readFileSync(new URL('fotos-guardadas-client.mjs',pasta),'utf8')+'\n'+readFileSync(new URL('origem-assinada-client.mjs',pasta),'utf8');
+const script=automatico+'\n'+readFileSync(new URL('zip-fotos.mjs',pasta),'utf8').replaceAll('export ','')+'\n'+readFileSync(new URL('fotos-client.mjs',pasta),'utf8')+'\n'+readFileSync(new URL('fotos-guardadas-client.mjs',pasta),'utf8')+'\n'+readFileSync(new URL('origem-assinada-client.mjs',pasta),'utf8')+'\n'+readFileSync(new URL('conteudo-build-client.mjs',pasta),'utf8');
 const escapado=script.replaceAll('\\','\\\\').replaceAll('`','\\`').replaceAll('${','\\${');
 const pos=base.indexOf("document.getElementById('limpar').addEventListener");if(pos<0)throw Error('Marcador ausente');
 base=base.slice(0,pos)+escapado+'\n'+base.slice(pos);

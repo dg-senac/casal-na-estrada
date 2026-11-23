@@ -1,3 +1,5 @@
+import {servirConteudoBuildCandidato} from './conteudo-build-candidato.mjs';
+import {testarConteudoBuild} from './testar-conteudo-build.mjs';
 import {servirMidiaProtegida} from './midia-protegida.mjs';
 import {testarOrigemAssinada} from './testar-origem-assinada.mjs';
 import {fotosGuardadas} from './fotos-guardadas.mjs';
@@ -13,6 +15,7 @@ export default {
   env={...env,SUPABASE_URL:env.SUPABASE_URL ?? env.PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY:env.SUPABASE_ANON_KEY ?? env.PUBLIC_SUPABASE_ANON_KEY};
   const url=new URL(request.url);
+  if(url.pathname==='/api/testar-conteudo-build')return testarConteudoBuild(request,env);
   if(url.pathname==='/api/testar-origem-assinada')return testarOrigemAssinada(request,env);
   if(url.pathname.startsWith('/api/fotos-guardadas/'))return fotosGuardadas(request,env);
   if(['/api/midia-inventario','/api/midia-arquivo'].includes(url.pathname))return tratarMidiaBackup(request,env);
@@ -25,6 +28,7 @@ export default {
   let estado;
   try{estado=await env.DB.prepare('SELECT manutencao FROM estado_site WHERE id = 1').first();}catch{return manutencao();}
   if(estado?.manutencao!==0)return manutencao();
+  if(url.pathname==='/conteudo-build.json')return servirConteudoBuildCandidato(request,env);
   if(url.pathname.startsWith('/midia-protegida/'))return servirMidiaProtegida(request,env);
   if(!env.ASSETS)return manutencao();
   try{
