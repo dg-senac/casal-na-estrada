@@ -1,3 +1,4 @@
+import {servirMidiaProtegida} from './midia-protegida.mjs';
 import {testarOrigemAssinada} from './testar-origem-assinada.mjs';
 import {fotosGuardadas} from './fotos-guardadas.mjs';
 /** Teste paralelo do site completo. Não é migração do GitHub Pages. */
@@ -24,6 +25,7 @@ export default {
   let estado;
   try{estado=await env.DB.prepare('SELECT manutencao FROM estado_site WHERE id = 1').first();}catch{return manutencao();}
   if(estado?.manutencao!==0)return manutencao();
+  if(url.pathname.startsWith('/midia-protegida/'))return servirMidiaProtegida(request,env);
   if(!env.ASSETS)return manutencao();
   try{
    // Consulta vem antes de TODOS os assets. Nunca redireciona/proxy para Pages.

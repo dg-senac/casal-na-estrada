@@ -1,0 +1,31 @@
+import assert from 'node:assert/strict';
+import {mkdtemp,writeFile,readFile,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {reescreverMidiaTexto,reescreverMidiaCloudflare} from '../scripts/reescrever-midia-cloudflare.mjs';
+import {servirMidiaProtegida} from '../cloudflare/midia-protegida.mjs';
+import {verificarOrigem} from '../experiments/emergencia/assinatura-origem.mjs';
+import worker from '../cloudflare/site-worker.mjs';
+const base='https://pjglrlullnchqazxpvyn.supabase.co',site='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev',foto=base+'/functions/v1/foto-publicada/v1/00000000-0000-4000-8000-000000000001.webp';
+const novo=site+'/midia-protegida/midia-rascunhos/v1/00000000-0000-4000-8000-000000000001.webp';
+const html='<img src="'+foto+'"><meta property="og:image" content="'+foto+'"><a href="'+foto+'">Zoom</a>';
+assert.equal(reescreverMidiaTexto(html),html.replaceAll(foto,novo));
+assert.equal(JSON.parse(reescreverMidiaTexto(JSON.stringify({foto}))).foto,novo);
+assert.equal(JSON.parse(reescreverMidiaTexto(JSON.stringify({foto}).replaceAll('/','\\/'))).foto,novo);
+assert.equal(reescreverMidiaTexto(base+'/auth/v1/user'),base+'/auth/v1/user');
+assert.equal(reescreverMidiaTexto('https://externo.invalid/foto.jpg'),'https://externo.invalid/foto.jpg');
+const pasta=await mkdtemp(join(tmpdir(),'rewrite-midia-'));try{
+ await writeFile(join(pasta,'index.html'),html);await writeFile(join(pasta,'rss.xml'),'<url>'+foto+'</url>');await writeFile(join(pasta,'original.jpg'),foto);
+ assert.equal((await reescreverMidiaCloudflare(pasta)).modificados,2);assert.equal(await readFile(join(pasta,'original.jpg'),'utf8'),foto);assert.match(await readFile(join(pasta,'rss.xml'),'utf8'),/https:\/\/casal-na-estrada-site-teste/);
+ assert.equal((await reescreverMidiaCloudflare(pasta)).modificados,0);
+}finally{await rm(pasta,{recursive:true,force:true});}
+const segredo='fixture-hmac-nao-usar-em-producao-000000000';let manutencao=0,leituras=0;
+const env={MIDIA_WORKER_HMAC:segredo,DB:{prepare:()=>({first:async()=>({manutencao})})}};
+const rede=async(url,o)=>{leituras++;assert.equal(new URL(url).origin,base);assert.equal(o.headers.Authorization,undefined);assert.equal(o.redirect,'manual');const u=new URL(url);u.pathname=u.pathname.slice('/functions/v1'.length);assert.equal(await verificarOrigem({request:new Request(u,o),segredo,consumirNonce:async()=>true}),true);return new Response(new Uint8Array([1,2,3]),{headers:{'Content-Type':'image/webp'}});};
+let r=await servirMidiaProtegida(new Request(novo),env,rede);assert.equal(r.status,200);assert.equal(r.headers.get('Cache-Control'),'no-store');assert.equal((await r.arrayBuffer()).byteLength,3);
+manutencao=1;let antes=leituras;assert.equal((await servirMidiaProtegida(new Request(novo),env,rede)).status,503);assert.equal(leituras,antes);
+assert.equal((await worker.fetch(new Request(novo),env)).status,503);manutencao=0;
+assert.equal((await servirMidiaProtegida(new Request(novo+'?bypass=1'),env,rede)).status,404);
+assert.equal((await servirMidiaProtegida(new Request(site+'/midia-protegida/outro/a.jpg'),env,rede)).status,404);
+r=await servirMidiaProtegida(new Request(novo,{method:'HEAD'}),env,rede);assert.equal(r.status,200);assert.equal(await r.text(),'');
+console.log('Mídia protegida LOCAL: HTML/JSON/JS/XML reescritos de forma idempotente sem alterar binários/Auth/externos; OG/RSS absolutos; rota assina sem repassar credencial, cache negado e manutenção bloqueia.');

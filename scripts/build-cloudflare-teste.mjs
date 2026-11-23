@@ -1,3 +1,4 @@
+import {reescreverMidiaCloudflare} from './reescrever-midia-cloudflare.mjs';
 import {spawnSync} from 'node:child_process';
 import {writeFileSync,rmSync,readFileSync} from 'node:fs';
 import {gerarManifestoAssets} from './manifesto-assets-backup.mjs';
@@ -16,6 +17,8 @@ if(!fixture && (endereco.replace(/\/$/,'')!==publica.url || chave!==chave.trim()
 const env={...process.env,PUBLIC_EMERGENCIA_PARALELO:'1',PUBLIC_SUPABASE_URL:endereco,PUBLIC_SUPABASE_ANON_KEY:chave,SITE_BASE:'/',SITE_URL:site,...(fixture?{DADOS_FIXTURE:'scripts/dados-exemplo.json'}:{})};
 const r=spawnSync(process.execPath,['node_modules/astro/bin/astro.mjs','build'],{stdio:'inherit',env});
 if(r.status!==0)process.exit(r.status||1);
+const midia=await reescreverMidiaCloudflare('dist');
+console.log('Arquivos do build com URLs de mídia protegidas:',midia.modificados);
 await gerarManifestoAssets('dist');
 writeFileSync('dist/_build-teste.json',JSON.stringify({destino:'cloudflare-teste',fixture,site}));
 console.log(fixture?'BUILD DE FIXTURE — NÃO PUBLICAR.':'Build paralelo pronto. Não houve deploy.');

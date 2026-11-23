@@ -1,3 +1,4 @@
+import {verificarOrigem} from '../experiments/emergencia/assinatura-origem.mjs';
 // Integração com runtime local workerd/Miniflare e D1 emulado. Sem rede real.
 import assert from 'node:assert/strict';
 import {mkdtempSync,writeFileSync,readFileSync,mkdirSync,rmSync} from 'node:fs';
@@ -8,6 +9,7 @@ const pasta=mkdtempSync(join(tmpdir(),'site-cf-'));
 mkdirSync(join(pasta,'media'));writeFileSync(join(pasta,'index.html'),'<h1>Site fictício</h1>');writeFileSync(join(pasta,'media','foto.txt'),'foto fictícia');
 let origem='http://teste.invalid';
 const token='h.'+Buffer.from(JSON.stringify({sub:'operador-ficticio',aal:'aal2'})).toString('base64url')+'.s';
+const segredoMidia='fixture-hmac-runtime-nao-producao-000000000000';let imagensAssinadas=0;
 let capturou,soltar;
 const capturaIniciou=new Promise(r=>capturou=r),gate=new Promise(r=>soltar=r);
 const dados=Object.fromEntries(['posts','albuns','trofeus','encontros','album_fotos','album_videos','trofeu_fotos'].map(t=>[t,[]]));
@@ -17,9 +19,13 @@ const hashFoto=Buffer.from(await crypto.subtle.digest('SHA-256',conteudoFoto)).t
 writeFileSync(join(pasta,'_backup-assets.json'),JSON.stringify({versao:1,arquivos:[{bucket:'repositorio',caminho:'media/foto.txt',tamanho:conteudoFoto.length,sha256:hashFoto}]}));
 const mf=new Miniflare(convertV4MiniflareOptions({rootPath:'/',name:'site',modules:true,scriptPath:resolve(process.env.CLOUDFLARE_BUNDLE || '/tmp/cloudflare-dryrun/site-worker.js'),compatibilityDate:'2026-11-09',
  assets:{directory:pasta,binding:'ASSETS',run_worker_first:true},
- d1Databases:['DB'],bindings:{SUPABASE_URL:'https://pjglrlullnchqazxpvyn.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_ficticia'},
+ d1Databases:['DB'],bindings:{MIDIA_WORKER_HMAC:segredoMidia,SUPABASE_URL:'https://pjglrlullnchqazxpvyn.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_ficticia'},
  outboundService:async request=>{
   const url=new URL(request.url);assert.equal(url.origin,'https://pjglrlullnchqazxpvyn.supabase.co');
+  if(url.pathname.startsWith('/functions/v1/midia-worker/')){
+   const canonica=new URL(url);canonica.pathname=canonica.pathname.slice('/functions/v1'.length);
+   assert.equal(await verificarOrigem({request:new Request(canonica,{headers:request.headers}),segredo:segredoMidia,consumirNonce:async()=>true}),true);imagensAssinadas++;return new Response(new Uint8Array([255,216,255]),{headers:{'Content-Type':'image/jpeg'}});
+  }
   if(url.pathname==='/auth/v1/user')return Response.json({id:'operador-ficticio'});
   if(url.pathname==='/rest/v1/rpc/estado_acesso_painel')return Response.json({autorizado:true,mfa_necessario:false});
   if(url.pathname.startsWith('/storage/v1/object/list/'))return Response.json([]);
@@ -42,6 +48,7 @@ try{
  soltar();const completo=await primeiro;assert.equal(completo.status,200,await completo.text());
  assert.equal((await executar(origem+'/')).status,503);
  assert.equal((await executar(origem+'/media/foto.txt')).status,503);
+ assert.equal((await executar(origem+'/midia-protegida/midia/ficticia.jpg')).status,503);assert.equal(imagensAssinadas,0);
  assert.equal((await db.prepare('SELECT count(*) AS n FROM backups_editoriais_reais').first()).n,1);
  assert.equal((await executar(origem+'/login-teste')).status,200);
  assert.equal((await executar(origem+'/api/reabrir-teste',options())).status,200);
@@ -53,6 +60,7 @@ try{
  const baixar=options();baixar.headers['X-Midia-Bucket']='repositorio';baixar.headers['X-Midia-Caminho']='media%2Ffoto.txt';
  const foto=await executar(origem+'/api/midia-arquivo',baixar);assert.equal(foto.status,200);assert.equal(foto.headers.get('X-Conteudo-Sha256'),hashFoto);assert.equal(await foto.text(),'foto fictícia');
  assert.equal((await executar(origem+'/_backup-assets.json')).status,404);
+ const protegida=await executar(origem+'/midia-protegida/midia/ficticia.jpg');assert.equal(protegida.status,200);assert.equal((await protegida.arrayBuffer()).byteLength,3);assert.equal(imagensAssinadas,1);
  console.log('Runtime local de mídia: inventário autenticado, bytes do ASSETS, hash SHA-256 e manifesto sem rota pública aprovados.');
 
  console.log('Runtime Cloudflare LOCAL: assets, D1 emulado, autenticação simulada, backup, concorrência 409, bloqueio HTML/arquivo, reabertura e auditoria transacional aprovados. Sem conta/provedor remoto.');
