@@ -10,7 +10,7 @@ async function teste({habilitado=true,host=origem,status=200,falhar=false}={}){
  instalarEmergenciaAdmin(opts);instalarEmergenciaAdmin(opts);
  if(!habilitado||host!==origem){assert.equal(d.querySelectorAll('button').length,0);return;}
  assert.equal(d.querySelectorAll('#pn-emergencia').length,1);d.getElementById('pn-emergencia').click();assert.equal(chamadas,0);
- const dialogo=d.querySelector('dialog');assert.match(dialogo.textContent,/automaticamente as fotos/);assert.match(dialogo.textContent,/GitHub Pages/);
+ const dialogo=d.querySelector('dialog');assert.match(dialogo.textContent,/automaticamente as fotos/);assert.match(dialogo.textContent,/downloads anteriores/);
  await dialogo.querySelector('button').onclick();assert.equal(chamadas,1);await dialogo.querySelector('button').onclick();assert.equal(chamadas,1);
  assert.equal(dialogo.querySelectorAll('b').length,0);assert.equal(d.querySelector('a').getAttribute('href'),'/login-teste');
  assert.match(dialogo.querySelector('[role=status]').textContent,falhar?/sem confirmação/:/controle protegido/);

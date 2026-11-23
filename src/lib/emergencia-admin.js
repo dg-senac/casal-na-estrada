@@ -4,15 +4,15 @@ const HOST_TESTE='https://casal-na-estrada-site-teste.douglasmarista02.workers.d
 export function instalarEmergenciaAdmin({documento=document,origem=location.origin,habilitado=false,obterSessao,fetchImpl=fetch,uuid=()=>crypto.randomUUID()}){
  if(!habilitado||origem!==HOST_TESTE||documento.getElementById('pn-emergencia'))return;
  const topo=documento.querySelector('.pn-topo__direita');if(!topo)return;
- const botao=documento.createElement('button');botao.type='button';botao.id='pn-emergencia';botao.textContent='Emergência — teste';
- botao.title='Manutenção do site paralelo e cópia dos cadastros e fotos do Supabase';topo.append(botao);
+ const botao=documento.createElement('button');botao.type='button';botao.id='pn-emergencia';botao.textContent='Emergência';
+ botao.title='Manutenção do site e cópia dos cadastros e fotos do Supabase';topo.append(botao);
  botao.addEventListener('click',()=>{
   if(documento.getElementById('pn-emergencia-dialogo'))return;
   const dialogo=documento.createElement('dialog');dialogo.id='pn-emergencia-dialogo';
-  const titulo=documento.createElement('h2');titulo.textContent='Emergência do ambiente paralelo';
-  const aviso=documento.createElement('p');aviso.textContent='Esta ação coloca SOMENTE o site paralelo em manutenção e tenta copiar os cadastros reais, incluindo rascunhos, para o D1. Depois dos cadastros, esta aba tenta copiar automaticamente as fotos do Supabase. Mantenha a aba aberta até terminar. Não inclui imagens fixas do repositório: preserve o ZIP completo. Se interromper, retome com o mesmo ID no controle protegido. Não bloqueia o GitHub Pages nem o acesso direto ao Supabase. Exige sessão administrativa com segundo fator.';
+  const titulo=documento.createElement('h2');titulo.textContent='Emergência do site';
+  const aviso=documento.createElement('p');aviso.textContent='Esta ação coloca o site na Cloudflare em manutenção e tenta copiar os cadastros reais, incluindo rascunhos, para o D1. Depois dos cadastros, esta aba tenta copiar automaticamente as fotos do Supabase. Mantenha a aba aberta até terminar. Não inclui imagens fixas do repositório: preserve o ZIP completo. Se interromper, retome com o mesmo ID no controle protegido. Não apaga downloads anteriores, cópias externas ou arquivos públicos do repositório GitHub. Exige sessão administrativa com segundo fator.';
   const status=documento.createElement('p');status.setAttribute('role','status');
-  const confirmar=documento.createElement('button');confirmar.type='button';confirmar.textContent='Ativar manutenção do paralelo e copiar cadastros';
+  const confirmar=documento.createElement('button');confirmar.type='button';confirmar.textContent='Ativar manutenção do site e copiar cadastros';
   const fechar=documento.createElement('button');fechar.type='button';fechar.textContent='Cancelar';
   const painel=documento.createElement('a');painel.href='/login-teste';painel.textContent='Abrir controle protegido para conferir cópia ou reabrir';
   dialogo.append(titulo,aviso,confirmar,fechar,documento.createElement('br'),painel,status);documento.body.append(dialogo);
@@ -36,7 +36,7 @@ export function instalarEmergenciaAdmin({documento=document,origem=location.orig
      return;
     }
     status.textContent=mensagem+' Identificador desta tentativa: '+id+'. '+(r.ok?'Confira a cópia pelo controle protegido antes de reabrir.':'Não presuma que o site continua aberto ou que a cópia falhou. Confira o controle protegido antes de repetir.');
-   }catch(e){status.textContent=iniciou?'Resultado sem confirmação. O paralelo pode estar em manutenção e a cópia pode ter ocorrido. Confira o controle protegido; não repita automaticamente.':e.message;}
+   }catch(e){status.textContent=iniciou?'Resultado sem confirmação. O site pode estar em manutenção e a cópia pode ter ocorrido. Confira o controle protegido; não repita automaticamente.':e.message;}
    finally{ocupado=false;confirmar.disabled=iniciou;fechar.disabled=false;fechar.textContent='Fechar';botao.disabled=iniciou;}
   };
   dialogo.showModal();

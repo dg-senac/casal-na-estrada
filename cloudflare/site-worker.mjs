@@ -42,7 +42,8 @@ export default {
    const resposta=await env.ASSETS.fetch(request);
    const headers=new Headers(resposta.headers);
    headers.set('Cache-Control','no-store');
-   headers.set('X-Robots-Tag','noindex, nofollow'); // Endereço paralelo não deve competir com o site real.
+   if(url.pathname==='/admin'||url.pathname.startsWith('/admin/'))headers.set('X-Robots-Tag','noindex, nofollow');
+   else headers.delete('X-Robots-Tag'); // Host adotado como oficial pelo proprietário.
    headers.set('X-Content-Type-Options','nosniff');
    headers.set('Referrer-Policy','strict-origin-when-cross-origin');
    return new Response(resposta.body,{status:resposta.status,statusText:resposta.statusText,headers});
