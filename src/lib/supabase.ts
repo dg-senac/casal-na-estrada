@@ -14,7 +14,7 @@
  * e o build lê um arquivo local em vez do banco.
  */
 import { readFile } from 'node:fs/promises';
-import { lerConteudoBuild } from './conteudo-build.js';
+import { validarConteudoPublicado, lerConteudoBuild } from './conteudo-build.js';
 const canalBuild = process.env.CONTEUDO_BUILD_URL || '';
 let conteudoDoCanal: ReturnType<typeof lerConteudoBuild> | null = null;
 
@@ -67,7 +67,7 @@ export async function consultar<T = Linha>(caminho: string): Promise<T[]> {
 
   if (canalBuild) {
     if (!['posts', 'albuns', 'trofeus', 'encontros'].includes(tabela)) throw new Error('Tabela não permitida no canal publicado');
-    if (!conteudoDoCanal) conteudoDoCanal = lerConteudoBuild(canalBuild);
+    if (!conteudoDoCanal) conteudoDoCanal = process.env.CONTEUDO_BUILD_SNAPSHOT ? readFile(process.env.CONTEUDO_BUILD_SNAPSHOT,'utf-8').then(texto=>validarConteudoPublicado(JSON.parse(texto))) : lerConteudoBuild(canalBuild);
     const dados = await conteudoDoCanal;
     return dados[tabela] as T[];
   }

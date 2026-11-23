@@ -9,3 +9,9 @@ function montar(falhar=false){const exports={};vm.runInNewContext(codigo,{export
 const modulo=montar();assert.equal((await modulo.consultar('posts?select=*&publicado=eq.true'))[0].id,'fixture');await modulo.consultar('albuns?select=*');assert.equal(leituras,1);await assert.rejects(modulo.consultar('administradores?select=*'));
 await assert.rejects(montar(true).consultar('posts?select=*'),/canal fora/);
 console.log('Leitor real supabase.ts transp compilado: canal configurado usado uma vez/cache, tabela fora do escopo negada e falha não cai no REST público. Ambiente simulado.');
+
+const {validarConteudoPublicado}=await import('../src/lib/conteudo-build.js');
+let arquivos=0;
+function snapshot(invalido=false){const exports={};vm.runInNewContext(codigo,{exports,process:{env:{CONTEUDO_BUILD_URL:'canal',CONTEUDO_BUILD_SNAPSHOT:'/temporario/publicado.json'}},require:n=>n==='./conteudo-build.js'?{validarConteudoPublicado,lerConteudoBuild:()=>{throw Error('snapshot não pode reler rede');}}:{readFile:async()=>{arquivos++;return invalido?'{}':JSON.stringify({versao:1,posts:[{id:'mesmo-do-manifesto',publicado:true}],albuns:[],trofeus:[],encontros:[]});}},fetch:()=>{throw Error('sem fallback');}});return exports;}
+const exato=snapshot();assert.equal((await exato.consultar('posts'))[0].id,'mesmo-do-manifesto');await exato.consultar('albuns');assert.equal(arquivos,1);await assert.rejects(snapshot(true).consultar('posts'),/incompatível/);
+console.log('Snapshot do build: conteúdo validado usado no manifesto é o mesmo do Astro, leitura única, inválido falha sem rede/fallback.');

@@ -1,3 +1,8 @@
+import {mkdtempSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
+import {lerConteudoBuild} from '../src/lib/conteudo-build.js';
+import {revisaoPublicada} from '../cloudflare/revisao-publicada.mjs';
 import {configurarCanalBuild} from './ambiente-conteudo-build.mjs';
 import {reescreverMidiaCloudflare} from './reescrever-midia-cloudflare.mjs';
 import {spawnSync} from 'node:child_process';
@@ -17,8 +22,19 @@ if(gerar.status!==0)process.exit(gerar.status||1);
 if(!fixture && (endereco.replace(/\/$/,'')!==publica.url || chave!==chave.trim() || !(chave.startsWith('sb_publishable_') || anonLegada())))throw Error('Build exige URL do projeto e chave pública Publishable ou anon. Nunca usar chave secreta.');
 const env=configurarCanalBuild({...process.env,PUBLIC_EMERGENCIA_PARALELO:'1',PUBLIC_SUPABASE_URL:endereco,PUBLIC_SUPABASE_ANON_KEY:chave,SITE_BASE:'/',SITE_URL:site,...(fixture?{DADOS_FIXTURE:'scripts/dados-exemplo.json'}:{})},{fixture});
 console.log(fixture?'Conteúdo: fixture local.':'Conteúdo: canal publicado do Worker; sem fallback para REST público.');
-const r=spawnSync(process.execPath,['node_modules/astro/bin/astro.mjs','build'],{stdio:'inherit',env});
-if(r.status!==0)process.exit(r.status||1);
+let revisao=null,temporario=null;
+try{
+ if(!fixture){
+  const dados=await lerConteudoBuild(env.CONTEUDO_BUILD_URL);
+  revisao=await revisaoPublicada(dados);
+  temporario=mkdtempSync(join(tmpdir(),'casal-build-'));
+  env.CONTEUDO_BUILD_SNAPSHOT=join(temporario,'publicado.json');
+  writeFileSync(env.CONTEUDO_BUILD_SNAPSHOT,JSON.stringify(dados),{mode:0o600});
+ }else delete env.CONTEUDO_BUILD_SNAPSHOT;
+ const r=spawnSync(process.execPath,['node_modules/astro/bin/astro.mjs','build'],{stdio:'inherit',env});
+ if(r.status!==0)throw Error('Compilação Astro falhou; publicação recusada.');
+}finally{if(temporario)rmSync(temporario,{recursive:true,force:true});}
+if(revisao)writeFileSync('dist/_revisao-publicada.json',JSON.stringify(revisao));
 const midia=await reescreverMidiaCloudflare('dist');
 console.log('Arquivos do build com URLs de mídia protegidas:',midia.modificados);
 await gerarManifestoAssets('dist');

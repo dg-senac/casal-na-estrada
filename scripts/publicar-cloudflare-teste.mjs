@@ -4,6 +4,8 @@ import {spawnSync} from 'node:child_process';
 if(process.argv[2]!=='--confirmar-teste-paralelo')throw Error('Publicação exige --confirmar-teste-paralelo e aprovação do usuário.');
 const marca=JSON.parse(readFileSync('dist/_build-teste.json','utf8'));
 if(marca.fonteConteudo!=='worker-assinado' || marca.fixture!==false || marca.destino!=='cloudflare-teste' || marca.site!=='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev')throw Error('Build inválido/fixture. Refaça o build sem dados fictícios.');
+const revisao=JSON.parse(readFileSync('dist/_revisao-publicada.json','utf8'));
+if(revisao.versao!==1 || !/^[a-f0-9]{64}$/.test(revisao.hash) || !/^\d{4}-\d{2}-\d{2}$/.test(revisao.dia))throw Error('Manifesto de revisão ausente/inválido. Refaça build real.');
 const r=spawnSync(process.execPath,['node_modules/wrangler/bin/wrangler.js','deploy','--config','wrangler.jsonc'],{stdio:'inherit',env:{...process.env,WRANGLER_SEND_METRICS:'false'}});
 if (r.error) console.error(r.error.message);
 process.exit(r.status === 0 ? 0 : (r.status || 1));
