@@ -1057,4 +1057,23 @@ const chave = import.meta.env.PUBLIC_SUPABASE_ANON_KEY ?? '';
     max-width: 100%;
     height: auto;
   }
+
+  /* Confirmação de emergência: estilos restritos a este diálogo. */
+  #pn-emergencia { cursor:pointer; border:1px solid #7c493b; background:transparent; color:#713e33; padding:9px 14px; font:500 13px var(--sans); letter-spacing:.06em; }
+  #pn-emergencia-dialogo { box-sizing:border-box; width:min(640px,calc(100% - 32px)); max-height:calc(100dvh - 40px); overflow:auto; margin:auto; padding:clamp(24px,5vw,40px); border:1px solid #c7c2b3; border-top:4px solid #3b503f; border-radius:12px; background:#faf7ef; color:#302f28; box-shadow:0 24px 90px #111a1240; font:15px/1.75 var(--body); }
+  #pn-emergencia-dialogo::backdrop { background:rgb(24 32 25 / .62); backdrop-filter:blur(3px); }
+  #pn-emergencia-dialogo h2 { font:400 clamp(28px,5vw,38px)/1.15 var(--serif); margin:10px 0 20px; color:#2e4434; }
+  #pn-emergencia-dialogo p { margin:0 0 18px; }
+  #pn-emergencia-dialogo .pn-emergencia-etiqueta { font:500 12px/1.5 var(--sans); text-transform:uppercase; letter-spacing:.14em; color:#686b59; }
+  #pn-emergencia-dialogo .pn-emergencia-destaque { background:#ebeede; border-left:3px solid #65734d; padding:14px 16px; font-weight:500; }
+  .pn-emergencia-limites { border-bottom:1px solid #d8d4c7; padding:0 0 18px; margin-bottom:20px; font-size:13px; color:#666253; }
+  .pn-emergencia-limites summary { cursor:pointer; color:#3b503f; font-weight:600; }
+  #pn-emergencia-dialogo .pn-emergencia-limites p { margin:12px 0 0; }
+  .pn-emergencia-acoes { display:flex; flex-wrap:wrap; gap:10px; margin:24px 0 18px; }
+  #pn-emergencia-dialogo .pn-emergencia-confirmar { background:#774637; border-color:#774637; color:#fff9ed; }
+  .pn-emergencia-recuperacao { display:inline-block; color:#3b503f; font-size:13px; text-underline-offset:4px; }
+  #pn-emergencia-dialogo .pn-emergencia-status:not(:empty) { margin-top:20px; padding:16px; background:#eee9dc; border:1px solid #d8d1bd; overflow-wrap:anywhere; white-space:pre-wrap; }
+  #pn-emergencia-dialogo :focus-visible, #pn-emergencia:focus-visible { outline:3px solid #a9823e; outline-offset:4px; }
+  @media(max-width:560px) { .pn-emergencia-acoes { flex-direction:column; } .pn-emergencia-acoes button { width:100%; } }
+
 </style>

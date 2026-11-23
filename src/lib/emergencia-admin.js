@@ -8,18 +8,25 @@ export function instalarEmergenciaAdmin({documento=document,origem=location.orig
  botao.title='Manutenção do site e cópia dos cadastros e fotos do Supabase';topo.append(botao);
  botao.addEventListener('click',()=>{
   if(documento.getElementById('pn-emergencia-dialogo'))return;
-  const dialogo=documento.createElement('dialog');dialogo.id='pn-emergencia-dialogo';
-  const titulo=documento.createElement('h2');titulo.textContent='Emergência do site';
-  const aviso=documento.createElement('p');aviso.textContent='Esta ação coloca o site na Cloudflare em manutenção e tenta copiar os cadastros reais, incluindo rascunhos, para o D1. Depois dos cadastros, esta aba tenta copiar automaticamente as fotos do Supabase. Mantenha a aba aberta até terminar. Não inclui imagens fixas do repositório: preserve o ZIP completo. Se interromper, retome com o mesmo ID no controle protegido. Não apaga downloads anteriores, cópias externas ou arquivos públicos do repositório GitHub. Exige sessão administrativa com segundo fator.';
-  const status=documento.createElement('p');status.setAttribute('role','status');
-  const confirmar=documento.createElement('button');confirmar.type='button';confirmar.textContent='Ativar manutenção do site e copiar cadastros';
-  const fechar=documento.createElement('button');fechar.type='button';fechar.textContent='Cancelar';
-  const painel=documento.createElement('a');painel.href='/login-teste';painel.textContent='Abrir controle protegido para conferir cópia ou reabrir';
-  dialogo.append(titulo,aviso,confirmar,fechar,documento.createElement('br'),painel,status);documento.body.append(dialogo);
+  const dialogo=documento.createElement('dialog');dialogo.id='pn-emergencia-dialogo';dialogo.setAttribute('aria-labelledby','pn-emergencia-titulo');dialogo.setAttribute('aria-describedby','pn-emergencia-aviso');
+  const titulo=documento.createElement('h2');titulo.id='pn-emergencia-titulo';titulo.textContent='Uma parada para cuidar do site';
+  const etiqueta=documento.createElement('p');etiqueta.className='pn-emergencia-etiqueta';etiqueta.textContent='Controle de emergência · Casal na Estrada';
+  const aviso=documento.createElement('p');aviso.id='pn-emergencia-aviso';aviso.textContent='Ao confirmar, o site entra em manutenção para os visitantes e esta aba tenta guardar os cadastros reais, incluindo rascunhos, no D1. Depois, tenta copiar automaticamente as fotos do Supabase.';
+  const destaque=documento.createElement('p');destaque.className='pn-emergencia-destaque';destaque.textContent='Mantenha esta aba aberta até terminar. A reabertura é feita pelo controle protegido, com conta administradora e segundo fator.';
+  const limites=documento.createElement('details');limites.className='pn-emergencia-limites';
+  const resumo=documento.createElement('summary');resumo.textContent='O que esta ação não inclui';
+  const detalhe=documento.createElement('p');detalhe.textContent='Não inclui imagens fixas do repositório: preserve o ZIP completo. Não apaga downloads anteriores, cópias externas ou arquivos públicos do repositório GitHub. Se interromper, retome com o mesmo ID no controle protegido; não repita a emergência sem conferir o resultado.';
+  limites.append(resumo,detalhe);
+  const status=documento.createElement('p');status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.className='pn-emergencia-status';
+  const confirmar=documento.createElement('button');confirmar.type='button';confirmar.className='pn-btn pn-emergencia-confirmar';confirmar.textContent='Ativar manutenção e copiar cadastros';
+  const fechar=documento.createElement('button');fechar.type='button';fechar.className='pn-btn pn-btn--claro';fechar.textContent='Cancelar';fechar.autofocus=true;
+  const painel=documento.createElement('a');painel.href='/login-teste';painel.textContent='Abrir controle protegido para conferir cópia ou reabrir →';painel.className='pn-emergencia-recuperacao';
+  const acoes=documento.createElement('div');acoes.className='pn-emergencia-acoes';acoes.append(confirmar,fechar);
+  dialogo.append(etiqueta,titulo,aviso,destaque,limites,acoes,painel,status);documento.body.append(dialogo);
   let iniciou=false,ocupado=false;
   fechar.onclick=()=>{if(!ocupado){dialogo.close();dialogo.remove();}};
   dialogo.addEventListener('cancel',e=>{if(ocupado)e.preventDefault();});
-  dialogo.addEventListener('close',()=>dialogo.remove());
+  dialogo.addEventListener('close',()=>{dialogo.remove();botao.focus();});
   confirmar.onclick=async()=>{
    if(iniciou||ocupado)return;
    ocupado=true;confirmar.disabled=true;fechar.disabled=true;botao.disabled=true;
