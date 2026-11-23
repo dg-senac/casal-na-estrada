@@ -4,7 +4,7 @@ import {revisaoPublicada,diaRecife} from './revisao-publicada.mjs';
 import {hookPermitido} from './publicacao-cloudflare.mjs';
 const aberto=async env=>(await env.DB.prepare('SELECT manutencao FROM estado_site WHERE id=1').first())?.manutencao===0;
 /** Sem rota HTTP. Disabled por padrão, mesmo se scheduled for invocado. */
-export async function verificarPublicacaoAgendada(env,{buscar=fetch,agora=Date.now()}={}){
+async function executarVerificacao(env,{buscar=fetch,agora=Date.now()}={}){
  if(env.AGENDAMENTO_PUBLICACAO!=='1')return 'desativado';
  try{
   if(!hookPermitido(env.CLOUDFLARE_DEPLOY_HOOK_URL))return 'sem-configuracao';
@@ -34,4 +34,15 @@ export async function verificarPublicacaoAgendada(env,{buscar=fetch,agora=Date.n
   try{await r.body?.cancel();}catch{}
   return r.status>=200&&r.status<300?'tentativa-enviada':'tentativa-sem-confirmacao';
  }catch{return 'indisponivel';}
+}
+
+export const RESULTADOS_AGENDAMENTO=new Set(['desativado','sem-configuracao','manutencao','sem-referencia','referencia-invalida','atualizado','limite-ou-espera','solicitacao-recente','tentativa-enviada','tentativa-sem-confirmacao','indisponivel']);
+export async function verificarPublicacaoAgendada(env,opcoes={}){
+ const resultado=await executarVerificacao(env,opcoes);
+ // Só último resultado, sem conteúdo, URL, sessão ou histórico crescente.
+ try{
+  await env.DB.prepare('CREATE TABLE IF NOT EXISTS status_agendamento (id INTEGER PRIMARY KEY CHECK(id=1), verificado_em INTEGER NOT NULL, resultado TEXT NOT NULL)').run();
+  await env.DB.prepare('INSERT INTO status_agendamento(id,verificado_em,resultado) VALUES(1,?,?) ON CONFLICT(id) DO UPDATE SET verificado_em=excluded.verificado_em,resultado=excluded.resultado WHERE excluded.verificado_em>=status_agendamento.verificado_em').bind(Math.floor((opcoes.agora??Date.now())/1000),resultado).run();
+ }catch{ /* Falha D1 não pode produzir sucesso de gravação fictício. Consulta mostrará registro antigo/ausente. */ }
+ return resultado;
 }

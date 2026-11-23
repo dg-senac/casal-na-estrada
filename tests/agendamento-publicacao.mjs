@@ -1,3 +1,4 @@
+import {statusAgendamento} from '../cloudflare/status-agendamento.mjs';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const config=JSON.parse(readFileSync('wrangler.jsonc','utf8'));
@@ -16,7 +17,7 @@ try{
  const env={AGENDAMENTO_PUBLICACAO:'1',DB:db,MIDIA_WORKER_HMAC:'fixture-apenas-local-000000000000000000',CLOUDFLARE_DEPLOY_HOOK_URL:'https://api.cloudflare.com/client/v4/workers/builds/deploy_hooks/00000000-0000-4000-8000-000000000001',ASSETS:{fetch:async()=>Response.json(referencia)}};
  const buscar=async(u,o)=>{assert.equal(o.redirect,'manual');if(u.includes('/functions/v1/'))return Response.json(dados);hooks++;if(falha)throw Error('segredo-nao-logar');return Response.json({success:true});};
  const executar=(extras={})=>verificarPublicacaoAgendada(env,{buscar,agora,...extras});
- assert.equal(await verificarPublicacaoAgendada({...env,AGENDAMENTO_PUBLICACAO:undefined}), 'desativado');
+ assert.equal(await verificarPublicacaoAgendada({...env,AGENDAMENTO_PUBLICACAO:undefined},{agora}), 'desativado');
  assert.equal(await executar(),'atualizado');assert.equal(hooks,0);
  assert.deepEqual(await revisaoPublicada({encontros:[],trofeus:[],albuns:[],posts:[],versao:1},agora),referencia);
  dados={...dados,posts:[{id:'post-na-data',publicado:true}]};
@@ -33,5 +34,17 @@ try{
  // Virada Recife invalida HTML temporal mesmo sem mudança editorial.
  referencia=await revisaoPublicada(dados,agora);await db.exec('UPDATE publicacao_cloudflare SET solicitado_em=0');assert.equal(await executar({agora:agora+86400000}),'tentativa-enviada');
  assert.equal(await verificarPublicacaoAgendada({...env,ASSETS:{fetch:async()=>new Response('',{status:404})}},{buscar,agora}),'sem-referencia');
+ const token='h.'+Buffer.from(JSON.stringify({sub:'fixture',aal:'aal2'})).toString('base64url')+'.s';
+ const diagEnv={...env,SUPABASE_URL:'https://pjglrlullnchqazxpvyn.supabase.co',SUPABASE_ANON_KEY:'sb_publishable_fixture'};
+ const req=()=>new Request('https://site.invalid/api/status-agendamento',{method:'POST',headers:{Origin:'https://site.invalid',Authorization:'Bearer '+token}});
+ let admin=true;
+ const autenticar=async(u,o)=>{assert.equal(o.redirect,'manual');if(u.endsWith('/auth/v1/user'))return Response.json({id:'fixture'});assert(u.endsWith('/estado_acesso_painel'));return Response.json({autorizado:admin,mfa_necessario:false});};
+ const antes=hooks;
+ let diag=await statusAgendamento(req(),diagEnv,autenticar,agora+86400000);assert.equal(diag.status,200);let doc=await diag.json();assert.equal(doc.resultado,'tentativa-enviada');assert.equal(doc.tentativasHoje,1);assert(doc.ultimaVerificacao);assert.equal(doc.habilitado,true);
+ const semOrigem=req();semOrigem.headers.delete('Origin');assert.equal((await statusAgendamento(semOrigem,diagEnv,autenticar)).status,403);
+ admin=false;assert.equal((await statusAgendamento(req(),diagEnv,autenticar)).status,403);admin=true;
+ await db.exec('DROP TABLE status_agendamento;DROP TABLE agendamento_publicacao;');
+ diag=await statusAgendamento(req(),diagEnv,autenticar,agora);doc=await diag.json();assert.equal(doc.ultimaVerificacao,null);assert.equal(doc.tentativasHoje,0);assert.equal(hooks,antes);
+ assert.equal(await db.prepare("SELECT name FROM sqlite_master WHERE name='status_agendamento'").first(),null);
  console.log('Agendamento LOCAL: desativado por padrão, canonicalização, virada Recife, baseline efetivamente servido, edição em voo, manutenção, backoff e limite4/dia aprovados. Nenhum cron/build remoto.');
 }finally{await mf.dispose();}
