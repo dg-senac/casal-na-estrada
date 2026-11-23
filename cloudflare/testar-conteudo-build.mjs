@@ -17,7 +17,7 @@ export async function testarConteudoBuild(request,env,buscar=fetch){
   const semAssinatura=await rede(BASE+'/functions/v1/midia-worker/conteudo',{method:'GET'});
   const negou=semAssinatura.status===403;try{await semAssinatura.body?.cancel();}catch{}
   if(!negou)throw Error('Negativa não confirmada');
-  return resposta('Canal de conteúdo validado: '+doc.posts.length+' posts, '+doc.albuns.length+' álbuns, '+doc.trofeus.length+' troféus e '+doc.encontros.length+' encontros publicados. Pedido sem assinatura recusado com HTTP 403. Nenhum backup criado, conteúdo editado ou manutenção alterada. O build ainda não foi trocado nesta publicação.',200);
+  return resposta('Canal de conteúdo validado: '+doc.posts.length+' posts, '+doc.albuns.length+' álbuns, '+doc.trofeus.length+' troféus e '+doc.encontros.length+' encontros publicados. Pedido sem assinatura recusado com HTTP 403. Nenhum backup criado, conteúdo editado ou manutenção alterada. Este canal é a fonte configurada para o build paralelo.',200);
  }catch{return resposta('Canal de conteúdo NÃO validado. Confira se o paralelo está aberto e se a nova versão de midia-worker está ativa. Nenhuma alteração em conteúdo, backup ou manutenção foi feita pelo teste. Não envie segredos ao chat.',503);}
  finally{clearTimeout(timer);}
 }
