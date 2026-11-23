@@ -1,3 +1,4 @@
+import {testarOrigemAssinada} from './testar-origem-assinada.mjs';
 import {fotosGuardadas} from './fotos-guardadas.mjs';
 /** Teste paralelo do site completo. Não é migração do GitHub Pages. */
 import painel from '../experiments/emergencia/worker-fotos-teste.mjs';
@@ -11,6 +12,7 @@ export default {
   env={...env,SUPABASE_URL:env.SUPABASE_URL ?? env.PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY:env.SUPABASE_ANON_KEY ?? env.PUBLIC_SUPABASE_ANON_KEY};
   const url=new URL(request.url);
+  if(url.pathname==='/api/testar-origem-assinada')return testarOrigemAssinada(request,env);
   if(url.pathname.startsWith('/api/fotos-guardadas/'))return fotosGuardadas(request,env);
   if(['/api/midia-inventario','/api/midia-arquivo'].includes(url.pathname))return tratarMidiaBackup(request,env);
   if(url.pathname==='/_backup-assets.json')return new Response('Não encontrado.',{status:404,headers:{'Cache-Control':'no-store'}});

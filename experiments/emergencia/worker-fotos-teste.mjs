@@ -368,6 +368,9 @@ const workerInterno = {
 <button id="conferir" type="button">Conferir cópia no D1</button>
 <button id="baixar-guardada" type="button">Baixar esta cópia guardada no D1</button>
 <p>Inclui rascunhos. Não cria nova cópia nem consulta os cadastros atuais. Guarde o arquivo em pasta privada. Não inclui os arquivos das fotos.</p>
+<h2>Teste isolado do canal de imagens</h2>
+<p>Não cria backup, não ativa manutenção e não troca as imagens do site.</p>
+<button id="testar-origem-assinada" type="button">Testar canal assinado de imagens</button>
 <h2>Fotos do Supabase guardadas no D1</h2>
 <p>Use o ID da cópia editorial no campo abaixo. Retoma as fotos sem criar outro backup de cadastros. Até 3 conjuntos, 100 arquivos, 1 MiB por arquivo e 8 MiB por conjunto. Não inclui public/media. A aba precisa ficar aberta; se interromper, retome com o mesmo ID.</p>
 <button id="retomar-fotos-d1" type="button">Copiar ou retomar fotos do Supabase no D1</button>
@@ -654,6 +657,17 @@ async function executarFotosGuardadas(baixar){
 }
 document.getElementById('retomar-fotos-d1').onclick=()=>executarFotosGuardadas(false);
 document.getElementById('baixar-fotos-d1').onclick=()=>executarFotosGuardadas(true);
+
+document.getElementById('testar-origem-assinada').onclick=async()=>{
+ if(ocupadoAcao||!token)return;
+ ocupadoAcao=true;const botoes=[...document.querySelectorAll('#acoes button'),document.getElementById('limpar')];botoes.forEach(b=>b.disabled=true);
+ status.textContent='Conferindo canal assinado de uma capa publicada. Não cria backup nem ativa manutenção…';
+ try{
+  const r=await fetch('/api/testar-origem-assinada',{method:'POST',headers:{Authorization:'Bearer '+token},credentials:'omit',cache:'no-store',redirect:'error'});
+  status.textContent=await r.text();if(r.status===403)limpar();
+ }catch{status.textContent='Não foi possível confirmar o canal assinado. Nenhuma conclusão obtida; não alterou a manutenção.';}
+ finally{ocupadoAcao=false;botoes.forEach(b=>b.disabled=false);}
+};
 
 document.getElementById('limpar').addEventListener('click',()=>{limpar();status.textContent='Credenciais em memória removidas deste teste. Isso não revoga sessões no Supabase.';});
 </script></html>`,200,{'Content-Type':'text/html; charset=utf-8','Content-Security-Policy':`default-src 'none'; script-src 'nonce-${nonce}'; connect-src 'self' ${SUPABASE}; form-action 'none'; base-uri 'none'; frame-ancestors 'none'`});

@@ -3,7 +3,7 @@ const testes=[
  'experiments/emergencia/gerar-worker-fotos.mjs',
  'scripts/gerar-conferencia-offline.mjs',
  'scripts/gerar-ensaio-local.mjs',
- ...['emergencia-prototipo','emergencia-autorizacao','emergencia-botao','hora-encontros','pacote-editorial','recuperacao-editorial-banco','captura-editorial','download-editorial','worker-download-completo','backup-real-d1','conferir-backup','baixar-copia-guardada','controle-operacoes','controle-operacoes-sqlite','backup-fotos','fotos-browser','conferencia-conjunta','ensaio-local','restaurar-colunas-local','restauracao-rls-local','emergencia-admin','fotos-d1-local','snapshot-fotos','fotos-guardadas-api'].map(t=>'tests/'+t+'.mjs'),
+ ...['emergencia-prototipo','emergencia-autorizacao','emergencia-botao','hora-encontros','pacote-editorial','recuperacao-editorial-banco','captura-editorial','download-editorial','worker-download-completo','backup-real-d1','conferir-backup','baixar-copia-guardada','controle-operacoes','controle-operacoes-sqlite','backup-fotos','fotos-browser','conferencia-conjunta','ensaio-local','restaurar-colunas-local','restauracao-rls-local','emergencia-admin','fotos-d1-local','snapshot-fotos','fotos-guardadas-api','midia-publica-candidata','assinatura-origem','origem-protegida-banco','edge-origem-candidata','edge-origem-bundle','canal-assinado'].map(t=>'tests/'+t+'.mjs'),
 ];
 for(const arquivo of testes){
  const r=spawnSync(process.execPath,[arquivo],{stdio:'inherit',env:process.env});
