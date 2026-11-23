@@ -1,3 +1,4 @@
+import {publicacaoCloudflare} from './publicacao-cloudflare.mjs';
 import {servirConteudoBuildCandidato} from './conteudo-build-candidato.mjs';
 import {testarConteudoBuild} from './testar-conteudo-build.mjs';
 import {servirMidiaProtegida} from './midia-protegida.mjs';
@@ -15,6 +16,7 @@ export default {
   env={...env,SUPABASE_URL:env.SUPABASE_URL ?? env.PUBLIC_SUPABASE_URL,
     SUPABASE_ANON_KEY:env.SUPABASE_ANON_KEY ?? env.PUBLIC_SUPABASE_ANON_KEY};
   const url=new URL(request.url);
+  if(url.pathname.startsWith('/api/publicacao-cloudflare/'))return publicacaoCloudflare(request,env);
   if(url.pathname==='/api/testar-conteudo-build')return testarConteudoBuild(request,env);
   if(url.pathname==='/api/testar-origem-assinada')return testarOrigemAssinada(request,env);
   if(url.pathname.startsWith('/api/fotos-guardadas/'))return fotosGuardadas(request,env);

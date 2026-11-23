@@ -1,3 +1,4 @@
+import { criarPublicacaoCloudflare } from '../lib/publicacao-cloudflare.js';
 import { instalarEmergenciaAdmin } from '../lib/emergencia-admin.js';
 import { BUCKET_RASCUNHOS, urlFotoPrivada, criarPreviaPrivada } from '../lib/midia-privada.js';
 /**
@@ -37,6 +38,7 @@ const supabase =
         auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
       })
     : null;
+const publicacaoCf = criarPublicacaoCloudflare({habilitado:import.meta.env.PUBLIC_EMERGENCIA_PARALELO === '1',origem:location.origin,obterSessao:async()=>{const {data,error}=await supabase.auth.getSession();if(error)throw error;return data.session;}});
 
 // ---------------------------------------------------------------- utilidades
 
@@ -135,6 +137,8 @@ function desenharBanner() {
     return;
   }
 
+  if(publicacaoCf){caixa.textContent='Publicação Cloudflare ainda não configurada. Os dados ficam salvos, mas falta cadastrar o Deploy Hook no servidor. Não cole token do GitHub aqui.';return;}
+
   caixa.innerHTML = `
     <div class="pn-aviso pn-aviso--faixa">
       <p>
@@ -181,6 +185,7 @@ function desenharBanner() {
 
 /** Confere no servidor se a publicação na hora está configurada. */
 async function conferirPublicacao() {
+  if(publicacaoCf){const r=await publicacaoCf.status();publicacaoLigada=Boolean(r.ok&&r.configurada);desenharBanner();return;}
   const r = await chamarRpc('status_publicacao');
   publicacaoLigada = Boolean(r.ok && r.configurada);
   desenharBanner();
@@ -242,6 +247,7 @@ async function baixarBackup() {
 
 /** Dispara o build e conta o resultado. Devolve true se o build saiu. */
 async function publicarSite(prefixo = '') {
+  if(publicacaoCf){const r=await publicacaoCf.solicitar();avisar(prefixo+(r.mensagem||'Confira o build na Cloudflare.'),r.ok?undefined:'erro');return r.ok;}
   const r = await chamarRpc('publicar_agora');
 
   if (r.ok) {
@@ -812,6 +818,7 @@ async function excluir(id, nome) {
     return;
   }
   lista();
+  if(publicacaoCf){await publicarSite('Excluído e salvo no banco. ');return;}
   avisar(
     publicacaoLigada === false
       ? 'Excluído! Ligue a publicação na hora no aviso do topo.'
@@ -1512,6 +1519,7 @@ async function salvar(form) {
   botao.disabled = false;
   botao.textContent = 'Salvar';
   lista();
+  if(publicacaoCf){await publicarSite('Salvo no banco. ');return;}
   avisar(
     publicacaoLigada === false
       ? 'Salvo! Ligue a publicação na hora no aviso do topo para o site atualizar agora.'
