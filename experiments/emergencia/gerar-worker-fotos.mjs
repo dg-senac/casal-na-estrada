@@ -24,5 +24,14 @@ const script=automatico+'\n'+readFileSync(new URL('zip-fotos.mjs',pasta),'utf8')
 const escapado=script.replaceAll('\\','\\\\').replaceAll('`','\\`').replaceAll('${','\\${');
 const pos=base.indexOf("document.getElementById('limpar').addEventListener");if(pos<0)throw Error('Marcador ausente');
 base=base.slice(0,pos)+escapado+'\n'+base.slice(pos);
+// Apresentação isolada: preserva todos os IDs e handlers do controle.
+const fonte=readFileSync(new URL('../../node_modules/@fontsource/bodoni-moda/files/bodoni-moda-latin-400-normal.woff2',pasta)).toString('base64');
+const visual=readFileSync(new URL('controle-visual.html',pasta),'utf8').replace('__FONT__',fonte);
+const inicioVisual=base.indexOf('<title>Login isolado de teste</title>');
+const fimVisual=base.indexOf('<script nonce="${nonce}">',inicioVisual);
+if(inicioVisual<0||fimVisual<0)throw Error('Estrutura do controle não encontrada');
+base=base.slice(0,inicioVisual)+visual+base.slice(fimVisual);
+base=base.replace("script-src 'nonce-${nonce}'; connect-src", "script-src 'nonce-${nonce}'; style-src 'nonce-${nonce}'; font-src data:; connect-src");
+base=base.replace('Reabrir SOMENTE o ambiente de teste?', 'Reabrir o site para os visitantes? Confirme que é seguro encerrar a manutenção.');
 writeFileSync(new URL('worker-fotos-teste.mjs',pasta),base);
 console.log('Painel de mídia gerado. Não publicado.');
