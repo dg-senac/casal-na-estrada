@@ -35,3 +35,6 @@ base=base.replace("script-src 'nonce-${nonce}'; connect-src", "script-src 'nonce
 base=base.replace('Reabrir SOMENTE o ambiente de teste?', 'Reabrir o site para os visitantes? Confirme que é seguro encerrar a manutenção.');
 writeFileSync(new URL('worker-fotos-teste.mjs',pasta),base);
 console.log('Painel de mídia gerado. Não publicado.');
+
+const paginaManutencao=readFileSync(new URL('../../cloudflare/manutencao.html',pasta),'utf8').replace('__FONT__',fonte);
+writeFileSync(new URL('../../cloudflare/manutencao-template.mjs',pasta),'// Gerado pelo gerador do controle; editar manutencao.html.\nexport default '+JSON.stringify(paginaManutencao)+';\n');

@@ -1,3 +1,4 @@
+import paginaManutencao from './manutencao-template.mjs';
 import {statusAgendamento} from './status-agendamento.mjs';
 import {verificarPublicacaoAgendada} from './agendamento-publicacao.mjs';
 import {publicacaoCloudflare} from './publicacao-cloudflare.mjs';
@@ -10,7 +11,8 @@ import {fotosGuardadas} from './fotos-guardadas.mjs';
 import painel from '../experiments/emergencia/worker-fotos-teste.mjs';
 import {tratarMidiaBackup} from './midia-backup.mjs';
 const rotasPainel=new Set(['/login-teste','/api/verificar','/api/emergencia-real','/api/emergencia-teste','/api/reabrir-teste','/api/exportar-editorial','/api/conferir-backup','/api/baixar-backup']);
-function manutencao(){return new Response('<!doctype html><html lang="pt-BR"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Manutenção — Casal na Estrada</title><h1>Voltamos em breve</h1><p>O site está temporariamente em manutenção.</p></html>',{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Retry-After':'300','X-Robots-Tag':'noindex, nofollow','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'"}});}
+function manutencao(){const nonce=crypto.randomUUID().replaceAll('-','');return new Response(paginaManutencao.replaceAll('__NONCE__',nonce),{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Retry-After':'300','X-Robots-Tag':'noindex, nofollow','Content-Security-Policy':`default-src 'none'; style-src 'nonce-${nonce}'; font-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});}
+
 export default {
  async scheduled(event,env,ctx){ctx.waitUntil(verificarPublicacaoAgendada(env));},
  async fetch(request,env){
