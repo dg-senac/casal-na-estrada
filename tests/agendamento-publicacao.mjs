@@ -1,4 +1,10 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+const config=JSON.parse(readFileSync('wrangler.jsonc','utf8'));
+assert.deepEqual(config.triggers.crons,['17 * * * *']);
+assert.equal(config.keep_vars,true);
+assert.equal(config.vars?.AGENDAMENTO_PUBLICACAO,undefined); // Controle permanece no runtime, não sobrescrito pelo deploy.
+
 import {Miniflare,convertV4MiniflareOptions} from 'miniflare';
 import {verificarPublicacaoAgendada} from '../cloudflare/agendamento-publicacao.mjs';
 import {revisaoPublicada,diaRecife} from '../cloudflare/revisao-publicada.mjs';
