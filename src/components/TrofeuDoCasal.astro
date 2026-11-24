@@ -1,0 +1,46 @@
+---
+import { url } from '../lib/url';
+const foto = '/media/trofeus/casal-na-estrada-cieri-milla.jpg';
+---
+<section class="lugar-de-honra" aria-labelledby="trofeu-do-casal-titulo">
+  <div class="wrap">
+    <div class="honra">
+      <figure class="honra__foto">
+        <a href={url(foto)} aria-label="Ver imagem completa do troféu do Casal na Estrada">
+          <img src={url(foto)} width="896" height="1200" alt="Cieri e Milla atrás da peça do Casal na Estrada, com o nome do casal e Recife–PE na base, em uma composição de estrada ao pôr do sol." loading="eager" decoding="async" />
+        </a>
+        <figcaption>Casal na Estrada · Cieri e Milla</figcaption>
+      </figure>
+      <div class="honra__texto">
+        <span class="honra__badge"><svg viewBox="0 0 24 24" aria-hidden="true" width="18" height="18"><path d="M8 3h8v5a4 4 0 0 1-8 0V3ZM8 5H4v2a4 4 0 0 0 4 4m8-6h4v2a4 4 0 0 1-4 4m-4 1v6m-4 3h8m-6-3h4v3h-4" /></svg>Troféu do próprio casal</span>
+        <p class="honra__eyebrow">No topo da nossa prateleira</p>
+        <h2 id="trofeu-do-casal-titulo">A nossa marca.<br />A nossa estrada.</h2>
+        <p class="honra__nomes">Cieri <em>&</em> Milla</p>
+        <p class="honra__descricao">Esta peça é do próprio <strong>Casal na Estrada</strong>, os donos deste cantinho. Ela leva o nome de Cieri e Milla e ganha um lugar de honra antes das lembranças dos encontros.</p>
+        <div class="honra__assinatura"><span>Casal na Estrada</span><span>Recife · Pernambuco</span></div>
+        <a class="honra__link" href={url(foto)}>Ver imagem completa <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lugar-de-honra { padding: clamp(1.8rem, 4vw, 3.5rem) 0; }
+  .honra { display:grid; grid-template-columns:minmax(0, .9fr) minmax(0, 1fr); border:1px solid var(--line-strong); background:var(--paper-2); }
+  .honra__foto { margin:0; padding:clamp(.8rem, 2vw, 1.5rem); border-right:1px solid var(--line); }
+  .honra__foto a { display:block; }
+  .honra__foto img { display:block; width:100%; height:auto; object-fit:contain; }
+  .honra__foto figcaption { padding-top:.8rem; color:var(--ink-soft); font:400 .75rem/1.5 var(--sans); letter-spacing:.12em; text-transform:uppercase; }
+  .honra__texto { align-self:center; padding:clamp(1.5rem, 4vw, 4rem); }
+  .honra__badge { display:inline-flex; align-items:center; gap:.55rem; border:1px solid #b09a63; color:#e0c990; padding:.55rem .8rem; font:500 .8rem/1.4 var(--sans); letter-spacing:.09em; text-transform:uppercase; }
+  .honra__badge svg { flex-shrink:0; fill:none; stroke:currentColor; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; }
+  .honra__eyebrow { margin:2.2rem 0 .8rem; color:var(--ink-soft); font:400 .75rem/1.5 var(--sans); letter-spacing:.15em; text-transform:uppercase; }
+  .honra h2 { margin:0; color:var(--ink); font:400 clamp(2.4rem, 4.5vw, 4.8rem)/1.05 var(--serif); letter-spacing:-.025em; }
+  .honra__nomes { margin:1.5rem 0; font:400 1.7rem/1.3 var(--serif); color:#e0c990; }
+  .honra__nomes em { padding:0 .25rem; }
+  .honra__descricao { max-width:39ch; font:.92rem/1.9 var(--body); color:var(--ink-2); }
+  .honra__assinatura { display:flex; justify-content:space-between; flex-wrap:wrap; gap:.5rem; margin-top:2rem; padding:1rem 0; border-block:1px solid var(--line); font:400 .75rem/1.5 var(--sans); letter-spacing:.1em; text-transform:uppercase; color:var(--ink-soft); }
+  .honra__link { display:inline-block; margin-top:1.3rem; padding:.3rem 0; color:#e0c990; font:500 .9rem/1.5 var(--sans); text-decoration:underline; text-underline-offset:5px; }
+  .honra a:focus-visible { outline:3px solid #e0c990; outline-offset:5px; }
+  @media(max-width:760px) { .honra { grid-template-columns:1fr; } .honra__foto { border-right:0; border-bottom:1px solid var(--line); } .honra__foto img { max-height:75svh; } .honra__texto { padding:1.7rem; } .honra h2 { font-size:clamp(2.4rem,9vw,4rem); } }
+</style>

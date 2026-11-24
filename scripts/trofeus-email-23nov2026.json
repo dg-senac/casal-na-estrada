@@ -103,10 +103,11 @@
       "motivo": "Inscrição romana estilizada do Capibaribe ambígua (VIII/VIIII); confirmar edição/ano antes de associar. Não substituir IX/2026."
     }
   ],
-  "excluidos": [
-    {
-      "origem": "179780.jpg",
-      "motivo": "Casal em destaque; orientação anterior exclui fotos de pessoas."
-    }
-  ]
+  "excluidos": [],
+  "destaque_do_casal": {
+    "origem": "179780.jpg",
+    "foto_url": "/media/trofeus/casal-na-estrada-cieri-milla.jpg",
+    "autorizacao": "Usuário autorizou exceção: peça dos donos em destaque no topo da prateleira.",
+    "implementacao": "Componente editorial independente, sem alterar contagem/níveis de prêmios no banco."
+  }
 }

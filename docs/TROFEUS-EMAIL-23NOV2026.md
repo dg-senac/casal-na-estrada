@@ -41,3 +41,11 @@ Checkout local estava no commitbaseb449613com trabalhos anteriores como untracke
 Usuário confirmou Pronto. Releitura encontrou8URLsantigas exatamente como esperado e nenhum dos2novos slugs. execute_query com CTE única atômica aplicou8updates de foto_url/foto_alt e2inserts. Retorno remoto:fotos_atualizadas=8,trofeus_adicionados=2. Releitura confirmou10novas referências, foto_mini e foto_foco NULL em todas (sem miniatura antiga sobrepondo nova foto). Anos/datas/histórias dos8antigos e filhos não alterados. Nenhuma mudança de segurança/RLS/Storage/Pages.
 
 Este commit de registro é enviado à mesma branch conectada ao Cloudflare Builds para recompilar com o novo conteúdo. Até o próximoReady, HTML público pode mostrar versão anterior; admin já vê os novos valores. Capibaribe permanece pendente e foto do casal não foi usada. Não declarar aparência hospedada conferida antes do usuário abrir a coleção depois doReady.
+
+## Exceção autorizada: peça dos donos em lugar de honra
+
+Após ver179780.jpg, usuário esclareceu que é do próprio casal e autorizou explicitamente publicação em destaque acima da prateleira, com badge. Restrição anterior deixa de excluir SOMENTE essa imagem. Arquivo copiado sem filtros/cortes para public/media/trofeus/casal-na-estrada-cieri-milla.jpg; hash confere com anexo.
+
+Componente TrofeuDoCasal.astro colocado antes do índice de categorias na Sala de Troféus, com badge Troféu do próprio casal, nomes Cieri e Milla e Recife/Pernambuco. Usa variáveis visuais do site, Bodoni, foto inteira colorida, layout responsivo e link direto para imagem completa. Não atribui vitória/colocação/história de premiação. Destaque editorial separado do catálogo: sem novo registro DB, sem duplicar peça nas categorias ou alterar contagens de encontros. Os demais troféus e Capibaribe pendente permanecem como estavam.
+
+Testes Node22.23.4: trofeu-do-casal (posição/identidade/foto integral/hash), trofeus-email-23nov2026 atualizado para exceção, Astrocheck23arquivos sem erros e test:cloudflare:local completo aprovados. Dist é fixture, não publicar. Nenhuma alteração editorial remota/segurança nesta etapa. Publicação normal pela branch leva componente+foto juntos, sem nova etapa de SQL. Aparência hospedada ainda depende do Ready e conferência do usuário.
