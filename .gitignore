@@ -10,3 +10,7 @@ dist/
 .wrangler/
 .dev.vars
 .dev.vars.*
+
+# Anexos originais de e-mail e ferramentas locais não são publicação.
+gmail/
+.venv/
