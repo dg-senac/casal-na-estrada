@@ -1,4 +1,5 @@
--- PREPARADO: aplicar somente após Ready dos arquivos de imagem. Não aplicado.
+-- APLICADO remotamente após Ready dos assets: 8 fotos atualizadas e 2 troféus inseridos.
+-- Registro da operação; NÃO reaplicar.
 BEGIN;
 UPDATE public.trofeus SET foto_url='/media/trofeus/email-trofeus-23nov2026/2026-nova-cruz-moto-rock-2.jpg', foto_alt='Troféu 2º Nova Cruz Moto Rock em composição com paisagem de estrada.' WHERE slug='2026-nova-cruz-moto-rock-2' AND foto_url='/media/trofeus/2026-nova-cruz-moto-rock-2.jpg';
 UPDATE public.trofeus SET foto_url='/media/trofeus/email-trofeus-23nov2026/2025-08-estradeiras-arretadas.jpg', foto_alt='Troféu 4º aniversário do Estradeiras Arretadas MC em composição com paisagem de estrada.' WHERE slug='2025-08-estradeiras-arretadas' AND foto_url='/media/trofeus/estradeiras-arretadas-2025.jpg';

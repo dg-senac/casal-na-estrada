@@ -34,3 +34,10 @@ Testes:tests/trofeus-email-23nov2026.mjs aprovado Nodebuiltin (10hashes/arquivos
 ## Estado do Git nesta retomada
 
 Checkout local estava no commitbaseb449613com trabalhos anteriores como untracked/modificados. gitfetch confirmou origin/arena/bb30d53b-casal-na-estrada em49ac6a3. gitreset--mixed nessa MESMA branch alinhou histórico preservando todos arquivos; nenhuma troca de branch ou reset--hard. Commit desta rodada só inclui novos assets/manifesto/SQL/teste/docs/ignores, não reenvia trabalho anterior.
+
+
+## Aplicação remota concluída após confirmação Ready
+
+Usuário confirmou Pronto. Releitura encontrou8URLsantigas exatamente como esperado e nenhum dos2novos slugs. execute_query com CTE única atômica aplicou8updates de foto_url/foto_alt e2inserts. Retorno remoto:fotos_atualizadas=8,trofeus_adicionados=2. Releitura confirmou10novas referências, foto_mini e foto_foco NULL em todas (sem miniatura antiga sobrepondo nova foto). Anos/datas/histórias dos8antigos e filhos não alterados. Nenhuma mudança de segurança/RLS/Storage/Pages.
+
+Este commit de registro é enviado à mesma branch conectada ao Cloudflare Builds para recompilar com o novo conteúdo. Até o próximoReady, HTML público pode mostrar versão anterior; admin já vê os novos valores. Capibaribe permanece pendente e foto do casal não foi usada. Não declarar aparência hospedada conferida antes do usuário abrir a coleção depois doReady.
