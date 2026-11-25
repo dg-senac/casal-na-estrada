@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import TrofeuDoCasal from '../components/TrofeuDoCasal.astro';
 import { carregarTrofeus } from '../lib/dados';
 import { url } from '../lib/url';
 import { capa, capaAlt, metaData, ordenar, porCategoria, quando, selo } from '../lib/trofeus';
@@ -34,6 +35,8 @@ const ultima = ordenar(trofeus)[0];
       </div>
     </div>
   </header>
+
+  <TrofeuDoCasal />
 
   {
     grupos.length > 0 && (

@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {autorizar} from '../experiments/emergencia/autorizacao.mjs';
+const config={supabaseUrl:'https://exemplo.supabase.co',chavePublica:'chave-ficticia'};
+const jwt=(aal='aal2',sub='teste')=>'header.'+Buffer.from(JSON.stringify({aal,sub})).toString('base64url')+'.assinatura';
+const req=token=>new Request('https://teste.invalid',{headers:token?{Authorization:'Bearer '+token}:{}});
+const mock=(usuario,estado)=>async url=>Response.json(url.endsWith('/user')?usuario:estado);
+const ok={autorizado:true,mfa_necessario:false};
+assert.equal((await autorizar(req(jwt()),config,mock({id:'teste'},ok))).autorizado,true);
+for(const [token,user,estado] of [[jwt('aal1'),{id:'teste'},ok],[jwt('aal2','outro'),{id:'teste'},ok],[jwt(),{id:'teste'},{autorizado:false,mfa_necessario:false}],[jwt(),{id:'teste'},{autorizado:true,mfa_necessario:true}],[jwt(),{},ok],['invalido',{id:'teste'},ok]])assert.equal((await autorizar(req(token),config,mock(user,estado))).autorizado,false);
+assert.equal((await autorizar(req(),config,()=>{throw Error('não chamar');})).autorizado,false);
+for(const fetcher of [async()=>new Response('',{status:401}),async()=>{throw Error('offline');},async()=>new Response('não JSON')])assert.equal((await autorizar(req(jwt()),config,fetcher)).autorizado,false);
+assert.equal((await autorizar(req(jwt()),{...config,supabaseUrl:'http://inseguro'},mock({id:'teste'},ok))).autorizado,false);
+console.log('Autorização isolada: sessão remota, autorização e AAL2 exigidos; negativas e falhas fechadas. Testes simulados, sem conexão real.');

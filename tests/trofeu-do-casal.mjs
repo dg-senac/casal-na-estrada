@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {createHash} from 'node:crypto';
+const componente=readFileSync('src/components/TrofeuDoCasal.astro','utf8');
+const pagina=readFileSync('src/pages/trofeus.astro','utf8');
+assert(pagina.indexOf('<TrofeuDoCasal />')<pagina.indexOf('<nav class="indice"'));
+assert.match(componente,/Troféu do próprio casal/);assert.match(componente,/Cieri/);assert.match(componente,/Milla/);
+assert.match(componente,/height:auto; object-fit:contain/);assert.match(componente,/font:400.*var\(--serif\)/);assert.doesNotMatch(componente,/sepia|grayscale|1º lugar|campeões|vencedores/);
+assert.equal(createHash('sha256').update(readFileSync('public/media/trofeus/casal-na-estrada-cieri-milla.jpg')).digest('hex'),'34873e421bddd489737ca43456038dbbba7b2191bd7863f8c8b34b511c0a1f79');
+console.log('Destaque do casal: acima das categorias, badge próprio, Bodoni, imagem integral sem filtro e sem alegação de premiação.');

@@ -1,3 +1,5 @@
+import { criarPublicacaoCloudflare } from '../src/lib/publicacao-cloudflare.js';
+import { instalarEmergenciaAdmin } from '../src/lib/emergencia-admin.js';
 import { BUCKET_RASCUNHOS, urlFotoPrivada, criarPreviaPrivada } from '../src/lib/midia-privada.js';
 // Executa o script real do painel em DOM, com Auth simulado e relógio acelerado.
 import { readFileSync } from 'node:fs';
@@ -32,6 +34,8 @@ win.setTimeout=(fn,ms=0)=>{if(ms===0)timeouts.push(fn);return 1;};
 win.setInterval=(fn,ms)=>{intervals.push({fn,ms});return intervals.length;};
 win.Date.now=()=>now;
 win.deps={
+ criarPublicacaoCloudflare,
+ instalarEmergenciaAdmin:opts=>instalarEmergenciaAdmin({...opts,documento:doc,origem:win.location.origin}),
  BUCKET_RASCUNHOS, urlFotoPrivada, criarPreviaPrivada:opts=>criarPreviaPrivada({...opts,documento:doc}),
  createClient:()=>client,marked,sanitizarPrevia,criarControleAcesso,identificadorSessao,
  criarTelaMfa:opts=>criarTelaMfa({...opts,documento:doc}),
@@ -39,6 +43,7 @@ win.deps={
  criarAvisoInatividade:opts=>criarAvisoInatividade({...opts,documento:doc}),
 };
 let source=readFileSync('src/scripts/admin.js','utf8').replace(/^import .*;\s*$/gm,'')
+ .replaceAll('import.meta.env.PUBLIC_EMERGENCIA_PARALELO',"'0'")
  .replaceAll('import.meta.env.PUBLIC_SUPABASE_URL',"'https://fixture.invalid'")
  .replaceAll('import.meta.env.PUBLIC_SUPABASE_ANON_KEY',"'fixture-publica'");
 win.eval(`(()=>{const {${Object.keys(win.deps).join(',')}}=window.deps;${source}\n})()`);

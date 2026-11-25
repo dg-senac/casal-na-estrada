@@ -11,6 +11,24 @@ export function caminhoFotoPrivada(base, valor) {
   return CAMINHO.test(caminho) ? caminho : null;
 }
 
+/** Referências históricas também precisam de download autenticado após o corte. */
+export function referenciaFotoAdmin(base,valor){
+ const privada=caminhoFotoPrivada(base,valor);
+ if(privada)return {bucket:BUCKET_RASCUNHOS,caminho:privada};
+ if(typeof valor!=='string')return null;
+ const prefixos=[
+  [base.replace(/\/$/,'')+'/storage/v1/object/public/midia/','midia'],
+  ['https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/midia-protegida/midia/','midia'],
+  ['https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/midia-protegida/midia-rascunhos/',BUCKET_RASCUNHOS],
+ ];
+ for(const [prefixo,bucket] of prefixos){if(!valor.startsWith(prefixo))continue;try{
+  const caminho=decodeURIComponent(valor.slice(prefixo.length));
+  if(!caminho||caminho.length>1024||/[?#\\\x00-\x1f]/.test(caminho)||caminho.split('/').some(p=>!p||p==='.'||p==='..'))return null;
+  return {bucket,caminho};
+ }catch{return null;}}
+ return null;
+}
+
 /** Só troca src de imagens. Campos persistidos continuam com URL estável, sem tokens. */
 export function criarPreviaPrivada({ client, base, documento = document }) {
   let ativa = false, geracao = 0;
@@ -19,14 +37,15 @@ export function criarPreviaPrivada({ client, base, documento = document }) {
     if (!ativa) return;
     for (const img of documento.querySelectorAll('img[src]')) {
       const original = img.getAttribute('src');
-      const caminho = caminhoFotoPrivada(base, original);
+      const referencia = referenciaFotoAdmin(base, original);
+      const caminho = referencia ? referencia.bucket+'/'+referencia.caminho : null;
       if (!caminho) continue;
       if (blobs.has(caminho)) { img.src = blobs.get(caminho); continue; }
       if (pendentes.has(caminho)) continue;
       pendentes.add(caminho);
       const rodada = geracao;
       try {
-        const { data, error } = await client.storage.from(BUCKET_RASCUNHOS).download(caminho);
+        const { data, error } = await client.storage.from(referencia.bucket).download(referencia.caminho);
         if (!ativa || rodada !== geracao || error || !data) continue;
         const url = URL.createObjectURL(data);
         blobs.set(caminho, url);

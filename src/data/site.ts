@@ -17,8 +17,8 @@ export const site = {
   whatsapp: '5581986941562',
   whatsappExibicao: '(81) 98694-1562',
   whatsappTexto: 'Olá! Encontrei o site de vocês e queria trocar uma ideia.',
-  instagram: 'https://instagram.com/casa_naestrada2.4',
-  instagramUsuario: '@casa_naestrada2.4',
+  instagram: 'https://instagram.com/casal_naestrada2.4',
+  instagramUsuario: '@casal_naestrada2.4',
   mapa: 'https://maps.google.com/?q=Recife,+PE',
 };
 

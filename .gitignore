@@ -5,3 +5,15 @@ dist/
 *.log
 .env
 .env.*
+
+# Desenvolvimento Cloudflare: estado local e credenciais nunca entram no Git.
+.wrangler/
+.dev.vars
+.dev.vars.*
+
+# Anexos originais de e-mail e ferramentas locais não são publicação.
+gmail/
+.venv/
+
+# Ferramentas offline reproduzíveis; gerar apenas quando necessário.
+entregas/

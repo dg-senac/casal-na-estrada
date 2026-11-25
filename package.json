@@ -8,6 +8,9 @@
     "start": "astro dev --host 0.0.0.0 --port 4321",
     "build": "astro build",
     "preview": "astro preview --host 0.0.0.0 --port 4321",
+    "test:cloudflare:local": "node scripts/testar-cloudflare-local.mjs",
+    "build:cloudflare:teste": "node scripts/build-cloudflare-teste.mjs",
+    "test:emergencia": "node scripts/verificar-emergencia.mjs",
     "test:seguranca": "node tests/seguranca.mjs && node tests/controle-acesso.mjs && node tests/mfa-painel.mjs && node tests/mfa-banco.mjs && node tests/inatividade.mjs && node tests/inatividade-integracao.mjs && node tests/midia-privada.mjs && node tests/midia-banco.mjs && node tests/agendamento-banco.mjs && node tests/csp-painel.mjs && node tests/destinos-mapa.mjs && node tests/ficha-rota.mjs && node tests/agenda-regional.mjs && node tests/categorias-encontros.mjs && node tests/hora-encontros.mjs"
   },
   "dependencies": {
@@ -28,7 +31,9 @@
     "@types/leaflet": "^1.9.22",
     "@types/sanitize-html": "^2.16.2",
     "jsdom": "^31.0.0",
-    "typescript": "^5.9.3"
+    "miniflare": "5.20261119.0-beta",
+    "typescript": "^5.9.3",
+    "wrangler": "4.166.0"
   },
   "engines": {
     "node": ">=22.23.4"
