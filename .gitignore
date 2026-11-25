@@ -14,3 +14,6 @@ dist/
 # Anexos originais de e-mail e ferramentas locais não são publicação.
 gmail/
 .venv/
+
+# Ferramentas offline reproduzíveis; gerar apenas quando necessário.
+entregas/

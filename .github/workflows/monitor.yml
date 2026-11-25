@@ -21,7 +21,7 @@ jobs:
         run: |
           falhou=0
           for caminho in "" "diario/" "galeria/" "trofeus/" "rss.xml"; do
-            url="https://dg-senac.github.io/casal-na-estrada/${caminho}"
+            url="https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/${caminho}"
             codigo=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 --retry 3 --retry-delay 5 "$url")
             echo "$codigo  $url"
             if [ "$codigo" -lt 200 ] || [ "$codigo" -ge 400 ]; then falhou=1; fi

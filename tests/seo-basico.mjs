@@ -14,7 +14,7 @@ assert.equal(doc.querySelectorAll('h1').length,1);
 assert.match(doc.querySelector('h1').textContent.replace(/\s+/g,' '),/Duas pessoas,uma moto,o Brasil inteiro\./);
 const capa=doc.querySelector('.hero__lead').textContent.replace(/\s+/g,' ');
 for(const termo of ['Recife','mototurismo','bate-voltas','encontros de motociclistas','Pernambuco','Nordeste'])assert.ok(capa.includes(termo));
-assert.ok(doc.querySelector('a[href="https://instagram.com/casa_naestrada2.4"]'));
+assert.ok(doc.querySelector('a[href="https://instagram.com/casal_naestrada2.4"]'));
 const diario=new JSDOM(readFileSync('dist/diario/index.html','utf8')).window.document;
 assert.equal(diario.title,'Diário — Casal na Estrada');
 const ficha=JSON.parse(doc.querySelector('script[type="application/ld+json"]').textContent);

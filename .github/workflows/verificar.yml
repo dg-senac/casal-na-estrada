@@ -1,7 +1,6 @@
 name: Verificar build
 
-# Só valida: roda o build em pull requests para garantir que o site ainda monta
-# (e que o Supabase responde) antes de publicar. Não faz deploy de nada.
+# Valida sem acessar conteúdo ou segredos de produção, inclusive durante manutenção.
 on:
   pull_request:
   workflow_dispatch:
@@ -14,50 +13,32 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-node@v4
         with:
           node-version: '22.23.4'
           cache: npm
-
       - name: Instalar dependências
         run: npm ci
-
-      - name: Auditar dependências (alto/crítico)
+      - name: Auditar dependências
         run: npm audit --audit-level=moderate
-
-      - name: Testar sanitização e JSON-LD
+      - name: Testar segurança e regras editoriais
         run: npm run test:seguranca
-
-      - name: Testar protótipo de emergência (isolado, sem dados reais)
+      - name: Testar emergência e recuperação (dados fictícios)
         run: npm run test:emergencia
-
-      - name: Conferir seleção dos troféus recebidos em 20/11
-        run: node tests/trofeus-email-2026-11-20.mjs
-
+      - name: Conferir imagens e destaque do casal
+        run: |
+          node tests/trofeus-email-2026-11-20.mjs
+          node tests/trofeus-email-23nov2026.mjs
+          node tests/trofeu-do-casal.mjs
+          node tests/midia-admin-legada.mjs
+          node tests/corte-origens.mjs
       - name: Conferir tipos
         run: npx astro check
-        env:
-          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://pjglrlullnchqazxpvyn.supabase.co' }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2xybHVsbG5jaHFhenhwdnluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNzc2NTQsImV4cCI6MjEwOTg1MzY1NH0.Z9wc7bdEjIhSOmToVhDGBMC6TRc3oxhek5G2fI-mvlw' }}
-
-      - name: Build (lê o Supabase de verdade)
-        env:
-          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://pjglrlullnchqazxpvyn.supabase.co' }}
-          PUBLIC_SUPABASE_ANON_KEY: ${{ vars.PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBqZ2xybHVsbG5jaHFhenhwdnluIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQyNzc2NTQsImV4cCI6MjEwOTg1MzY1NH0.Z9wc7bdEjIhSOmToVhDGBMC6TRc3oxhek5G2fI-mvlw' }}
-          SITE_BASE: /casal-na-estrada/
-        run: npm run build
-
-      - name: Conferir moto e equipamentos
-        run: node tests/moto-equipamentos.mjs
-
-      - name: Conferir SEO básico da página inicial
-        run: node tests/seo-basico.mjs
-
-      - name: Conferir homenagem à primeira viagem
-        run: node tests/primeira-viagem.mjs && node tests/visitas-confirmadas.mjs
-
-      - name: Conferir endpoint de fotos (somente leitura)
-        env:
-          PUBLIC_SUPABASE_URL: ${{ vars.PUBLIC_SUPABASE_URL || 'https://pjglrlullnchqazxpvyn.supabase.co' }}
-        run: node tests/midia-endpoint.mjs
+      - name: Compilar e testar Worker, assets e D1 local
+        run: npm run test:cloudflare:local
+      - name: Conferir páginas geradas
+        run: |
+          node tests/moto-equipamentos.mjs
+          node tests/seo-basico.mjs
+          node tests/primeira-viagem.mjs
+          node tests/visitas-confirmadas.mjs
