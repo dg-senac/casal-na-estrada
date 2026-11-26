@@ -1,4 +1,5 @@
--- PENDENTE: aplicar somente após publicação e conferência das 26 imagens no Worker.
+-- APLICADO remotamente após confirmação do painel LEGO no Worker: 24 inserções e 2 atualizações.
+-- Registro da operação; NÃO reaplicar.
 BEGIN;
 INSERT INTO public.trofeus(slug,evento,tipo,categoria,historia,foto_url,foto_alt) VALUES('sem-ano-copo-highway-mc','Copo Highway MC','lembranca','Lembrança','Copo claro com emblema Highway MC e inscrição de cinco anos.','/media/trofeus/email-lembrancas-25nov2026/179916.jpg','Copo claro com emblema Highway MC e inscrição de cinco anos.') ON CONFLICT(slug) DO NOTHING;
 INSERT INTO public.trofeus(slug,evento,tipo,categoria,historia,foto_url,foto_alt) VALUES('sem-ano-copo-caveiras-100-limites','Copo Caveiras 100 Limites','lembranca','Lembrança','Copo escuro com inscrição Caveiras 100 Limites e dez anos.','/media/trofeus/email-lembrancas-25nov2026/179919.jpg','Copo escuro com inscrição Caveiras 100 Limites e dez anos.') ON CONFLICT(slug) DO NOTHING;

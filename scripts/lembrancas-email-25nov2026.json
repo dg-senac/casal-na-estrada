@@ -1,6 +1,6 @@
 {
   "email": "1a21586f35b863d9",
-  "estado": "aguardando-publicacao-assets",
+  "estado": "aplicado-24-inseridos-2-atualizados",
   "pecas": [
     {
       "arquivo": "179916.jpg",
@@ -210,5 +210,6 @@
       "operacao": "insert",
       "sha256": "831d69aad906e9b5f4604b5cc992a8648e3b02ed70dcf2c2458c9aefbfb677ba"
     }
-  ]
+  ],
+  "conferencia": "Painel LEGO e três classificações confirmados no site após deploy. Conferência HTTP individual dos arquivos indisponível no sandbox; integridade local validada pelo teste."
 }
