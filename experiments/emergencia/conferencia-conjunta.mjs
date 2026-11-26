@@ -8,6 +8,7 @@ function identificar(valor){
   ...['midia','midia-rascunhos'].flatMap(b=>['public','authenticated','sign'].map(tipo=>[origem+'/storage/v1/object/'+tipo+'/'+b+'/',b+'/'])),
   ['/casal-na-estrada/media/','repositorio/media/'],['/media/','repositorio/media/'],['media/','repositorio/media/'],
   ['https://dg-senac.github.io/casal-na-estrada/media/','repositorio/media/'],
+  ['https://casal-na-estrada.douglasmarista02.workers.dev/media/','repositorio/media/'],
   ['https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/media/','repositorio/media/'],
  ];
  for(const [prefixo,base] of prefixos)if(valor.startsWith(prefixo)){

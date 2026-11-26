@@ -1,5 +1,5 @@
 import {copiarFotosAutomaticas} from './fotos-automaticas.js';
-const HOST_TESTE='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev';
+const HOST_TESTE='https://casal-na-estrada.douglasmarista02.workers.dev';
 /** Somente admin do build paralelo. Não transfere tokens para outra origem. */
 export function instalarEmergenciaAdmin({documento=document,origem=location.origin,habilitado=false,obterSessao,fetchImpl=fetch,uuid=()=>crypto.randomUUID()}){
  if(!habilitado||origem!==HOST_TESTE||documento.getElementById('pn-emergencia'))return;

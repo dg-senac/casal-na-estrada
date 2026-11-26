@@ -12,7 +12,7 @@ import {gerarManifestoAssets} from './manifesto-assets-backup.mjs';
 rmSync('dist/_build-teste.json',{force:true});
 const fixture=process.argv.includes('--fixture-local');
 if(process.env.DADOS_FIXTURE&&!fixture)throw Error('Publicação Cloudflare recusada: DADOS_FIXTURE presente.');
-const site='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev';
+const site='https://casal-na-estrada.douglasmarista02.workers.dev';
 const publica=JSON.parse(readFileSync('cloudflare/supabase-publico.json','utf8'));
 const endereco=process.env.PUBLIC_SUPABASE_URL ?? publica.url;
 const chave=process.env.PUBLIC_SUPABASE_ANON_KEY ?? publica.anonKey;

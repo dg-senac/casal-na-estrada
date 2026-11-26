@@ -6,7 +6,7 @@ import {reescreverMidiaTexto,reescreverMidiaCloudflare} from '../scripts/reescre
 import {servirMidiaProtegida} from '../cloudflare/midia-protegida.mjs';
 import {verificarOrigem} from '../experiments/emergencia/assinatura-origem.mjs';
 import worker from '../cloudflare/site-worker.mjs';
-const base='https://pjglrlullnchqazxpvyn.supabase.co',site='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev',foto=base+'/functions/v1/foto-publicada/v1/00000000-0000-4000-8000-000000000001.webp';
+const base='https://pjglrlullnchqazxpvyn.supabase.co',site='https://casal-na-estrada.douglasmarista02.workers.dev',foto=base+'/functions/v1/foto-publicada/v1/00000000-0000-4000-8000-000000000001.webp';
 const novo=site+'/midia-protegida/midia-rascunhos/v1/00000000-0000-4000-8000-000000000001.webp';
 const html='<img src="'+foto+'"><meta property="og:image" content="'+foto+'"><a href="'+foto+'">Zoom</a>';
 assert.equal(reescreverMidiaTexto(html),html.replaceAll(foto,novo));
@@ -16,7 +16,7 @@ assert.equal(reescreverMidiaTexto(base+'/auth/v1/user'),base+'/auth/v1/user');
 assert.equal(reescreverMidiaTexto('https://externo.invalid/foto.jpg'),'https://externo.invalid/foto.jpg');
 const pasta=await mkdtemp(join(tmpdir(),'rewrite-midia-'));try{
  await writeFile(join(pasta,'index.html'),html);await writeFile(join(pasta,'rss.xml'),'<url>'+foto+'</url>');await writeFile(join(pasta,'original.jpg'),foto);
- assert.equal((await reescreverMidiaCloudflare(pasta)).modificados,2);assert.equal(await readFile(join(pasta,'original.jpg'),'utf8'),foto);assert.match(await readFile(join(pasta,'rss.xml'),'utf8'),/https:\/\/casal-na-estrada-site-teste/);
+ assert.equal((await reescreverMidiaCloudflare(pasta)).modificados,2);assert.equal(await readFile(join(pasta,'original.jpg'),'utf8'),foto);assert.match(await readFile(join(pasta,'rss.xml'),'utf8'),/https:\/\/casal-na-estrada/);
  assert.equal((await reescreverMidiaCloudflare(pasta)).modificados,0);
 }finally{await rm(pasta,{recursive:true,force:true});}
 const segredo='fixture-hmac-nao-usar-em-producao-000000000';let manutencao=0,leituras=0;

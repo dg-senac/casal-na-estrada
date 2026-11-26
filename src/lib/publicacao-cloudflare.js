@@ -1,4 +1,4 @@
-const HOST='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev';
+const HOST='https://casal-na-estrada.douglasmarista02.workers.dev';
 export function criarPublicacaoCloudflare({habilitado,origem,obterSessao,fetchImpl=fetch}){
  if(habilitado!==true||origem!==HOST)return null;
  const chamar=async acao=>{

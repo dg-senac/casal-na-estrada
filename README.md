@@ -2,10 +2,10 @@
 
 Site de Cieri e Milla sobre viagens de moto, encontros, lugares visitados, fotos e a coleção de troféus do casal. Inclui painel editorial e controle protegido de emergência.
 
-**Site:** https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/  
+**Site:** https://casal-na-estrada.douglasmarista02.workers.dev/
 **Instagram:** [@casal_naestrada2.4](https://instagram.com/casal_naestrada2.4)
 
-O nome técnico do Worker ainda contém `site-teste`, mas este é o endereço adotado como oficial. A hospedagem anterior no GitHub Pages foi retirada; não reative seus antigos workflows.
+O nome do Worker é `casal-na-estrada`. A troca de nome está preparada no código e precisa ser coordenada no painel Cloudflare antes de publicar esta revisão. A hospedagem anterior no GitHub Pages foi retirada; não reative seus antigos workflows.
 
 ## Tecnologias e identidade
 
@@ -118,3 +118,15 @@ Os HTMLs saem em `entregas/` (ignorado no Git). Não transmitem os arquivos esco
 Coordenadas municipais: [kelvins/municipios-brasileiros](https://github.com/kelvins/municipios-brasileiros), revisão `503e2f70bbf1b4b7ec0b1f68b09086ccc38fe861`, `csv/municipios.csv`. Licença MIT preservada em `src/data/municipios-LICENSE.txt`. Os pontos indicam sedes municipais, não coordenadas exatas de eventos ou rotas; não inventar localização para nomes ambíguos.
 
 Fotos e histórias pertencem aos respectivos responsáveis. Preservar originais e distinguir peças/edições de troféus antes de substituir imagens. O destaque de Cieri e Milla é editorial e não declara uma vitória de competição.
+
+
+## Troca do nome do Worker (implantação coordenada)
+
+Endereço pretendido: `https://casal-na-estrada.douglasmarista02.workers.dev`.
+
+1. Renomear o Worker existente para `casal-na-estrada` no painel, se o nome estiver disponível. Não criar/apagar Worker nem mudar o D1 por engano. Confirmar bindings, variáveis e segredos existentes preservados, sem copiar valores para chat/Git.
+2. A revisão desta alteração está na branch `arena/1b4a29e7-casal-na-estrada`. O painel de Builds precisa usar a branch que contém essa revisão; o Deploy Hook também deve apontar para ela enquanto essa for a fonte ativa. Não presumir que mudar código altera configuração no painel.
+3. Compilar/publicar depois da renomeação: o canal de build usa o novo host. Antes do novo endereço existir, build falhar é esperado; não habilitar fallback público. Não fazer deploy desta revisão sobre o Worker antigo antes de planejar a renomeação, pois o nome no wrangler define o destino.
+4. Após Ready, conferir páginas/fotos/admin e controle `/login-teste`, cron e Publicar agora. Só então divulgar novo endereço. O código não implementa redirect do antigo; o funcionamento ou desaparecimento dele depende da plataforma. Histórico de backups e referências de imagens antigas continuam reconhecidos sem autorizar envio de sessão admin ao host antigo.
+
+A manutenção não deve estar ativa na compilação. Mudança de nome não concede permissão para trocar segredos, criar banco ou contratar plano. Se o painel não oferecer renomeação, parar e avaliar a alternativa sem excluir o Worker existente.
