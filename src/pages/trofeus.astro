@@ -1,12 +1,14 @@
 ---
 import Base from '../layouts/Base.astro';
 import TrofeuDoCasal from '../components/TrofeuDoCasal.astro';
+import PainelLego from '../components/PainelLego.astro';
 import { carregarTrofeus } from '../lib/dados';
 import { url } from '../lib/url';
 import { capa, capaAlt, metaData, ordenar, porCategoria, quando, selo } from '../lib/trofeus';
 
 const trofeus = (await carregarTrofeus()).filter((t) => !t.data.rascunho);
-const grupos = porCategoria(trofeus);
+const lego = trofeus.find((t) => t.id === 'sem-ano-lego-bmw');
+const grupos = porCategoria(trofeus.filter((t) => t !== lego));
 
 const ultima = ordenar(trofeus)[0];
 ---
@@ -26,6 +28,7 @@ const ultima = ordenar(trofeus)[0];
           por tipo de peça — e cada uma tem o encontro, a cidade e a história anotados atrás.
         </p>
         <div class="contagem">
+          {lego && <span><strong>1</strong> montagem em LEGO</span>}
           {grupos.map((g) => (
             <span>
               <strong>{g.pecas.length}</strong> {g.titulo.toLowerCase()}
@@ -37,6 +40,7 @@ const ultima = ordenar(trofeus)[0];
   </header>
 
   <TrofeuDoCasal />
+  {lego && <PainelLego peca={lego} />}
 
   {
     grupos.length > 0 && (
@@ -44,6 +48,7 @@ const ultima = ordenar(trofeus)[0];
         <div class="wrap indice__in">
           <span class="indice__rotulo">Prateleira por categoria</span>
           <ul class="indice__lista">
+            {lego && <li><a href="#moto-lego">Moto em LEGO <span class="indice__qtd">1</span></a></li>}
             {grupos.map((g) => (
               <li>
                 <a href={`#cat-${g.id}`}>

@@ -1,0 +1,214 @@
+{
+  "email": "1a21586f35b863d9",
+  "estado": "aguardando-publicacao-assets",
+  "pecas": [
+    {
+      "arquivo": "179916.jpg",
+      "slug": "sem-ano-copo-highway-mc",
+      "evento": "Copo Highway MC",
+      "descricao": "Copo claro com emblema Highway MC e inscrição de cinco anos.",
+      "operacao": "insert",
+      "sha256": "bb8af39e8fd11ec7e6000cc7ea4ebfcbf79fccad9514214f66d93c8aae325ff6"
+    },
+    {
+      "arquivo": "179919.jpg",
+      "slug": "sem-ano-copo-caveiras-100-limites",
+      "evento": "Copo Caveiras 100 Limites",
+      "descricao": "Copo escuro com inscrição Caveiras 100 Limites e dez anos.",
+      "operacao": "insert",
+      "sha256": "4c9271cda18b583e8af1c94430ef0a0db8677028472169b67ef6294ddaebaaed"
+    },
+    {
+      "arquivo": "179922.jpg",
+      "slug": "sem-ano-copos-taquaritinga",
+      "evento": "Copos Taquaritinga Motofest",
+      "descricao": "Conjunto de copos com identificação do Taquaritinga Motofest.",
+      "operacao": "insert",
+      "sha256": "4052969b5301d5541fa5d356243d5285e3350999a6ef3457923af7b79477b18d"
+    },
+    {
+      "arquivo": "179925.jpg",
+      "slug": "sem-ano-copo-obra-do-rei",
+      "evento": "Copo Obra do Rei Moto Fest",
+      "descricao": "Copo escuro com identificação Obra do Rei Moto Fest.",
+      "operacao": "insert",
+      "sha256": "0450b3806b2983647434a27fdc43939911e5662e89c979b13236c9170814d33a"
+    },
+    {
+      "arquivo": "179928.jpg",
+      "slug": "sem-ano-copo-fe-pista",
+      "evento": "Copo de motociclistas — fé e pista",
+      "descricao": "Copo térmico escuro com emblema de caveira e inscrição de nove anos.",
+      "operacao": "insert",
+      "sha256": "25ae3f69e0e4da6ddc363115a0d79d0596e31d22bcc9a734a7288343dbc71029"
+    },
+    {
+      "arquivo": "179931.jpg",
+      "slug": "sem-ano-copos-joao-alfredo",
+      "evento": "Copos de aniversário — João Alfredo",
+      "descricao": "Dois copos coloridos com inscrições de aniversário, em composição com João Alfredo ao fundo.",
+      "operacao": "insert",
+      "sha256": "698058ecca6e5c45ca27d9d614ac5474f3aa4133876d06a20bd1cbc77bdbdd46"
+    },
+    {
+      "arquivo": "179934.jpg",
+      "slug": "sem-ano-copo-cabedelo",
+      "evento": "Copo Cabedelo Motos Fest",
+      "descricao": "Copo claro com identificação Cabedelo Motos Fest.",
+      "operacao": "insert",
+      "sha256": "d11b232102f3767791d414ec61950700bef189d2bc73b1c44282b937d7783a70"
+    },
+    {
+      "arquivo": "179937.jpg",
+      "slug": "sem-ano-copo-estradeiras",
+      "evento": "Copo Estradeiras",
+      "descricao": "Copo escuro com identificação Estradeiras e emblema motociclístico.",
+      "operacao": "insert",
+      "sha256": "9a68facab49b40729edcb5885bdddc06ef49fbc3e44fe24afc4b5d87ef7d0b0a"
+    },
+    {
+      "arquivo": "179940.jpg",
+      "slug": "sem-ano-caneca-anjos-asfalto",
+      "evento": "Caneca Anjos do Asfalto",
+      "descricao": "Caneca branca decorada com caveira florida, em composição com faixa do segundo aniversário do Anjos do Asfalto MC.",
+      "operacao": "insert",
+      "sha256": "67f6b04e2e0b9f32ca1fa16cd95bdc79fecd851bd8695843804d3733a52e5b16"
+    },
+    {
+      "arquivo": "179943.jpg",
+      "slug": "sem-ano-caneca-estradeiros-rei",
+      "evento": "Caneca Estradeiros do Rei",
+      "descricao": "Caneca translúcida em tom âmbar, em composição com identificação do coletamento dos Estradeiros do Rei MC.",
+      "operacao": "insert",
+      "sha256": "56d723b34f0347c16fe21c66fe342998fedba5a6a9c6976db04f333abddcf8a1"
+    },
+    {
+      "arquivo": "179946.jpg",
+      "slug": "sem-ano-frascos-castelo",
+      "evento": "Frascos decorativos de castelo",
+      "descricao": "Três pequenos frascos decorativos com ilustrações de castelo.",
+      "operacao": "insert",
+      "sha256": "f6eb537920489b96443197425bfa6433a01bbf336918fa5c6dc786d2eff6eb75"
+    },
+    {
+      "arquivo": "180066.jpg",
+      "slug": "sem-ano-miniatura-bmw",
+      "evento": "Miniatura de moto BMW",
+      "descricao": "Miniatura de motocicleta em amarelo e preto sobre base expositora.",
+      "operacao": "insert",
+      "sha256": "aad16512b0bdd5d306c5a502c5f87abd087b71bdf67c01d97b710ebcdb39b430"
+    },
+    {
+      "arquivo": "180069.jpg",
+      "slug": "sem-ano-colecao-miniaturas",
+      "evento": "Coleção de miniaturas de motos",
+      "descricao": "Três miniaturas de motos reunidas sobre uma base expositora.",
+      "operacao": "insert",
+      "sha256": "094418fff57310f21090872021df35b22fb1815a465c223be29f60c3124d6d1b"
+    },
+    {
+      "arquivo": "180073.jpg",
+      "slug": "sem-ano-lego-bmw",
+      "evento": "BMW M 1000 RR em LEGO",
+      "descricao": "Montagem BMW em LEGO, apresentada em composição com diferentes vistas da moto.",
+      "operacao": "update",
+      "sha256": "0360e9a0227f00fbf008d471600f9387506c4e33a8cc99c348f60fba3c633d4e"
+    },
+    {
+      "arquivo": "180079.jpg",
+      "slug": "sem-ano-azulejo-cabedelo",
+      "evento": "Azulejo decorativo de Cabedelo",
+      "descricao": "Peça retangular ilustrada, com o nome de Cabedelo e brasão.",
+      "operacao": "insert",
+      "sha256": "ac102d104103fad5167b4f81e9a1ed3e06ee976e2934a80a183fa7f9df0c984a"
+    },
+    {
+      "arquivo": "180080.jpg",
+      "slug": "sem-ano-papangu-bezerros",
+      "evento": "Papangu de Bezerros",
+      "descricao": "Figura colorida de papangu, em composição com identificação de Bezerros Moto Fest.",
+      "operacao": "insert",
+      "sha256": "f4136b1ded5a298b95dccb5117f956b7627d0762874c1d8f08f9bd0ac95304fd"
+    },
+    {
+      "arquivo": "180085.jpg",
+      "slug": "sem-ano-tigela-colher-madeira",
+      "evento": "Tigela e colher de madeira",
+      "descricao": "Tigela artesanal acompanhada de colher de madeira, em composição com referências de viagem e motociclismo.",
+      "operacao": "insert",
+      "sha256": "fcbd1757ee5374ce49e5e86934ec9f69554af4e909ae13804e6c7d971344b996"
+    },
+    {
+      "arquivo": "180087.jpg",
+      "slug": "sem-ano-lembrancas-sape",
+      "evento": "Lembranças de Sapé",
+      "descricao": "Conjunto de pequenas lembranças com referências a Sapé, incluindo chaveiro e peças decorativas.",
+      "operacao": "insert",
+      "sha256": "ab6992802cc03268a7ed678ae3a11d12db021aadb4ef48ab8537f25600b28600"
+    },
+    {
+      "arquivo": "180091.jpg",
+      "slug": "sem-ano-casinha-madeira",
+      "evento": "Casinha de madeira",
+      "descricao": "Casinha de madeira com telhado amarelo sobre uma base escura.",
+      "operacao": "insert",
+      "sha256": "f4111c2eccdc829f56d363c4adc6f4821317064d4b1e2015b034b3c57488fe17"
+    },
+    {
+      "arquivo": "180092.jpg",
+      "slug": "sem-ano-relogio-casal",
+      "evento": "Relógio Casal na Estrada",
+      "descricao": "Relógio de parede com silhuetas de motociclistas e identificação Casal na Estrada.",
+      "operacao": "insert",
+      "sha256": "40b55a3a26c673b3e2004aa3ee0e56570f81331e1d69c26793f007a433af1153"
+    },
+    {
+      "arquivo": "180095.jpg",
+      "slug": "sem-ano-lembrancas-caruaru",
+      "evento": "Lembranças de Caruaru",
+      "descricao": "Conjunto de peças decorativas de madeira com referências a Caruaru.",
+      "operacao": "insert",
+      "sha256": "8b16a27c561af01453ed2621b223b7ea61f0ca54029c254a2670e282e9b2411a"
+    },
+    {
+      "arquivo": "180096.jpg",
+      "slug": "sem-ano-cafe-taquaritinga",
+      "evento": "Lembrança do café de Taquaritinga do Norte",
+      "descricao": "Peças decorativas com xícara, grãos de café e identificação Taquaritinga do Norte.",
+      "operacao": "insert",
+      "sha256": "864968c111e76a6c2865f191f751aee6bc974e08afe373013ce22dfdeaeeb971"
+    },
+    {
+      "arquivo": "180106.jpg",
+      "slug": "sem-ano-bolacha-madeira",
+      "evento": "Bolacha de madeira decorativa",
+      "descricao": "Peça redonda de madeira sobre pequeno suporte, com desenho e inscrições decorativas.",
+      "operacao": "insert",
+      "sha256": "157863716091b90232b53df05f5f8f92651e2a43b18c5f4680b7f0264424c638"
+    },
+    {
+      "arquivo": "180107.jpg",
+      "slug": "sem-ano-colete-patches",
+      "evento": "Colete com patches",
+      "descricao": "Colete preto com coleção de patches motociclísticos.",
+      "operacao": "insert",
+      "sha256": "0ccea7c97e40fb90ffe7456d7915a2a7f10fa2ea82df0905d344180138f88f88"
+    },
+    {
+      "arquivo": "180108.jpg",
+      "slug": "sem-ano-arvore-natal-rn",
+      "evento": "Árvore das praias do Rio Grande do Norte",
+      "descricao": "Árvore decorativa de madeira com nomes coloridos de praias do Rio Grande do Norte.",
+      "operacao": "update",
+      "sha256": "e383a1072896bf9c01b647fc77e81e67cd23cfca953844eb784f6faac6d9dae2"
+    },
+    {
+      "arquivo": "180110.jpg",
+      "slug": "sem-ano-lembrancas-cha-grande",
+      "evento": "Lembranças de Chã Grande",
+      "descricao": "Conjunto de lembranças com identificação Chã Grande–PE, incluindo peças decorativas e canecas.",
+      "operacao": "insert",
+      "sha256": "831d69aad906e9b5f4604b5cc992a8648e3b02ed70dcf2c2458c9aefbfb677ba"
+    }
+  ]
+}
