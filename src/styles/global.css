@@ -698,3 +698,29 @@ a:hover .foto-proporcao img {
 .pn-destinos-mapa input { width: 100%; max-width: 34rem; }
 .pn-destinos-mapa button { margin: .35rem .6rem .35rem 0; }
 .pn-destinos-mapa .leaflet-container { max-width: 100%; isolation: isolate; }
+
+/* Preferências locais, opt-in: fotos coloridas e Bodoni preservadas. */
+html[data-alto-contraste] {
+  --paper:#000; --paper-2:#101010; --paper-3:#181818;
+  --ink:#fff; --ink-2:#fff; --ink-soft:#eee; --ink-mute:#ddd;
+  --rust-text:#ffbf9e; --line:#aaa; --line-strong:#ddd;
+  --paper-line:#aaa;
+}
+html[data-alto-contraste] body::after { display:none; }
+html[data-alto-contraste] :focus-visible { outline:3px solid #ffdf00; outline-offset:4px; }
+html[data-alto-contraste] main a:not(.btn) { text-decoration-thickness:2px; }
+html[data-reduzir-movimento] { scroll-behavior:auto !important; }
+html[data-reduzir-movimento] *,
+html[data-reduzir-movimento] *::before,
+html[data-reduzir-movimento] *::after {
+  scroll-behavior:auto !important;
+  animation:none !important;
+  transition:none !important;
+}
+html[data-reduzir-movimento] [data-reveal] { opacity:1; transform:none; }
+@media (prefers-reduced-motion:reduce) {
+  *, *::before, *::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; }
+}
+html[data-alto-contraste] .section--ink { background:#000; }
+html[data-alto-contraste] .section--ink p,
+html[data-alto-contraste] .section--ink .eyebrow { color:#fff; }

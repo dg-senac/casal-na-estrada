@@ -130,3 +130,9 @@ Endereço pretendido: `https://casal-na-estrada.douglasmarista02.workers.dev`.
 4. Após Ready, conferir páginas/fotos/admin e controle `/login-teste`, cron e Publicar agora. Só então divulgar novo endereço. O código não implementa redirect do antigo; o funcionamento ou desaparecimento dele depende da plataforma. Histórico de backups e referências de imagens antigas continuam reconhecidos sem autorizar envio de sessão admin ao host antigo.
 
 A manutenção não deve estar ativa na compilação. Mudança de nome não concede permissão para trocar segredos, criar banco ou contratar plano. Se o painel não oferecer renomeação, parar e avaliar a alternativa sem excluir o Worker existente.
+
+## Opções de acessibilidade
+
+Nas páginas públicas, o botão no rodapé abre um diálogo nativo com tamanho de texto (100–150%), alto contraste, redução de movimentos e restauração. O visual padrão, a Bodoni e as cores das fotos são preservados. Preferências são validadas e salvas apenas no `localStorage` deste navegador; sem serviços externos, cookies adicionais ou cadastro. Armazenamento bloqueado não impede o ajuste na página atual.
+
+O diálogo aceita Escape e retorna o foco ao botão. A redução de movimento respeita também o sistema operacional e impede a reprodução automática do carrossel; os controles manuais continuam disponíveis. O mapa mantém sua alternativa em lista. Testes: `node tests/acessibilidade.mjs`. Os recursos não substituem auditoria WCAG nem validam conformidade completa; testar também teclado, zoom de 200–400% e leitor de tela em navegadores reais.

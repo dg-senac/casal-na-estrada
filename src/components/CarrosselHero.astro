@@ -34,7 +34,8 @@ const slides = [
     const controls = root.querySelector<HTMLElement>('[data-controles]')!;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     let index = 0;
-    let paused = reduced.matches;
+    const reduzir = () => reduced.matches || document.documentElement.hasAttribute('data-reduzir-movimento');
+    let paused = reduzir();
     let hovering = false;
     let focused = false;
     let timer: number | undefined;
@@ -47,11 +48,12 @@ const slides = [
     };
     const schedule = () => {
       window.clearInterval(timer);
-      if (!paused && !hovering && !focused && !document.hidden) timer = window.setInterval(() => show(index + 1), 6000);
+      if (!reduzir() && !paused && !hovering && !focused && !document.hidden) timer = window.setInterval(() => show(index + 1), 6000);
     };
     const updatePause = () => {
-      pause.textContent = paused ? 'Reproduzir' : 'Pausar';
-      pause.setAttribute('aria-label', paused ? 'Iniciar troca automática' : 'Pausar troca automática');
+      pause.disabled = reduzir();
+      pause.textContent = (paused || reduzir()) ? 'Reproduzir' : 'Pausar';
+      pause.setAttribute('aria-label', (paused || reduzir()) ? 'Iniciar troca automática' : 'Pausar troca automática');
       schedule();
     };
     const manual = (next: number) => { show(next, true); schedule(); };
@@ -67,6 +69,7 @@ const slides = [
       if (ev.key === 'ArrowLeft' || ev.key === 'ArrowRight') { ev.preventDefault(); manual(index + (ev.key === 'ArrowLeft' ? -1 : 1)); }
     });
     reduced.addEventListener('change', () => { if (reduced.matches) { paused = true; updatePause(); } });
+    window.addEventListener('acessibilidade:alterada', updatePause);
     document.addEventListener('visibilitychange', schedule);
     window.addEventListener('pagehide', () => window.clearInterval(timer));
     controls.hidden = false;

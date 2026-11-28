@@ -39,6 +39,7 @@ jobs:
       - name: Conferir páginas geradas
         run: |
           node tests/cabecalhos-seguranca.mjs
+          node tests/acessibilidade.mjs
           node tests/moto-equipamentos.mjs
           node tests/seo-basico.mjs
           node tests/primeira-viagem.mjs
