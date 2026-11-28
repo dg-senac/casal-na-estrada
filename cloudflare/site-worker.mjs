@@ -1,3 +1,4 @@
+import {protegerResposta} from './cabecalhos-seguranca.mjs';
 import paginaManutencao from './manutencao-template.mjs';
 import {statusAgendamento} from './status-agendamento.mjs';
 import {verificarPublicacaoAgendada} from './agendamento-publicacao.mjs';
@@ -13,7 +14,7 @@ import {tratarMidiaBackup} from './midia-backup.mjs';
 const rotasPainel=new Set(['/login-teste','/api/verificar','/api/emergencia-real','/api/emergencia-teste','/api/reabrir-teste','/api/exportar-editorial','/api/conferir-backup','/api/baixar-backup']);
 function manutencao(){const nonce=crypto.randomUUID().replaceAll('-','');return new Response(paginaManutencao.replaceAll('__NONCE__',nonce),{status:503,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store','Retry-After':'300','X-Robots-Tag':'noindex, nofollow','Content-Security-Policy':`default-src 'none'; style-src 'nonce-${nonce}'; font-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'`,'X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'}});}
 
-export default {
+const worker = {
  async scheduled(event,env,ctx){ctx.waitUntil(verificarPublicacaoAgendada(env));},
  async fetch(request,env){
   // Aceita os nomes já cadastrados pelo usuário no runtime do Worker novo.
@@ -48,7 +49,12 @@ export default {
    else headers.delete('X-Robots-Tag'); // Host adotado como oficial pelo proprietário.
    headers.set('X-Content-Type-Options','nosniff');
    headers.set('Referrer-Policy','strict-origin-when-cross-origin');
-   return new Response(resposta.body,{status:resposta.status,statusText:resposta.statusText,headers});
+   return protegerResposta(new Response(resposta.body,{status:resposta.status,statusText:resposta.statusText,headers}),request,env,true);
   }catch{return manutencao();}
  }
+};
+
+export default {
+ scheduled: worker.scheduled,
+ async fetch(request,env){return protegerResposta(await worker.fetch(request,env),request,env);}
 };

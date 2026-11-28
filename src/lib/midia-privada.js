@@ -18,8 +18,10 @@ export function referenciaFotoAdmin(base,valor){
  if(typeof valor!=='string')return null;
  const prefixos=[
   [base.replace(/\/$/,'')+'/storage/v1/object/public/midia/','midia'],
+  ['https://casal-na-estrada.douglasmarista02.workers.dev/midia-protegida/midia/','midia'],
   ['https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/midia-protegida/midia/','midia'],
   ['https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/midia-protegida/midia-rascunhos/',BUCKET_RASCUNHOS],
+  ['https://casal-na-estrada.douglasmarista02.workers.dev/midia-protegida/midia-rascunhos/',BUCKET_RASCUNHOS],
  ];
  for(const [prefixo,bucket] of prefixos){if(!valor.startsWith(prefixo))continue;try{
   const caminho=decodeURIComponent(valor.slice(prefixo.length));

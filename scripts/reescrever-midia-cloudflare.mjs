@@ -1,8 +1,9 @@
 import {readdir,readFile,writeFile,lstat} from 'node:fs/promises';
 import {join,extname} from 'node:path';
 const BASE='https://pjglrlullnchqazxpvyn.supabase.co';
-const SITE='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev';
+const SITE='https://casal-na-estrada.douglasmarista02.workers.dev';
 const trocas=[
+ ['https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/',SITE+'/'],
  [BASE+'/functions/v1/foto-publicada/',SITE+'/midia-protegida/midia-rascunhos/'],
  [BASE+'/storage/v1/object/public/midia/',SITE+'/midia-protegida/midia/'],
 ];

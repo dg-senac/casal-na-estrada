@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import {JSDOM} from 'jsdom';
 import {instalarEmergenciaAdmin} from '../src/lib/emergencia-admin.js';
-const origem='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev';
+const origem='https://casal-na-estrada.douglasmarista02.workers.dev';
 async function teste({habilitado=true,host=origem,status=200,falhar=false}={}){
  const dom=new JSDOM('<div class="pn-topo__direita"></div>',{url:host});const d=dom.window.document;let chamadas=0;
  dom.window.HTMLDialogElement.prototype.showModal=function(){this.open=true;};dom.window.HTMLDialogElement.prototype.close=function(){this.remove();};

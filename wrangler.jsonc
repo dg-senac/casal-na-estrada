@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "casal-na-estrada-site-teste",
+  "name": "casal-na-estrada",
   "main": "cloudflare/site-worker.mjs",
   "compatibility_date": "2026-11-09",
   "workers_dev": true,

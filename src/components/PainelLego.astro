@@ -1,0 +1,42 @@
+---
+import type { Trofeu } from '../lib/trofeus';
+import { capa, capaAlt } from '../lib/trofeus';
+import { url } from '../lib/url';
+interface Props { peca: Trofeu }
+const { peca } = Astro.props;
+const foto = capa(peca);
+---
+<section class="oficina wrap" id="moto-lego" aria-labelledby="lego-titulo">
+  <div class="oficina__painel">
+    <div class="oficina__imagem">
+      {foto && <a href={url(foto)} aria-label="Ver foto completa da moto em LEGO"><img src={url(foto)} alt={capaAlt(peca)} loading="lazy" decoding="async" /></a>}
+      <span class="oficina__legenda">Acervo do casal · Montagem em família</span>
+    </div>
+    <div class="oficina__texto">
+      <span class="oficina__selo">Feita de LEGO · Exposição especial</span>
+      <p class="eyebrow">Da estrada para a estante</p>
+      <h2 id="lego-titulo">Uma moto.<br /><em>Peça por peça.</em></h2>
+      <h3>{peca.data.evento}</h3>
+      <p class="oficina__historia">{peca.data.historia}</p>
+      <div class="oficina__ficha"><span>LEGO</span><span>BMW M 1000 RR</span><span>Feito em casa</span></div>
+      <a class="link-arrow" href={url(`/trofeus/${peca.id}`)}>Conhecer a montagem <span aria-hidden="true">↗</span></a>
+    </div>
+  </div>
+</section>
+<style>
+.oficina { padding-block:clamp(1.5rem,4vw,3rem); scroll-margin-top:120px; }
+.oficina__painel { display:grid; grid-template-columns:minmax(0,1.2fr) minmax(0,1fr); border:1px solid var(--line-strong); background:var(--paper-2); }
+.oficina__imagem { display:flex; flex-direction:column; justify-content:center; min-width:0; padding:clamp(1rem,3vw,2rem); border-right:1px solid var(--line); }
+.oficina__imagem a { display:block; }
+.oficina__imagem img { width:100%; height:auto; max-height:650px; object-fit:contain; filter:none; }
+.oficina__legenda { margin-top:1rem; font:.7rem/1.6 var(--sans); letter-spacing:.12em; text-transform:uppercase; color:var(--ink-soft); }
+.oficina__texto { align-self:center; padding:clamp(1.4rem,4vw,3.5rem); }
+.oficina__selo { display:inline-block; border:1px solid var(--line-strong); padding:.5rem .7rem; margin-bottom:2rem; font:.7rem/1.5 var(--sans); letter-spacing:.12em; text-transform:uppercase; }
+.oficina h2 { font:400 clamp(2.6rem,5vw,4.8rem)/1.03 var(--serif); letter-spacing:-.03em; margin:0 0 1.4rem; }
+.oficina h2 em { color:var(--rust-text); }
+.oficina h3 { font:400 1.4rem/1.3 var(--serif); }
+.oficina__historia { color:var(--ink-soft); font-size:.95rem; line-height:1.8; }
+.oficina__ficha { display:flex; flex-wrap:wrap; gap:.7rem 1.2rem; padding:1rem 0; margin:1.5rem 0; border-block:1px solid var(--line); font:.7rem/1.6 var(--sans); text-transform:uppercase; letter-spacing:.1em; }
+.oficina a:focus-visible { outline:3px solid var(--rust-text); outline-offset:5px; }
+@media(max-width:760px) { .oficina__painel { grid-template-columns:1fr; } .oficina__imagem { border-right:0; border-bottom:1px solid var(--line); } }
+</style>

@@ -120,7 +120,7 @@ import { ordenar, seloCurto } from '../lib/trofeus';
                 srcset={manchete.data.capaMini
                   ? `${url(manchete.data.capaMini)} 900w, ${url(manchete.data.capa)} 2000w`
                   : undefined}
-                sizes="(max-width: 780px) 100vw, 56vw"
+                sizes={manchete.data.capaMini ? '(max-width: 780px) 100vw, 56vw' : undefined}
                 alt={manchete.data.capaAlt}
                 loading="eager"
                 fetchpriority="high"
@@ -166,7 +166,7 @@ import { ordenar, seloCurto } from '../lib/trofeus';
                 srcset={post.data.capaMini
                   ? `${url(post.data.capaMini)} 900w, ${url(post.data.capa)} 2000w`
                   : undefined}
-                sizes="(max-width: 780px) 100vw, 33vw"
+                sizes={post.data.capaMini ? '(max-width: 780px) 100vw, 33vw' : undefined}
                 alt={post.data.capaAlt}
                 loading="lazy"
                 decoding="async"
@@ -257,7 +257,7 @@ import { ordenar, seloCurto } from '../lib/trofeus';
 </section>
 
 <!-- ================= ATALHOS DO CADERNO ================= -->
-<section class="section section--tight">
+<section class="section section--tight" aria-label="Explore o caderno de viagens">
   <div class="wrap atalhos" data-reveal>
     <a class="atalho costura" href={url("/lugares")}>
       <span class="atalho__rotulo">Mapa de papel</span>

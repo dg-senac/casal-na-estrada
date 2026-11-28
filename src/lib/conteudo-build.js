@@ -1,5 +1,5 @@
 /** Leitura server-side de conteúdo publicado. Nunca envia chave do Supabase. */
-export const URL_CONTEUDO_BUILD='https://casal-na-estrada-site-teste.douglasmarista02.workers.dev/conteudo-build.json';
+export const URL_CONTEUDO_BUILD='https://casal-na-estrada.douglasmarista02.workers.dev/conteudo-build.json';
 export function validarConteudoPublicado(valor){
  if(!valor||typeof valor!=='object'||Array.isArray(valor)||valor.versao!==1||Object.keys(valor).sort().join('|')!=='albuns|encontros|posts|trofeus|versao')throw Error('Formato de conteúdo publicado incompatível');
  for(const t of ['posts','albuns','trofeus','encontros']){
