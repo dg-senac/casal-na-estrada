@@ -92,7 +92,7 @@ const fichaSite = {
       <button class="zoom__fechar" type="button" data-zoom-fechar aria-label="Fechar a foto">
         Fechar ✕
       </button>
-      <img id="zoom-img" alt="" />
+      <img id="zoom-img" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" alt="" />
       <p class="zoom__dica">Clique fora ou aperte Esc para voltar</p>
     </div>
 
@@ -156,7 +156,7 @@ const fichaSite = {
       const fecharZoom = () => {
         if (!caixaZoom) return;
         caixaZoom.hidden = true;
-        if (imagemZoom) imagemZoom.removeAttribute('src');
+        if (imagemZoom) imagemZoom.src = 'data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=';
         document.documentElement.style.overflow = '';
       };
 
