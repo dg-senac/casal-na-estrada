@@ -1,0 +1,31 @@
+<div class="acesso">
+  <button type="button" data-acesso-abrir hidden aria-haspopup="dialog">Opções de acessibilidade</button>
+  <dialog id="opcoes-acessibilidade" aria-labelledby="acesso-titulo" aria-describedby="acesso-ajuda">
+    <div class="acesso__topo"><h2 id="acesso-titulo">Acessibilidade</h2><button type="button" data-acesso-fechar aria-label="Fechar opções de acessibilidade">Fechar ✕</button></div>
+    <p id="acesso-ajuda">Ajuste a leitura como preferir. As escolhas ficam apenas neste navegador. Nenhuma foto ou fonte é alterada.</p>
+    <label for="acesso-texto">Tamanho do texto</label>
+    <select id="acesso-texto"><option value="100">Padrão (100%)</option><option value="115">Maior (115%)</option><option value="130">Grande (130%)</option><option value="150">Muito grande (150%)</option></select>
+    <label class="acesso__opcao"><input id="acesso-contraste" type="checkbox" /> Alto contraste</label>
+    <label class="acesso__opcao"><input id="acesso-movimento" type="checkbox" /> Reduzir movimentos e pausar carrossel</label>
+    <p class="acesso__nota">A preferência de movimento do seu dispositivo também é respeitada. Você pode ampliar mais pelo zoom do navegador.</p>
+    <button type="button" data-acesso-restaurar>Restaurar preferências</button>
+    <p class="acesso__nota" role="status" aria-live="polite" data-acesso-status></p>
+  </dialog>
+</div>
+<script>
+  import { iniciarAcessibilidade } from '../lib/acessibilidade';
+  iniciarAcessibilidade();
+</script>
+<style>
+.acesso { padding:1rem; text-align:center; border-top:1px solid var(--line); }
+.acesso button,.acesso select { font:inherit; color:var(--ink); background:var(--paper-3); border:1px solid var(--ink-soft); border-radius:3px; padding:.65rem .85rem; min-height:44px; cursor:pointer; }
+.acesso button[hidden] { display:none; }
+.acesso dialog { width:min(92vw,36rem); max-height:85svh; overflow:auto; text-align:left; padding:clamp(1rem,4vw,2rem); background:var(--paper); color:var(--ink); border:2px solid var(--ink-soft); }
+.acesso dialog::backdrop { background:#000b; }
+.acesso__topo { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
+.acesso h2 { font:400 1.9rem/1.2 var(--serif); margin:0; }
+.acesso select { display:block; width:100%; margin:.5rem 0 1rem; }
+.acesso__opcao { display:flex; align-items:center; gap:.7rem; min-height:48px; padding:.5rem 0; }
+.acesso input { width:1.3rem; height:1.3rem; flex-shrink:0; accent-color:var(--rust-text); }
+.acesso__nota { color:var(--ink-soft); font-size:.9rem; }
+</style>
